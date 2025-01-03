@@ -1,4 +1,7 @@
+-- app/Main.hs
 module Main where
 
+import UI.MainUI (startGame)
+
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = startGame

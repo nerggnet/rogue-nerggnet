@@ -19,8 +19,9 @@ common warnings
 executable rogue-nerggnet
     import:           warnings
     main-is:          Main.hs
-    -- other-modules:
+    other-modules:    Game.Types, Game.State, UI.MainUI, UI.Draw
     -- other-extensions:
-    build-depends:    base ^>=4.20.0.0
-    hs-source-dirs:   app
+    build-depends:    base ^>=4.20.0.0, containers, brick, vty, vty-crossplatform, mtl, linear, lens
+    hs-source-dirs:   app, src
     default-language: Haskell2010
+    ghc-options:      -threaded
