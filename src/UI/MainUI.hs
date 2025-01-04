@@ -1,8 +1,10 @@
 -- src/UI/MainUI.hs
+{-# OPTIONS_GHC -Wno-x-partial #-}
+
 module UI.MainUI (startGame) where
 
 import Brick
-import Brick.BChan
+-- import Brick.BChan
 import Graphics.Vty (Event(..), Key(..), defAttr, black, white, yellow, green, red)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
@@ -10,6 +12,10 @@ import Game.State (initGame)
 import UI.Draw
 import qualified Game.Types as Game
 import Linear.V2 (V2(..))
+-- import Linear.V2 (V2(..), _x, _y)
+-- import Control.Lens ((^.))
+-- import Data.List (intercalate)
+-- import Debug.Trace
 
 -- App definition
 app :: App Game.GameState e ()
@@ -33,7 +39,7 @@ startGame = do
   let initialState = initGame
   let buildVty = mkVty defaultConfig
   vty <- buildVty
-  endState <- customMain vty buildVty Nothing app initialState
+  _ <- customMain vty buildVty Nothing app initialState -- end state
   putStrLn "Game Over!"
 
 -- Handle events
@@ -60,14 +66,14 @@ handleMovement key =
 handleCommandInput :: Key -> EventM () Game.GameState ()
 handleCommandInput key =
   case key of
-    KChar c   -> modify (\s -> s { Game.commandBuffer = Game.commandBuffer s ++ [c] }) -- Add to command buffer
+    KChar c   -> modify (\s -> s { Game.commandBuffer = Game.commandBuffer s ++ [c] })     -- Add to command buffer
     KBS       -> modify (\s -> s { Game.commandBuffer = initSafe (Game.commandBuffer s) }) -- Backspace
     KEnter    -> do
       cmd <- gets Game.commandBuffer
       executeCommand cmd
-      modify (\s -> s { Game.commandMode = False, Game.commandBuffer = "" }) -- Exit command mode after execution
+      modify (\s -> s { Game.commandMode = False, Game.commandBuffer = "" })            -- Exit command mode after execution
     KEsc      -> modify (\s -> s { Game.commandMode = False, Game.commandBuffer = "" }) -- Exit command mode without executing
-    _         -> return ()                                -- No-op for other keys
+    _         -> return ()                                                              -- No-op for other keys
 
 -- Execute commands
 executeCommand :: String -> EventM () Game.GameState ()
@@ -90,14 +96,16 @@ movePlayer dir state =
         Game.West  -> playerPos + V2 (-1) 0
         Game.East  -> playerPos + V2 1 0
         _          -> playerPos
-      -- Check if new position is within bounds and not a wall
       canMove (V2 x y) =
         y >= 0 && y < length worldMap &&
         x >= 0 && x < length (head worldMap) &&
         (worldMap !! y !! x) /= Game.Wall
-   in if canMove newPos
-        then state { Game.player = (Game.player state) { Game.position = newPos } }
-        else state
+      canMoveTo = canMove newPos
+  in if canMoveTo
+        then state { Game.player = (Game.player state) { Game.position = newPos }
+                   , Game.message = ("Moved to: " ++ show newPos) : Game.message state
+                   }
+        else state { Game.message = ("Blocked at: " ++ show newPos) : Game.message state }
 
 defaultAttrMap :: AttrMap
 defaultAttrMap = attrMap defAttr

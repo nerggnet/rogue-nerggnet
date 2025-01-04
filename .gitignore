@@ -373,3 +373,6 @@ debug.txt
 
 # Backup directories
 [Bb]ackup*/
+
+# Compiled sources output file
+compiled_source.md
