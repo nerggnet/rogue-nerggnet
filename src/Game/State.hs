@@ -1,5 +1,6 @@
 -- src/Game/State.hs
 {-# OPTIONS_GHC -Wno-x-partial #-}
+
 module Game.State where
 
 import Game.Types
@@ -44,6 +45,7 @@ transformItem :: FT.JSONItem -> Item
 transformItem fi = Item
   { iName = FT.itemName fi
   , iDescription = FT.itemDescription fi
+  , iPosition = uncurry V2 (FT.itemPosition fi) -- Convert (Int, Int) to V2 Int
   }
 
 -- Convert a character to a Tile

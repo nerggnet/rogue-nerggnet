@@ -27,6 +27,7 @@ data Monster = Monster
 data Item = Item
   { iName        :: String
   , iDescription :: String
+  , iPosition    :: V2 Int
   } deriving (Show)
 
 -- World state

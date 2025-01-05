@@ -1,11 +1,10 @@
 -- src/UI/MainUI.hs
-
 {-# OPTIONS_GHC -Wno-x-partial #-}
 
 module UI.MainUI (startGame) where
 
 import Brick
-import Graphics.Vty (Event(..), Key(..), defAttr, black, white, yellow, green, red)
+import Graphics.Vty (Event(..), Key(..), defAttr, black, white, yellow, green, red, blue, magenta)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 import Game.State (initGame)
@@ -150,4 +149,7 @@ defaultAttrMap = attrMap defAttr
   , (attrName "door", bg yellow)
   , (attrName "upStair", bg green)
   , (attrName "downStair", bg red)
+  , (attrName "player", fg blue)
+  , (attrName "monster", fg red)
+  , (attrName "item", fg magenta)
   ]

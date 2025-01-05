@@ -37,7 +37,7 @@
       { "name": "Slime", "position": [12, 25], "health": 5 }
     ],
     "items": [
-      { "itemName": "Health Potion", "itemPosition": [6, 6], "itemDescription": "Restores 20 HP." },
+      { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores 20 HP." },
       { "itemName": "Sword", "itemPosition": [11, 20], "itemDescription": "A sharp blade." },
       { "itemName": "Gold Coin", "itemPosition": [8, 30], "itemDescription": "Shiny and valuable." }
     ]
@@ -76,7 +76,7 @@
     "monsters": [
       { "name": "Orc", "position": [7, 7], "health": 18 },
       { "name": "Bat", "position": [15, 20], "health": 8 },
-      { "name": "Slime", "position": [10, 10], "health": 5 },
+      { "name": "Slime", "position": [10, 9], "health": 5 },
       { "name": "Wraith", "position": [18, 25], "health": 20 }
     ],
     "items": [
