@@ -1,4 +1,5 @@
 -- src/UI/Draw.hs
+
 module UI.Draw (drawUI) where
 
 import Brick
@@ -14,13 +15,15 @@ drawUI state =
   [ vBox
       [ drawTitleBar
       , hBox
-          [ padRight (Pad 2) $ drawMap (world state) (player state)
+          [ padRight (Pad 2) $ drawMap currentWorld (player state)
           , padLeft (Pad 2) $ drawLegend
           ]
       , padTop (Pad 2) $ drawMessages (message state)
       , padTop (Pad 1) $ drawCommandInput state
       ]
   ]
+  where
+    currentWorld = levels state !! currentLevel state
 
 drawTitleBar :: Widget ()
 drawTitleBar =
@@ -37,7 +40,7 @@ drawMap wrld plyr =
 
     drawTileWithPlayer y x tile
       | V2 x y == position plyr = str "@" -- Draw the player
-      | otherwise                 = drawTile tile
+      | otherwise               = drawTile tile
 
 -- Draw a single tile
 drawTile :: Tile -> Widget ()

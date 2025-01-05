@@ -39,7 +39,8 @@ data World = World
 -- Game state
 data GameState = GameState
   { player        :: Player
-  , world         :: World
+  , levels        :: [World]  -- List of all levels
+  , currentLevel  :: Int      -- Index of the current level
   , message       :: [String]
   , commandBuffer :: String
   , commandMode   :: Bool

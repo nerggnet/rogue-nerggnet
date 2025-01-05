@@ -1,4 +1,5 @@
 -- src/UI/MainUI.hs
+
 {-# OPTIONS_GHC -Wno-x-partial #-}
 
 module UI.MainUI (startGame) where
@@ -35,7 +36,7 @@ startGame = do
   initialState <- initGame
   let buildVty = mkVty defaultConfig
   vty <- buildVty
-  _ <- customMain vty buildVty Nothing app initialState -- end state
+  _ <- customMain vty buildVty Nothing app initialState
   putStrLn "Game Over!"
 
 -- Handle events
@@ -64,20 +65,36 @@ handleMovement key =
 goUp :: Game.GameState -> Game.GameState
 goUp state =
   let playerPos = Game.position (Game.player state)
-      tile = (Game.mapGrid (Game.world state)) !! (playerPos ^. _y) !! (playerPos ^. _x)
+      currentWorld = Game.levels state !! Game.currentLevel state
+      tile = (Game.mapGrid currentWorld) !! (playerPos ^. _y) !! (playerPos ^. _x)
   in case tile of
-       Game.UpStair -> -- Logic to transition to the upper level
-         state { Game.message = "You ascend the stairs." : Game.message state }
+       Game.UpStair ->
+         if Game.currentLevel state > 0
+         then
+           let newLevel = Game.currentLevel state - 1
+           in state { Game.currentLevel = newLevel
+                    , Game.player = (Game.player state) { Game.position = playerPos }
+                    , Game.message = "You ascend the stairs." : Game.message state
+                    }
+         else state { Game.message = "You are already on the top level." : Game.message state }
        _ -> state { Game.message = "No stairs to go up here!" : Game.message state }
 
 -- Go down stairs
 goDown :: Game.GameState -> Game.GameState
 goDown state =
   let playerPos = Game.position (Game.player state)
-      tile = (Game.mapGrid (Game.world state)) !! (playerPos ^. _y) !! (playerPos ^. _x)
+      currentWorld = Game.levels state !! Game.currentLevel state
+      tile = (Game.mapGrid currentWorld) !! (playerPos ^. _y) !! (playerPos ^. _x)
   in case tile of
-       Game.DownStair -> -- Logic to transition to the lower level
-         state { Game.message = "You descend the stairs." : Game.message state }
+       Game.DownStair ->
+         if Game.currentLevel state < length (Game.levels state) - 1
+         then
+           let newLevel = Game.currentLevel state + 1
+           in state { Game.currentLevel = newLevel
+                    , Game.player = (Game.player state) { Game.position = playerPos }
+                    , Game.message = "You descend the stairs." : Game.message state
+                    }
+         else state { Game.message = "You are already on the bottom level." : Game.message state }
        _ -> state { Game.message = "No stairs to go down here!" : Game.message state }
 
 -- Handle commands
@@ -107,7 +124,8 @@ initSafe xs = init xs
 movePlayer :: Game.Direction -> Game.GameState -> Game.GameState
 movePlayer dir state =
   let playerPos = Game.position (Game.player state)
-      worldMap  = Game.mapGrid (Game.world state)
+      currentWorld = Game.levels state !! Game.currentLevel state
+      worldMap  = Game.mapGrid currentWorld
       newPos = case dir of
         Game.North -> playerPos + V2 0 (-1)
         Game.South -> playerPos + V2 0 1

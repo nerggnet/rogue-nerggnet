@@ -11,11 +11,13 @@ import Data.Maybe (fromMaybe)
 -- Initialize the game state
 initGame :: IO GameState
 initGame = do
-  fileMaps <- fromMaybe [] <$> loadMapLevels "world.json" -- Handle missing files gracefully
-  let initialWorld = transformFileWorld (head fileMaps) -- Use the first level as the initial world.
+  fileMaps <- fromMaybe [] <$> loadMapLevels "world.json"
+  let allWorlds = map transformFileWorld fileMaps
+  let initialWorld = head allWorlds
   return GameState
     { player = Player { position = findStartingPosition initialWorld, health = 100, inventory = [] }
-    , world = initialWorld
+    , levels = allWorlds
+    , currentLevel = 0
     , message = ["Welcome to the roguelike game!", " ", " "]
     , commandBuffer = ""
     , commandMode = False
