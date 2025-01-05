@@ -7,9 +7,6 @@ import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import Game.Types
 import Linear.V2 (V2(..))
--- import Linear.V2 (V2(..), _x, _y)
--- import Control.Lens ((^.))
--- import Debug.Trace
 
 -- Draw the UI
 drawUI :: GameState -> [Widget ()]
@@ -59,6 +56,8 @@ drawLegend =
     , "s - Move down"
     , "a - Move left"
     , "d - Move right"
+    , "< - Ascend stairs/ladder"
+    , "> - Descend stairs/ladder"
     , ": - Enter command mode"
     , ":q - Quit the game"
     ]

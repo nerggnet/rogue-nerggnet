@@ -4,18 +4,14 @@
 module UI.MainUI (startGame) where
 
 import Brick
--- import Brick.BChan
 import Graphics.Vty (Event(..), Key(..), defAttr, black, white, yellow, green, red)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 import Game.State (initGame)
 import UI.Draw
 import qualified Game.Types as Game
-import Linear.V2 (V2(..))
--- import Linear.V2 (V2(..), _x, _y)
--- import Control.Lens ((^.))
--- import Data.List (intercalate)
--- import Debug.Trace
+import Linear.V2 (V2(..), _x, _y)
+import Control.Lens ((^.))
 
 -- App definition
 app :: App Game.GameState e ()
@@ -36,7 +32,7 @@ chooseCursor state =
 -- Main function to start the game
 startGame :: IO ()
 startGame = do
-  let initialState = initGame
+  initialState <- initGame
   let buildVty = mkVty defaultConfig
   vty <- buildVty
   _ <- customMain vty buildVty Nothing app initialState -- end state
@@ -59,8 +55,30 @@ handleMovement key =
     KChar 's' -> modify (movePlayer Game.South)   -- Move South
     KChar 'a' -> modify (movePlayer Game.West)    -- Move West
     KChar 'd' -> modify (movePlayer Game.East)    -- Move East
+    KChar '<' -> modify goUp                      -- Go up stairs
+    KChar '>' -> modify goDown                    -- Go down stairs
     KChar ':' -> modify (\s -> s { Game.commandMode = True, Game.commandBuffer = "" }) -- Enter command mode
     _         -> return ()                        -- No-op for other keys
+
+-- Go up stairs
+goUp :: Game.GameState -> Game.GameState
+goUp state =
+  let playerPos = Game.position (Game.player state)
+      tile = (Game.mapGrid (Game.world state)) !! (playerPos ^. _y) !! (playerPos ^. _x)
+  in case tile of
+       Game.UpStair -> -- Logic to transition to the upper level
+         state { Game.message = "You ascend the stairs." : Game.message state }
+       _ -> state { Game.message = "No stairs to go up here!" : Game.message state }
+
+-- Go down stairs
+goDown :: Game.GameState -> Game.GameState
+goDown state =
+  let playerPos = Game.position (Game.player state)
+      tile = (Game.mapGrid (Game.world state)) !! (playerPos ^. _y) !! (playerPos ^. _x)
+  in case tile of
+       Game.DownStair -> -- Logic to transition to the lower level
+         state { Game.message = "You descend the stairs." : Game.message state }
+       _ -> state { Game.message = "No stairs to go down here!" : Game.message state }
 
 -- Handle commands
 handleCommandInput :: Key -> EventM () Game.GameState ()
