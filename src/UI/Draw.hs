@@ -15,7 +15,12 @@ drawUI state =
       [ drawTitleBar
       , hBox
           [ padRight (Pad 2) $ drawMap currentWorld (player state)
-          , padLeft (Pad 2) $ drawLegend
+          , padLeft (Pad 2) $
+              vBox
+                [ drawLegend
+                , padTop (Pad 1) $ drawHealthBox (health (player state))
+                , padTop (Pad 1) $ drawInventory (inventory (player state))
+                ]
           ]
       , padTop (Pad 2) $ drawMessages updatedMessages
       , padTop (Pad 1) $ drawCommandInput state
@@ -79,9 +84,28 @@ drawLegend =
     , "d - Move right"
     , "< - Ascend stairs/ladder"
     , "> - Descend stairs/ladder"
+    , "g - Pick up item"
     , ": - Enter command mode"
     , ":q - Quit the game"
     ]
+
+-- Draw the health box
+drawHealthBox :: Int -> Widget ()
+drawHealthBox hp =
+    hLimit 20 $
+      B.borderWithLabel (str "Health") $
+        padRight Max $
+          str $ "HP: " ++ show hp
+
+-- Draw the inventory
+drawInventory :: [Item] -> Widget ()
+drawInventory inv =
+    hLimit 20 $
+      B.borderWithLabel (str "Inventory") $
+        padRight Max $
+          if null inv
+            then str "No items collected"
+            else vBox $ map (str . iName) inv
 
 -- Draw messages/log
 drawMessages :: [String] -> Widget ()
