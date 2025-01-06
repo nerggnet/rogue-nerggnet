@@ -18,7 +18,7 @@ drawUI state =
           , padLeft (Pad 2) $
               vBox
                 [ drawLegend
-                , padTop (Pad 1) $ drawHealthBox (health (player state))
+                , padTop (Pad 1) $ drawStatsBox (player state)
                 , padTop (Pad 1) $ drawInventory (player state)
                 ]
           ]
@@ -90,13 +90,16 @@ drawLegend =
     , ":q - Quit the game"
     ]
 
--- Draw the health box
-drawHealthBox :: Int -> Widget ()
-drawHealthBox hp =
+-- Draw the stats box with Health, Attack, and Resistance
+drawStatsBox :: Player -> Widget ()
+drawStatsBox plyr =
     hLimit 25 $
-      B.borderWithLabel (str "Health") $
-        padRight Max $
-          str $ "HP: " ++ show hp
+      B.borderWithLabel (str "Stats") $
+        vBox
+          [ padRight Max $ str $ "HP: " ++ show (health plyr)
+          , padRight Max $ str $ "Attack: " ++ show (attack plyr)
+          , padRight Max $ str $ "Resistance: " ++ show (resistance plyr)
+          ]
 
 -- Draw the inventory, highlighting equipped weapon and armor
 drawInventory :: Player -> Widget ()

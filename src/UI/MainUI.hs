@@ -139,15 +139,21 @@ useItem itm state =
                    , Game.message = ("You used " ++ Game.iName itm ++ " and recovered "
                                     ++ show (Game.iEffectValue itm) ++ " HP.") : Game.message state }
         Game.Weapon ->
-          state { Game.player = plyr { Game.equippedWeapon = Just itm
-                                     , Game.attack = Game.attack plyr + Game.iEffectValue itm
-                                     }
-                , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
+          let oldWeapon = Game.equippedWeapon plyr
+              newAttack = Game.attack plyr
+                          - maybe 0 Game.iEffectValue oldWeapon
+                          + Game.iEffectValue itm
+          in state { Game.player = plyr { Game.equippedWeapon = Just itm
+                                        , Game.attack = newAttack }
+                   , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
         Game.Armor  ->
-          state { Game.player = plyr { Game.equippedArmor = Just itm
-                                     , Game.resistance = Game.resistance plyr + Game.iEffectValue itm
-                                     }
-                , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
+          let oldArmor = Game.equippedArmor plyr
+              newResistance = Game.resistance plyr
+                              - maybe 0 Game.iEffectValue oldArmor
+                              + Game.iEffectValue itm
+          in state { Game.player = plyr { Game.equippedArmor = Just itm
+                                        , Game.resistance = newResistance }
+                   , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
         Game.Special ->
           state { Game.message = ("You used " ++ Game.iName itm ++ ". Its effect is mysterious.")
                                : Game.message state }
