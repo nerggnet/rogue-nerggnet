@@ -50,18 +50,19 @@ handleEvent _ = return ()
 
 -- Handle movement keys
 handleMovement :: Key -> EventM () Game.GameState ()
-handleMovement key =
-  case key of
-    KChar 'w' -> modify (movePlayer Game.North)   -- Move North
-    KChar 's' -> modify (movePlayer Game.South)   -- Move South
-    KChar 'a' -> modify (movePlayer Game.West)    -- Move West
-    KChar 'd' -> modify (movePlayer Game.East)    -- Move East
-    KChar '<' -> modify goUp                      -- Go up stairs
-    KChar '>' -> modify goDown                    -- Go down stairs
-    KChar 'g' -> modify pickUpItem                -- Pick up item
-    KChar 'u' -> modify promptUseItem             -- Use item prompt
-    KChar ':' -> modify (\s -> s { Game.commandMode = True, Game.commandBuffer = ":" }) -- Enter command mode
-    _         -> return ()                        -- No-op for other keys
+handleMovement key = do
+  modify $ case key of
+    KChar 'w' -> movePlayer Game.North   -- Move North
+    KChar 's' -> movePlayer Game.South   -- Move South
+    KChar 'a' -> movePlayer Game.West    -- Move West
+    KChar 'd' -> movePlayer Game.East    -- Move East
+    KChar '<' -> goUp                    -- Go up stairs
+    KChar '>' -> goDown                  -- Go down stairs
+    KChar 'g' -> pickUpItem              -- Pick up item
+    KChar 'u' -> promptUseItem           -- Use item prompt
+    KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" } -- Enter command mode
+    _         -> id
+  modify moveMonsters
 
 -- Go up stairs
 goUp :: Game.GameState -> Game.GameState
@@ -114,9 +115,6 @@ pickUpItem state =
            , Game.player = (Game.player state) { Game.inventory = item : Game.inventory (Game.player state) }
            , Game.message = ("You picked up: " ++ Game.iName item) : Game.message state
            }
-  where
-    replaceLevel ste levelIndex newWorld =
-      take levelIndex (Game.levels ste) ++ [newWorld] ++ drop (levelIndex + 1) (Game.levels ste)
 
 -- Player has requested to use an item, prompt which item to use
 promptUseItem :: Game.GameState -> Game.GameState
@@ -243,9 +241,55 @@ combat state mnstr _ =
                     ("The " ++ Game.mName mnstr ++ " attacked you! You have " ++ show playerHealth ++ " HP left.") :
                     Game.message state
            }
-  where
-    replaceLevel ste levelIndex newWorld =
-      take levelIndex (Game.levels ste) ++ [newWorld] ++ drop (levelIndex + 1) (Game.levels ste)
+
+-- Manhattan distance between two points
+manhattanDistance :: V2 Int -> V2 Int -> Int
+manhattanDistance (V2 x1 y1) (V2 x2 y2) = abs (x1 - x2) + abs (y1 - y2)
+
+-- Move monsters in the current level
+moveMonsters :: Game.GameState -> Game.GameState
+moveMonsters state =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      playerPos = Game.position (Game.player state)
+      updatedMonsters = map (moveMonster currentWorld playerPos) (Game.monsters currentWorld)
+      updatedWorld = currentWorld { Game.monsters = updatedMonsters }
+  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+
+-- Move a single monster towards the player if within range
+moveMonster :: Game.World -> V2 Int -> Game.Monster -> Game.Monster
+moveMonster world playerPos monster =
+  let monsterPos = Game.mPosition monster
+      distance = manhattanDistance playerPos monsterPos
+      potentialMoves = filter (isValidMove world) [V2 (x+dx) (y+dy) | (dx, dy) <- moveDirections]
+        where V2 x y = monsterPos
+      moveDirections =
+        if distance <= 4
+        then prioritizeTowardsPlayer playerPos monsterPos
+        else [(0, 0)] -- Stay in place if out of range
+  in case potentialMoves of
+       (newPos:_) -> monster { Game.mPosition = newPos } -- Move to the first valid position
+       _          -> monster -- Stay in place if no valid moves
+
+-- Check if a position is valid for monster movement
+isValidMove :: Game.World -> V2 Int -> Bool
+isValidMove world pos =
+  let V2 x y = pos
+      grid = Game.mapGrid world
+  in y >= 0 && y < length grid &&
+     x >= 0 && x < length (head grid) &&
+     (grid !! y !! x) /= Game.Wall -- Ensure not a wall
+
+-- Prioritize movement directions towards the player
+prioritizeTowardsPlayer :: V2 Int -> V2 Int -> [(Int, Int)]
+prioritizeTowardsPlayer (V2 px py) (V2 mx my) =
+  let dx = signum (px - mx) -- Direction in x-axis
+      dy = signum (py - my) -- Direction in y-axis
+  in [(dx, 0), (0, dy), (dx, dy), (dx, -dy), (-dx, dy)] -- Prioritize direct and then diagonal moves
+
+-- Replace the current level with an updated one
+replaceLevel :: Game.GameState -> Int -> Game.World -> [Game.World]
+replaceLevel state levelIndex newWorld =
+  take levelIndex (Game.levels state) ++ [newWorld] ++ drop (levelIndex + 1) (Game.levels state)
 
 defaultAttrMap :: AttrMap
 defaultAttrMap = attrMap defAttr
