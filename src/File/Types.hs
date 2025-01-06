@@ -32,6 +32,8 @@ data JSONItem = JSONItem
   { itemName        :: String      -- Item name
   , itemPosition    :: (Int, Int)  -- Item's position (row, col)
   , itemDescription :: String      -- Item description
+  , itemCategory    :: String      -- Item category, i.e. Armor, Weapon, Healing, or Special
+  , itemEffectValue :: Int         -- Item effect value, e.g. increases attack with this value
   } deriving (Show, Generic)
 
 instance FromJSON JSONItem

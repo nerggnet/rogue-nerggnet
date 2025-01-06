@@ -9,11 +9,18 @@ data Tile = Wall | Floor | Door | UpStair | DownStair deriving (Eq, Show)
 -- Directions for player movement
 data Direction = North | South | East | West | Up | Down deriving (Eq, Show)
 
+-- Category of Item
+data ItemCategory = Armor | Weapon | Healing | Special deriving (Eq, Show)
+
 -- Player data
 data Player = Player
-  { position :: V2 Int
-  , health   :: Int
-  , inventory :: [Item]
+  { position   :: V2 Int
+  , health     :: Int
+  , attack     :: Int
+  , resistance :: Int
+  , inventory  :: [Item]
+  , equippedWeapon :: Maybe Item
+  , equippedArmor  :: Maybe Item
   } deriving (Show)
 
 -- Enemy data
@@ -28,7 +35,9 @@ data Item = Item
   { iName        :: String
   , iDescription :: String
   , iPosition    :: V2 Int
-  } deriving (Show)
+  , iCategory    :: ItemCategory
+  , iEffectValue :: Int
+  } deriving (Show, Eq)
 
 -- World state
 data World = World

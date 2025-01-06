@@ -1,5 +1,5 @@
 -- src/UI/Draw.hs
-module UI.Draw (drawUI) where
+module UI.Draw (drawUI, keyedInventory) where
 
 import Brick
 import qualified Brick.Widgets.Center as C
@@ -85,6 +85,7 @@ drawLegend =
     , "< - Ascend stairs/ladder"
     , "> - Descend stairs/ladder"
     , "g - Pick up item"
+    , "u - Use an item from inventory"
     , ": - Enter command mode"
     , ":q - Quit the game"
     ]
@@ -105,7 +106,11 @@ drawInventory inv =
         padRight Max $
           if null inv
             then str "No items collected"
-            else vBox $ map (str . iName) inv
+            else vBox $ map (\(key, itm) -> str [key, ')'] <+> str (iName itm)) (keyedInventory inv)
+
+-- Generate a list of (key, item) pairs
+keyedInventory :: [Item] -> [(Char, Item)]
+keyedInventory inv = zip ['a'..] inv
 
 -- Draw messages/log
 drawMessages :: [String] -> Widget ()

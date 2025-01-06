@@ -9,6 +9,19 @@ import File.MapIO (loadMapLevels)
 import Linear.V2 (V2(..))
 import Data.Maybe (fromMaybe)
 
+-- Default values for unarmed and unarmored player, plus default monster attack (will be updated later)
+defaultHealth :: Int
+defaultHealth = 100
+
+defaultAttack :: Int
+defaultAttack = 5
+
+defaultResistance :: Int
+defaultResistance = 3
+
+defaultMonsterAttack :: Int
+defaultMonsterAttack = 8
+
 -- Initialize the game state
 initGame :: IO GameState
 initGame = do
@@ -16,7 +29,14 @@ initGame = do
   let allWorlds = map transformFileWorld fileMaps
   let initialWorld = head allWorlds
   return GameState
-    { player = Player { position = findStartingPosition initialWorld, health = 100, inventory = [] }
+    { player = Player
+        { position = findStartingPosition initialWorld
+        , health = defaultHealth
+        , attack = defaultAttack
+        , resistance = defaultResistance
+        , inventory = []
+        , equippedWeapon = Nothing
+        , equippedArmor = Nothing }
     , levels = allWorlds
     , currentLevel = 0
     , message = ["Welcome to the roguelike game!", " ", " "]
@@ -46,6 +66,13 @@ transformItem fi = Item
   { iName = FT.itemName fi
   , iDescription = FT.itemDescription fi
   , iPosition = uncurry V2 (FT.itemPosition fi) -- Convert (Int, Int) to V2 Int
+  , iCategory = case FT.itemCategory fi of
+                  "Armor" -> Armor
+                  "Weapon" -> Weapon
+                  "Healing" -> Healing
+                  "Special" -> Special
+                  _ -> error "Unknown category"
+  , iEffectValue = FT.itemEffectValue fi
   }
 
 -- Convert a character to a Tile
