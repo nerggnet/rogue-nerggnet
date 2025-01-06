@@ -21,7 +21,7 @@ data Monster = Monster
   { mPosition :: V2 Int
   , mHealth   :: Int
   , mName     :: String
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 -- Item data
 data Item = Item

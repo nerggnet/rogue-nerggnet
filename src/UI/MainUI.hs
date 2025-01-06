@@ -152,16 +152,67 @@ movePlayer dir state =
         Game.West  -> playerPos + V2 (-1) 0
         Game.East  -> playerPos + V2 1 0
         _          -> playerPos
-      canMove (V2 x y) =
+      monsterAt pos = filter (\m -> Game.mPosition m == pos) (Game.monsters currentWorld)
+      canMove pos =
         y >= 0 && y < length worldMap &&
         x >= 0 && x < length (head worldMap) &&
         (worldMap !! y !! x) /= Game.Wall
-      canMoveTo = canMove newPos
-  in if canMoveTo
-        then state { Game.player = (Game.player state) { Game.position = newPos }
-                   , Game.message = ("Moved to: " ++ show newPos) : Game.message state
-                   }
-        else state { Game.message = ("Blocked at: " ++ show newPos) : Game.message state }
+        where
+          V2 x y = pos
+  in case monsterAt newPos of
+       [] -> if canMove newPos
+             then state { Game.player = (Game.player state) { Game.position = newPos }
+                        , Game.message = ("Moved to: " ++ show newPos) : Game.message state }
+             else state { Game.message = ("Blocked at: " ++ show newPos) : Game.message state }
+       (monster:_) ->
+         combat state monster newPos
+
+combat :: Game.GameState -> Game.Monster -> V2 Int -> Game.GameState
+combat state mnstr _ =
+  let player = Game.player state
+      playerHealth = Game.health player - 4 -- Monster attacks the player
+      monsterHealth = Game.mHealth mnstr - 5 -- Player attacks the monster
+      updatedPlayer = player { Game.health = playerHealth }
+      currentWorld = Game.levels state !! Game.currentLevel state
+      updatedMonsters =
+        if monsterHealth <= 0
+        then filter (\m -> m /= mnstr) (Game.monsters currentWorld)
+        else map (\m -> if m == mnstr then m { Game.mHealth = monsterHealth } else m) (Game.monsters currentWorld)
+      updatedWorld = currentWorld { Game.monsters = updatedMonsters }
+  in state { Game.player = updatedPlayer
+           , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+           , Game.message =
+               if monsterHealth <= 0
+               then ("You defeated " ++ Game.mName mnstr ++ "!") : Game.message state
+               else ("You attacked " ++ Game.mName mnstr ++ "! It has " ++ show monsterHealth ++ " HP left.") :
+                    ("The " ++ Game.mName mnstr ++ " attacked you! You have " ++ show playerHealth ++ " HP left.") :
+                    Game.message state
+           }
+  where
+    replaceLevel ste levelIndex newWorld =
+      take levelIndex (Game.levels ste) ++ [newWorld] ++ drop (levelIndex + 1) (Game.levels ste)
+
+-- movePlayer :: Game.Direction -> Game.GameState -> Game.GameState
+-- movePlayer dir state =
+--   let playerPos = Game.position (Game.player state)
+--       currentWorld = Game.levels state !! Game.currentLevel state
+--       worldMap  = Game.mapGrid currentWorld
+--       newPos = case dir of
+--         Game.North -> playerPos + V2 0 (-1)
+--         Game.South -> playerPos + V2 0 1
+--         Game.West  -> playerPos + V2 (-1) 0
+--         Game.East  -> playerPos + V2 1 0
+--         _          -> playerPos
+--       canMove (V2 x y) =
+--         y >= 0 && y < length worldMap &&
+--         x >= 0 && x < length (head worldMap) &&
+--         (worldMap !! y !! x) /= Game.Wall
+--       canMoveTo = canMove newPos
+--   in if canMoveTo
+--         then state { Game.player = (Game.player state) { Game.position = newPos }
+--                    , Game.message = ("Moved to: " ++ show newPos) : Game.message state
+--                    }
+--         else state { Game.message = ("Blocked at: " ++ show newPos) : Game.message state }
 
 defaultAttrMap :: AttrMap
 defaultAttrMap = attrMap defAttr
