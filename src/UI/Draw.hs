@@ -19,7 +19,7 @@ drawUI state =
               vBox
                 [ drawLegend
                 , padTop (Pad 1) $ drawHealthBox (health (player state))
-                , padTop (Pad 1) $ drawInventory (inventory (player state))
+                , padTop (Pad 1) $ drawInventory (player state)
                 ]
           ]
       , padTop (Pad 2) $ drawMessages updatedMessages
@@ -93,20 +93,31 @@ drawLegend =
 -- Draw the health box
 drawHealthBox :: Int -> Widget ()
 drawHealthBox hp =
-    hLimit 20 $
+    hLimit 25 $
       B.borderWithLabel (str "Health") $
         padRight Max $
           str $ "HP: " ++ show hp
 
--- Draw the inventory
-drawInventory :: [Item] -> Widget ()
-drawInventory inv =
-    hLimit 20 $
+-- Draw the inventory, highlighting equipped weapon and armor
+drawInventory :: Player -> Widget ()
+drawInventory plyr =
+    hLimit 25 $
       B.borderWithLabel (str "Inventory") $
         padRight Max $
           if null inv
             then str "No items collected"
-            else vBox $ map (\(key, itm) -> str [key, ')'] <+> str (iName itm)) (keyedInventory inv)
+            else vBox $ map renderItem (keyedInventory inv)
+  where
+    inv = inventory plyr
+    eqpdWeapon = equippedWeapon plyr
+    eqpdArmor = equippedArmor plyr
+
+    renderItem (key, itm) =
+      let equippedMarker
+            | Just itm == eqpdWeapon = " (W)" -- Weapon marker
+            | Just itm == eqpdArmor  = " (A)" -- Armor marker
+            | otherwise                  = ""
+      in str [key, ')', ' '] <+> str (iName itm ++ equippedMarker)
 
 -- Generate a list of (key, item) pairs
 keyedInventory :: [Item] -> [(Char, Item)]

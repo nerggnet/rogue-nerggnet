@@ -208,9 +208,8 @@ movePlayer dir state =
           V2 x y = pos
   in case monsterAt newPos of
        [] -> if canMove newPos
-             then state { Game.player = (Game.player state) { Game.position = newPos }
-                        , Game.message = ("Moved to: " ++ show newPos) : Game.message state }
-             else state { Game.message = ("Blocked at: " ++ show newPos) : Game.message state }
+             then state { Game.player = (Game.player state) { Game.position = newPos } }
+             else state
        (monster:_) ->
          combat state monster newPos
 
