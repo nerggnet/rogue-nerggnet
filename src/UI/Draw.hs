@@ -17,12 +17,21 @@ drawUI state =
           [ padRight (Pad 2) $ drawMap currentWorld (player state)
           , padLeft (Pad 2) $ drawLegend
           ]
-      , padTop (Pad 2) $ drawMessages (message state)
+      , padTop (Pad 2) $ drawMessages updatedMessages
       , padTop (Pad 1) $ drawCommandInput state
       ]
   ]
   where
     currentWorld = levels state !! currentLevel state
+    playerPos = position (player state)
+    itemsOnPlayerTile = [iName item | item <- items currentWorld, iPosition item == playerPos]
+    currentTileMessage =
+      if null itemsOnPlayerTile
+        then "Nothing here."
+        else "You see: " ++ unwords itemsOnPlayerTile
+
+    -- Combine the tile-specific message with the general log
+    updatedMessages = currentTileMessage : message state
 
 drawTitleBar :: Widget ()
 drawTitleBar =
@@ -36,6 +45,7 @@ drawMap wrld plyr =
   where
     mnstrs = monsters wrld
     itms = items wrld
+
     drawRow y row =
       hBox $ zipWith (\x tile -> drawTileWithEntities wrld plyr mnstrs itms x y tile) [0..] row
 

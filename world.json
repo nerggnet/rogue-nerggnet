@@ -39,7 +39,7 @@
     "items": [
       { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores 20 HP." },
       { "itemName": "Sword", "itemPosition": [11, 20], "itemDescription": "A sharp blade." },
-      { "itemName": "Gold Coin", "itemPosition": [8, 30], "itemDescription": "Shiny and valuable." }
+      { "itemName": "Gold Coin", "itemPosition": [8, 25], "itemDescription": "Shiny and valuable." }
     ]
   },
   {
@@ -80,9 +80,9 @@
       { "name": "Wraith", "position": [18, 25], "health": 20 }
     ],
     "items": [
-      { "itemName": "Shield", "itemPosition": [10, 10], "itemDescription": "A protective shield." },
+      { "itemName": "Shield", "itemPosition": [9, 9], "itemDescription": "A protective shield." },
       { "itemName": "Magic Scroll", "itemPosition": [20, 15], "itemDescription": "Contains a spell." },
-      { "itemName": "Amulet", "itemPosition": [12, 30], "itemDescription": "Grants protection." }
+      { "itemName": "Amulet", "itemPosition": [12, 25], "itemDescription": "Grants protection." }
     ]
   },
   {

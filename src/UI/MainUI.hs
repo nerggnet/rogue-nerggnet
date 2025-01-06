@@ -12,6 +12,7 @@ import UI.Draw
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
+import Data.List (partition)
 
 -- App definition
 app :: App Game.GameState e ()
@@ -57,6 +58,7 @@ handleMovement key =
     KChar 'd' -> modify (movePlayer Game.East)    -- Move East
     KChar '<' -> modify goUp                      -- Go up stairs
     KChar '>' -> modify goDown                    -- Go down stairs
+    KChar 'g' -> modify pickUpItem                -- Pick up item
     KChar ':' -> modify (\s -> s { Game.commandMode = True, Game.commandBuffer = "" }) -- Enter command mode
     _         -> return ()                        -- No-op for other keys
 
@@ -95,6 +97,25 @@ goDown state =
                     }
          else state { Game.message = "You are already on the bottom level." : Game.message state }
        _ -> state { Game.message = "No stairs to go down here!" : Game.message state }
+
+-- Pick up an item at the player's position
+pickUpItem :: Game.GameState -> Game.GameState
+pickUpItem state =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      playerPos = Game.position (Game.player state)
+      -- Separate items on the player's position from the rest
+      (itemsOnTile, remainingItems) = partition (\item -> Game.iPosition item == playerPos) (Game.items currentWorld)
+  in case itemsOnTile of
+       [] -> state { Game.message = "There is nothing to pick up here." : Game.message state }
+       (item:_) ->
+         state
+           { Game.levels = replaceLevel state (Game.currentLevel state) currentWorld { Game.items = remainingItems }
+           , Game.player = (Game.player state) { Game.inventory = item : Game.inventory (Game.player state) }
+           , Game.message = ("You picked up: " ++ Game.iName item) : Game.message state
+           }
+  where
+    replaceLevel ste levelIndex newWorld =
+      take levelIndex (Game.levels ste) ++ [newWorld] ++ drop (levelIndex + 1) (Game.levels ste)
 
 -- Handle commands
 handleCommandInput :: Key -> EventM () Game.GameState ()
@@ -152,4 +173,5 @@ defaultAttrMap = attrMap defAttr
   , (attrName "player", fg blue)
   , (attrName "monster", fg red)
   , (attrName "item", fg magenta)
+  , (attrName "log", fg yellow)
   ]
