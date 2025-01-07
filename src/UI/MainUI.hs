@@ -4,7 +4,7 @@
 module UI.MainUI (startGame) where
 
 import Brick
-import Graphics.Vty (Event(..), Key(..), withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta)
+import Graphics.Vty (Event(..), Key(..), rgbColor, withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 import Game.State (initGame, defaultHealth, defaultMonsterAttack, updateVisibility, replaceLevel, manhattanDistance)
@@ -286,6 +286,7 @@ prioritizeTowardsPlayer (V2 px py) (V2 mx my) =
 defaultAttrMap :: AttrMap
 defaultAttrMap = attrMap defAttr
   [ (attrName "fog", withBackColor defAttr black)
+  , (attrName "discovered", withBackColor defAttr (rgbColor (40 :: Int) 40 40)) -- Dimly lit
   , (attrName "wall", withForeColor (withBackColor defAttr black) white)
   , (attrName "floor", withBackColor defAttr white)
   , (attrName "door", withForeColor defAttr yellow)

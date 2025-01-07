@@ -53,7 +53,8 @@ drawMap wrld plyr =
 
 drawTileWithFog :: World -> Player -> Int -> Int -> Tile -> Widget ()
 drawTileWithFog world plyr x y tile
-  | not (visibility world !! y !! x) = withAttr (attrName "fog") $ str " "
+  | not (visibility world !! y !! x) && not (discovered world !! y !! x) = withAttr (attrName "fog") $ str " "
+  | not (visibility world !! y !! x) && discovered world !! y !! x = withAttr (attrName "discovered") $ drawTile tile
   | position plyr == V2 x y = withAttr (attrName "player") $ str "@"
   | any ((== V2 x y) . mPosition) (monsters world) = withAttr (attrName "monster") $ str "M"
   | any ((== V2 x y) . iPosition) (items world) = withAttr (attrName "item") $ str "!"
