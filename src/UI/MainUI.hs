@@ -4,10 +4,10 @@
 module UI.MainUI (startGame) where
 
 import Brick
-import Graphics.Vty (Event(..), Key(..), defAttr, black, white, yellow, green, red, blue, magenta)
+import Graphics.Vty (Event(..), Key(..), withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
-import Game.State (initGame, defaultHealth, defaultMonsterAttack)
+import Game.State (initGame, defaultHealth, defaultMonsterAttack, updateVisibility, replaceLevel, manhattanDistance)
 import UI.Draw
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
@@ -75,10 +75,10 @@ goUp state =
          if Game.currentLevel state > 0
          then
            let newLevel = Game.currentLevel state - 1
-           in state { Game.currentLevel = newLevel
-                    , Game.player = (Game.player state) { Game.position = playerPos }
-                    , Game.message = "You ascend the stairs." : Game.message state
-                    }
+               updatedWorld = updateVisibility (Game.player state) 5 (Game.levels state !! newLevel)
+            in state { Game.currentLevel = newLevel
+                     , Game.levels = replaceLevel state newLevel updatedWorld
+                     , Game.message = "You ascend the stairs." : Game.message state }
          else state { Game.message = "You are already on the top level." : Game.message state }
        _ -> state { Game.message = "No stairs to go up here!" : Game.message state }
 
@@ -93,10 +93,10 @@ goDown state =
          if Game.currentLevel state < length (Game.levels state) - 1
          then
            let newLevel = Game.currentLevel state + 1
-           in state { Game.currentLevel = newLevel
-                    , Game.player = (Game.player state) { Game.position = playerPos }
-                    , Game.message = "You descend the stairs." : Game.message state
-                    }
+               updatedWorld = updateVisibility (Game.player state) 5 (Game.levels state !! newLevel)
+            in state { Game.currentLevel = newLevel
+                     , Game.levels = replaceLevel state newLevel updatedWorld
+                     , Game.message = "You descend the stairs." : Game.message state }
          else state { Game.message = "You are already on the bottom level." : Game.message state }
        _ -> state { Game.message = "No stairs to go down here!" : Game.message state }
 
@@ -196,7 +196,7 @@ movePlayer :: Game.Direction -> Game.GameState -> Game.GameState
 movePlayer dir state =
   let playerPos = Game.position (Game.player state)
       currentWorld = Game.levels state !! Game.currentLevel state
-      worldMap  = Game.mapGrid currentWorld
+      worldMap = Game.mapGrid currentWorld
       newPos = case dir of
         Game.North -> playerPos + V2 0 (-1)
         Game.South -> playerPos + V2 0 1
@@ -212,10 +212,12 @@ movePlayer dir state =
           V2 x y = pos
   in case monsterAt newPos of
        [] -> if canMove newPos
-             then state { Game.player = (Game.player state) { Game.position = newPos } }
+             then
+               let updatedWorld = updateVisibility (Game.player state) 5 currentWorld
+               in state { Game.player = (Game.player state) { Game.position = newPos }
+                        , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
              else state
-       (monster:_) ->
-         combat state monster newPos
+       (monster:_) -> combat state monster newPos
 
 -- Player hits a monster and the monster returns the favor
 combat :: Game.GameState -> Game.Monster -> V2 Int -> Game.GameState
@@ -239,12 +241,7 @@ combat state mnstr _ =
                then ("You defeated " ++ Game.mName mnstr ++ "!") : Game.message state
                else ("You attacked " ++ Game.mName mnstr ++ "! It has " ++ show monsterHealth ++ " HP left.") :
                     ("The " ++ Game.mName mnstr ++ " attacked you! You have " ++ show playerHealth ++ " HP left.") :
-                    Game.message state
-           }
-
--- Manhattan distance between two points
-manhattanDistance :: V2 Int -> V2 Int -> Int
-manhattanDistance (V2 x1 y1) (V2 x2 y2) = abs (x1 - x2) + abs (y1 - y2)
+                    Game.message state }
 
 -- Move monsters in the current level
 moveMonsters :: Game.GameState -> Game.GameState
@@ -286,20 +283,16 @@ prioritizeTowardsPlayer (V2 px py) (V2 mx my) =
       dy = signum (py - my) -- Direction in y-axis
   in [(dx, 0), (0, dy), (dx, dy), (dx, -dy), (-dx, dy)] -- Prioritize direct and then diagonal moves
 
--- Replace the current level with an updated one
-replaceLevel :: Game.GameState -> Int -> Game.World -> [Game.World]
-replaceLevel state levelIndex newWorld =
-  take levelIndex (Game.levels state) ++ [newWorld] ++ drop (levelIndex + 1) (Game.levels state)
-
 defaultAttrMap :: AttrMap
 defaultAttrMap = attrMap defAttr
-  [ (attrName "wall", bg black)
-  , (attrName "floor", bg white)
-  , (attrName "door", bg yellow)
-  , (attrName "upStair", bg green)
-  , (attrName "downStair", bg red)
-  , (attrName "player", fg blue)
-  , (attrName "monster", fg red)
-  , (attrName "item", fg magenta)
-  , (attrName "log", fg yellow)
+  [ (attrName "fog", withBackColor defAttr black)
+  , (attrName "wall", withForeColor (withBackColor defAttr black) white)
+  , (attrName "floor", withBackColor defAttr white)
+  , (attrName "door", withForeColor defAttr yellow)
+  , (attrName "upStair", withForeColor defAttr green)
+  , (attrName "downStair", withForeColor defAttr green)
+  , (attrName "player", withForeColor defAttr blue)
+  , (attrName "monster", withForeColor defAttr red)
+  , (attrName "item", withForeColor defAttr magenta)
+  , (attrName "log", withForeColor defAttr yellow)
   ]

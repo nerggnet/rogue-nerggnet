@@ -28,21 +28,44 @@ initGame = do
   fileMaps <- fromMaybe [] <$> loadMapLevels "world.json"
   let allWorlds = map transformFileWorld fileMaps
   let initialWorld = head allWorlds
-  return GameState
-    { player = Player
-        { position = findStartingPosition initialWorld
-        , health = defaultHealth
-        , attack = defaultAttack
-        , resistance = defaultResistance
-        , inventory = []
-        , equippedWeapon = Nothing
-        , equippedArmor = Nothing }
-    , levels = allWorlds
-    , currentLevel = 0
-    , message = ["Welcome to the roguelike game!", " ", " "]
-    , commandBuffer = ""
-    , commandMode = False
-    }
+  let initialState = GameState
+        { player = Player
+            { position = findStartingPosition initialWorld
+            , health = defaultHealth
+            , attack = defaultAttack
+            , resistance = defaultResistance
+            , inventory = []
+            , equippedWeapon = Nothing
+            , equippedArmor = Nothing }
+        , levels = allWorlds
+        , currentLevel = 0
+        , message = ["Welcome to the roguelike game!", " ", " "]
+        , commandBuffer = ""
+        , commandMode = False
+        }
+  let updatedWorld = updateVisibility (player initialState) 5 initialWorld
+  let updatedState = initialState { levels = replaceLevel initialState 0 updatedWorld }
+  return updatedState
+
+-- Update what the player sees of the map
+updateVisibility :: Player -> Int -> World -> World
+updateVisibility plyr radius world =
+  let pos = position plyr
+      updatedVisibility = [ [manhattanDistance (V2 x y) pos <= radius | x <- [0..cols-1]] | y <- [0..rows-1] ]
+      updatedDiscovered = zipWith (zipWith (||)) updatedVisibility (discovered world)
+  in world { visibility = updatedVisibility, discovered = updatedDiscovered }
+  where
+    rows = length (mapGrid world)
+    cols = length (head (mapGrid world))
+
+-- Manhattan distance between two points
+manhattanDistance :: V2 Int -> V2 Int -> Int
+manhattanDistance (V2 x1 y1) (V2 x2 y2) = abs (x1 - x2) + abs (y1 - y2)
+
+-- Replace the current level with an updated one
+replaceLevel :: GameState -> Int -> World -> [World]
+replaceLevel state levelIndex newWorld =
+  take levelIndex (levels state) ++ [newWorld] ++ drop (levelIndex + 1) (levels state)
 
 -- Transform a File.Types.MapLevel to Game.Types.World
 transformFileWorld :: FT.MapLevel -> World
@@ -50,7 +73,12 @@ transformFileWorld fileWorld = World
   { mapGrid = map (map charToTile) (FT.mapGrid fileWorld)
   , monsters = map transformMonster (FT.monsters fileWorld)
   , items = map transformItem (FT.items fileWorld)
+  , visibility = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
+  , discovered = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
   }
+
+initializeGrid :: a -> Int -> Int -> [[a]]
+initializeGrid value rows cols = replicate rows (replicate cols value)
 
 -- Transform a File.Types.JSONMonster to Game.Types.Monster
 transformMonster :: FT.JSONMonster -> Monster

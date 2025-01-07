@@ -41,9 +41,11 @@ data Item = Item
 
 -- World state
 data World = World
-  { mapGrid  :: [[Tile]]
-  , monsters :: [Monster]
-  , items    :: [Item]
+  { mapGrid    :: [[Tile]]
+  , monsters   :: [Monster]
+  , items      :: [Item]
+  , visibility :: [[Bool]]
+  , discovered :: [[Bool]]
   } deriving (Show)
 
 -- Game state

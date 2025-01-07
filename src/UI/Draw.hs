@@ -48,22 +48,16 @@ drawMap wrld plyr =
   B.border $
     vBox $ zipWith drawRow [0..] (mapGrid wrld)
   where
-    mnstrs = monsters wrld
-    itms = items wrld
-
     drawRow y row =
-      hBox $ zipWith (\x tile -> drawTileWithEntities wrld plyr mnstrs itms x y tile) [0..] row
+      hBox $ zipWith (\x tile -> drawTileWithFog wrld plyr x y tile) [0..] row
 
-drawTileWithEntities :: World -> Player -> [Monster] -> [Item] -> Int -> Int -> Tile -> Widget ()
-drawTileWithEntities _ plyr mnstrs itms x y tile
-  | playerPos == V2 x y = withAttr (attrName "player") $ str "@" -- Player
-  | monsterAt (V2 x y) = withAttr (attrName "monster") $ str "M"  -- Monster
-  | itemAt (V2 x y) = withAttr (attrName "item") $ str "!"       -- Item
+drawTileWithFog :: World -> Player -> Int -> Int -> Tile -> Widget ()
+drawTileWithFog world plyr x y tile
+  | not (visibility world !! y !! x) = withAttr (attrName "fog") $ str " "
+  | position plyr == V2 x y = withAttr (attrName "player") $ str "@"
+  | any ((== V2 x y) . mPosition) (monsters world) = withAttr (attrName "monster") $ str "M"
+  | any ((== V2 x y) . iPosition) (items world) = withAttr (attrName "item") $ str "!"
   | otherwise = drawTile tile
-  where
-    playerPos = position plyr
-    monsterAt pos = any ((== pos) . mPosition) mnstrs
-    itemAt pos = any ((== pos) . iPosition) itms
 
 -- Draw a single tile
 drawTile :: Tile -> Widget ()
