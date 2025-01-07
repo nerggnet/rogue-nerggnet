@@ -56,4 +56,5 @@ data GameState = GameState
   , message       :: [String]
   , commandBuffer :: String
   , commandMode   :: Bool
+  , gameOver      :: Bool
   } deriving (Show)

@@ -51,17 +51,18 @@ handleEvent _ = return ()
 -- Handle movement keys
 handleMovement :: Key -> EventM () Game.GameState ()
 handleMovement key = do
+  isGameOver <- gets Game.gameOver
   modify $ case key of
-    KChar 'w' -> movePlayer Game.North   -- Move North
-    KChar 's' -> movePlayer Game.South   -- Move South
-    KChar 'a' -> movePlayer Game.West    -- Move West
-    KChar 'd' -> movePlayer Game.East    -- Move East
-    KChar '<' -> goUp                    -- Go up stairs
-    KChar '>' -> goDown                  -- Go down stairs
-    KChar 'g' -> pickUpItem              -- Pick up item
-    KChar 'u' -> promptUseItem           -- Use item prompt
-    KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" } -- Enter command mode
-    _         -> id
+      KChar 'w' -> if isGameOver then id else movePlayer Game.North
+      KChar 's' -> if isGameOver then id else movePlayer Game.South
+      KChar 'a' -> if isGameOver then id else movePlayer Game.West
+      KChar 'd' -> if isGameOver then id else movePlayer Game.East
+      KChar '<' -> if isGameOver then id else goUp
+      KChar '>' -> if isGameOver then id else goDown
+      KChar 'g' -> if isGameOver then id else pickUpItem
+      KChar 'u' -> if isGameOver then id else promptUseItem
+      KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
+      _         -> id
   modify moveMonsters
 
 -- Go up stairs
@@ -224,24 +225,26 @@ combat :: Game.GameState -> Game.Monster -> V2 Int -> Game.GameState
 combat state mnstr _ =
   let player = Game.player state
       playerDamage = Game.attack player
-      monsterDamage = max 0 (defaultMonsterAttack - Game.resistance player) -- Monster attack is reduced by player's resistance
-      playerHealth = Game.health player - monsterDamage
-      monsterHealth = Game.mHealth mnstr - playerDamage
-      updatedPlayer = player { Game.health = playerHealth }
+      monsterDamage = max 0 (defaultMonsterAttack - Game.resistance player)
+      newHealth = max 0 (Game.health player - monsterDamage)
+      updatedPlayer = player { Game.health = newHealth }
       currentWorld = Game.levels state !! Game.currentLevel state
       updatedMonsters =
-        if monsterHealth <= 0
-        then filter (\m -> m /= mnstr) (Game.monsters currentWorld)
-        else map (\m -> if m == mnstr then m { Game.mHealth = monsterHealth } else m) (Game.monsters currentWorld)
+        if Game.mHealth mnstr - playerDamage <= 0
+        then filter (/= mnstr) (Game.monsters currentWorld)
+        else map (\m -> if m == mnstr then m { Game.mHealth = Game.mHealth mnstr - playerDamage } else m)
+                 (Game.monsters currentWorld)
       updatedWorld = currentWorld { Game.monsters = updatedMonsters }
+      isDead = newHealth == 0
+      newMessage = if isDead
+                   then "You have died! Game Over." : Game.message state
+                   else ("The " ++ Game.mName mnstr ++ " attacked you for " ++ show monsterDamage ++ " damage!") :
+                        ("You attacked " ++ Game.mName mnstr ++ " for " ++ show playerDamage ++ " damage!") :
+                        Game.message state
   in state { Game.player = updatedPlayer
            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-           , Game.message =
-               if monsterHealth <= 0
-               then ("You defeated " ++ Game.mName mnstr ++ "!") : Game.message state
-               else ("You attacked " ++ Game.mName mnstr ++ "! It has " ++ show monsterHealth ++ " HP left.") :
-                    ("The " ++ Game.mName mnstr ++ " attacked you! You have " ++ show playerHealth ++ " HP left.") :
-                    Game.message state }
+           , Game.message = newMessage
+           , Game.gameOver = isDead }
 
 -- Move monsters in the current level
 moveMonsters :: Game.GameState -> Game.GameState

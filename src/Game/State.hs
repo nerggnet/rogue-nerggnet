@@ -42,6 +42,7 @@ initGame = do
         , message = ["Welcome to the roguelike game!", " ", " "]
         , commandBuffer = ""
         , commandMode = False
+        , gameOver = False
         }
   let updatedWorld = updateVisibility (player initialState) 5 initialWorld
   let updatedState = initialState { levels = replaceLevel initialState 0 updatedWorld }
