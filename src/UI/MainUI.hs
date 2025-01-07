@@ -236,15 +236,43 @@ combat state mnstr _ =
                  (Game.monsters currentWorld)
       updatedWorld = currentWorld { Game.monsters = updatedMonsters }
       isDead = newHealth == 0
+      defeatMessage = if Game.mHealth mnstr - playerDamage <= 0
+                      then "You defeated the " ++ Game.mName mnstr ++ "!"
+                      else ""
       newMessage = if isDead
                    then "You have died! Game Over." : Game.message state
-                   else ("The " ++ Game.mName mnstr ++ " attacked you for " ++ show monsterDamage ++ " damage!") :
+                   else [defeatMessage | not (null defeatMessage)] ++
+                        ("The " ++ Game.mName mnstr ++ " attacked you for " ++ show monsterDamage ++ " damage!") :
                         ("You attacked " ++ Game.mName mnstr ++ " for " ++ show playerDamage ++ " damage!") :
                         Game.message state
   in state { Game.player = updatedPlayer
            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
            , Game.message = newMessage
            , Game.gameOver = isDead }
+-- combat :: Game.GameState -> Game.Monster -> V2 Int -> Game.GameState
+-- combat state mnstr _ =
+--   let player = Game.player state
+--       playerDamage = Game.attack player
+--       monsterDamage = max 0 (defaultMonsterAttack - Game.resistance player)
+--       newHealth = max 0 (Game.health player - monsterDamage)
+--       updatedPlayer = player { Game.health = newHealth }
+--       currentWorld = Game.levels state !! Game.currentLevel state
+--       updatedMonsters =
+--         if Game.mHealth mnstr - playerDamage <= 0
+--         then filter (/= mnstr) (Game.monsters currentWorld)
+--         else map (\m -> if m == mnstr then m { Game.mHealth = Game.mHealth mnstr - playerDamage } else m)
+--                  (Game.monsters currentWorld)
+--       updatedWorld = currentWorld { Game.monsters = updatedMonsters }
+--       isDead = newHealth == 0
+--       newMessage = if isDead
+--                    then "You have died! Game Over." : Game.message state
+--                    else ("The " ++ Game.mName mnstr ++ " attacked you for " ++ show monsterDamage ++ " damage!") :
+--                         ("You attacked " ++ Game.mName mnstr ++ " for " ++ show playerDamage ++ " damage!") :
+--                         Game.message state
+--   in state { Game.player = updatedPlayer
+--            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+--            , Game.message = newMessage
+--            , Game.gameOver = isDead }
 
 -- Move monsters in the current level
 moveMonsters :: Game.GameState -> Game.GameState
@@ -260,7 +288,7 @@ moveMonster :: Game.World -> V2 Int -> Game.Monster -> Game.Monster
 moveMonster world playerPos monster =
   let monsterPos = Game.mPosition monster
       distance = manhattanDistance playerPos monsterPos
-      potentialMoves = filter (isValidMove world) [V2 (x+dx) (y+dy) | (dx, dy) <- moveDirections]
+      potentialMoves = filter (isValidMove world playerPos) [V2 (x+dx) (y+dy) | (dx, dy) <- moveDirections]
         where V2 x y = monsterPos
       moveDirections =
         if distance <= 4
@@ -271,13 +299,14 @@ moveMonster world playerPos monster =
        _          -> monster -- Stay in place if no valid moves
 
 -- Check if a position is valid for monster movement
-isValidMove :: Game.World -> V2 Int -> Bool
-isValidMove world pos =
+isValidMove :: Game.World -> V2 Int -> V2 Int -> Bool
+isValidMove world playerPos pos =
   let V2 x y = pos
       grid = Game.mapGrid world
   in y >= 0 && y < length grid &&
      x >= 0 && x < length (head grid) &&
-     (grid !! y !! x) /= Game.Wall -- Ensure not a wall
+     (grid !! y !! x) /= Game.Wall && -- Not a wall
+     pos /= playerPos                 -- Not the player's position
 
 -- Prioritize movement directions towards the player
 prioritizeTowardsPlayer :: V2 Int -> V2 Int -> [(Int, Int)]
