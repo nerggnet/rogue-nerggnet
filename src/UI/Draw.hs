@@ -11,14 +11,14 @@ import Linear.V2 (V2(..))
 -- Draw the UI
 drawUI :: GameState -> [Widget ()]
 drawUI state =
+  [ drawLegendPopup | showLegend state ] ++
   [ vBox
       [ drawTitleBar
       , hBox
           [ padRight (Pad 2) $ drawMap currentWorld (player state)
           , padLeft (Pad 2) $
               vBox
-                [ drawLegend
-                , padTop (Pad 1) $ drawStatsBox (player state)
+                [ padTop (Pad 1) $ drawStatsBox (player state)
                 , padTop (Pad 1) $ drawInventory (player state)
                 ]
           ]
@@ -26,21 +26,21 @@ drawUI state =
       , padTop (Pad 1) $ drawCommandInput state
       ]
   ]
+
   where
     currentWorld = levels state !! currentLevel state
     playerPos = position (player state)
     itemsOnPlayerTile = [iName item | item <- items currentWorld, iPosition item == playerPos]
     currentTileMessage =
-      if null itemsOnPlayerTile
-        then "Nothing here."
+      if null itemsOnPlayerTile then ""
         else "You see: " ++ unwords itemsOnPlayerTile
 
     -- Combine the tile-specific message with the general log
-    updatedMessages = currentTileMessage : message state
+    updatedMessages = if null itemsOnPlayerTile then message state else currentTileMessage : message state
 
 drawTitleBar :: Widget ()
 drawTitleBar =
-      padBottom (Pad 1) $ C.hCenter (str "Rogue-like Game")
+      padBottom (Pad 1) $ C.hCenter (str "Rogue-like Game (press ? for help)")
 
 -- Draw the map
 drawMap :: World -> Player -> Widget ()
@@ -68,22 +68,25 @@ drawTile Door      = str "+"
 drawTile UpStair   = str "<"
 drawTile DownStair = str ">"
 
--- Draw the legend
-drawLegend :: Widget ()
-drawLegend =
-  vBox $ map str
-    [ "Commands:"
-    , "w - Move up"
-    , "s - Move down"
-    , "a - Move left"
-    , "d - Move right"
-    , "< - Ascend stairs/ladder"
-    , "> - Descend stairs/ladder"
-    , "g - Pick up item"
-    , "u - Use an item from inventory"
-    , ": - Enter command mode"
-    , ":q - Quit the game"
-    ]
+-- Draw the legend as a popup
+drawLegendPopup :: Widget ()
+drawLegendPopup =
+  C.centerLayer $ -- Centered popup
+    B.borderWithLabel (str "Commands") $
+      padAll 1 $ vBox $ map str
+        [ "Commands:"
+        , "w - Move up"
+        , "s - Move down"
+        , "a - Move left"
+        , "d - Move right"
+        , "< - Ascend stairs/ladder"
+        , "> - Descend stairs/ladder"
+        , "g - Pick up item"
+        , "u - Use an item from inventory"
+        , ": - Enter command mode"
+        , ":q - Quit the game"
+        , "? - Toggle this help popup"
+        ]
 
 -- Draw the stats box with Health, Attack, and Resistance
 drawStatsBox :: Player -> Widget ()

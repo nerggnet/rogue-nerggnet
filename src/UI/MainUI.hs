@@ -53,6 +53,7 @@ handleMovement :: Key -> EventM () Game.GameState ()
 handleMovement key = do
   isGameOver <- gets Game.gameOver
   modify $ case key of
+      KChar '?' -> \s -> s { Game.showLegend = not (Game.showLegend s) }
       KChar 'w' -> if isGameOver then id else movePlayer Game.North
       KChar 's' -> if isGameOver then id else movePlayer Game.South
       KChar 'a' -> if isGameOver then id else movePlayer Game.West
