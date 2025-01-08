@@ -19,7 +19,7 @@ common warnings
 executable rogue-nerggnet
     import:           warnings
     main-is:          Main.hs
-    other-modules:    Game.Types, Game.State, UI.MainUI, UI.Draw, File.Types, File.MapIO
+    other-modules:    Game.Logic, Game.Types, Game.State, UI.MainUI, UI.Draw, File.Types, File.MapIO
     -- other-extensions:
     build-depends:    base ^>=4.20.0.0, containers, brick, vty, vty-crossplatform, mtl, linear, lens, aeson, bytestring
     hs-source-dirs:   app, src
