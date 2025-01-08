@@ -167,7 +167,9 @@ handleCommandInput key = do
     then case key of
       KChar c -> do
         let inventory = Game.inventory (Game.player state)
-        case lookup c (keyedInventory inventory) of
+            eqpdWeapon = Game.equippedWeapon (Game.player state)
+            eqpdArmor = Game.equippedArmor (Game.player state)
+        case lookup c (keyedInventory inventory eqpdWeapon eqpdArmor) of
           Just item -> modify (useItem item) -- Use the selected item
           Nothing   -> modify (\s -> s { Game.message = "Invalid selection." : Game.message s })
         modify (\s -> s { Game.commandMode = False }) -- Exit command mode after using an item

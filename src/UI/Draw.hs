@@ -107,7 +107,7 @@ drawInventory plyr =
         padRight Max $
           if null inv
             then str "No items collected"
-            else vBox $ map renderItem (keyedInventory inv)
+            else vBox $ map renderItem (keyedInventory inv eqpdWeapon eqpdArmor)
   where
     inv = inventory plyr
     eqpdWeapon = equippedWeapon plyr
@@ -120,9 +120,16 @@ drawInventory plyr =
             | otherwise                  = ""
       in str [key, ')', ' '] <+> str (iName itm ++ equippedMarker)
 
--- Generate a list of (key, item) pairs
-keyedInventory :: [Item] -> [(Char, Item)]
-keyedInventory inv = zip ['a'..] inv
+-- Generate a list of (key, item) pairs with equipped items on top
+keyedInventory :: [Item] -> Maybe Item -> Maybe Item -> [(Char, Item)]
+keyedInventory inv eqpdWeapon eqpdArmor =
+  let equippedItems = concatMap maybeToList [eqpdWeapon, eqpdArmor]
+      unequippedItems = filter (`notElem` equippedItems) inv
+      prioritizedItems = equippedItems ++ unequippedItems
+  in zip ['a'..] prioritizedItems
+  where
+    maybeToList Nothing = []
+    maybeToList (Just x) = [x]
 
 -- Draw messages/log
 drawMessages :: [String] -> Widget ()
