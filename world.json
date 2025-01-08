@@ -40,6 +40,13 @@
       { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores 20 HP.", "itemCategory": "Healing", "itemEffectValue": 60 },
       { "itemName": "Sword", "itemPosition": [11, 20], "itemDescription": "A sharp blade.", "itemCategory": "Weapon", "itemEffectValue": 15 },
       { "itemName": "Gold Coin", "itemPosition": [8, 25], "itemDescription": "Shiny and valuable.", "itemCategory": "Special", "itemEffectValue": 0 }
+    ],
+    "doors": [
+      { "doorPosition": [7, 4], "doorLocked": true },
+      { "doorPosition": [15, 4], "doorLocked": false },
+      { "doorPosition": [19, 6], "doorLocked": false },
+      { "doorPosition": [7, 10], "doorLocked": false },
+      { "doorPosition": [22, 10], "doorLocked": false }
     ]
   },
   {
@@ -83,6 +90,13 @@
       { "itemName": "Shield", "itemPosition": [9, 9], "itemDescription": "A protective shield.", "itemCategory": "Armor", "itemEffectValue": 10 },
       { "itemName": "Magic Scroll", "itemPosition": [20, 15], "itemDescription": "Contains a spell.", "itemCategory": "Special", "itemEffectValue": 0 },
       { "itemName": "Amulet", "itemPosition": [12, 25], "itemDescription": "Grants protection.", "itemCategory": "Armor", "itemEffectValue": 5 }
+    ],
+    "doors": [
+      { "doorPosition": [7, 4], "doorLocked": false },
+      { "doorPosition": [15, 4], "doorLocked": false },
+      { "doorPosition": [26, 10], "doorLocked": true },
+      { "doorPosition": [32, 10], "doorLocked": false },
+      { "doorPosition": [36, 10], "doorLocked": false }
     ]
   },
   {
@@ -124,6 +138,14 @@
     "items": [
       { "itemName": "Ring of Power", "itemPosition": [10, 10], "itemDescription": "Grants strength.", "itemCategory": "Weapon", "itemEffectValue": 25 },
       { "itemName": "Potion of Flight", "itemPosition": [15, 15], "itemDescription": "Grants temporary flight.", "itemCategory": "Special", "itemEffectValue": 0 }
+    ],
+    "doors": [
+      { "doorPosition": [7, 4], "doorLocked": false },
+      { "doorPosition": [15, 4], "doorLocked": false },
+      { "doorPosition": [9, 9], "doorLocked": true },
+      { "doorPosition": [7, 10], "doorLocked": false },
+      { "doorPosition": [22, 10], "doorLocked": false },
+      { "doorPosition": [38, 10], "doorLocked": false }
     ]
   },
   {
@@ -162,6 +184,14 @@
     ],
     "items": [
       { "itemName": "Orb of Power", "itemPosition": [10, 10], "itemDescription": "Grants immense power.", "itemCategory": "Weapon", "itemEffectValue": 40 }
+    ],
+    "doors": [
+      { "doorPosition": [7, 4], "doorLocked": false },
+      { "doorPosition": [18, 4], "doorLocked": false },
+      { "doorPosition": [7, 10], "doorLocked": false },
+      { "doorPosition": [22, 10], "doorLocked": false },
+      { "doorPosition": [38, 10], "doorLocked": false },
+      { "doorPosition": [25, 12], "doorLocked": false }
     ]
   }
 ]

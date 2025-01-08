@@ -40,11 +40,18 @@ data Item = Item
   , iEffectValue :: Int
   } deriving (Show, Eq)
 
+-- Door data
+data DoorEntity = DoorEntity
+  { dePosition :: V2 Int
+  , deLocked   :: Bool
+  } deriving (Show, Eq)
+
 -- World state
 data World = World
   { mapGrid    :: [[Tile]]
   , monsters   :: [Monster]
   , items      :: [Item]
+  , doors      :: [DoorEntity]
   , visibility :: [[Bool]]
   , discovered :: [[Bool]]
   } deriving (Show)

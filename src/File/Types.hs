@@ -8,10 +8,11 @@ import Data.Aeson (FromJSON, ToJSON)
 
 -- | JSON representation of a map level
 data MapLevel = MapLevel
-  { levelNumber :: Int             -- Level identifier
-  , mapGrid     :: [String]        -- Serialized map grid (row-wise string representation)
-  , monsters    :: [JSONMonster]   -- Monsters present in this level
-  , items       :: [JSONItem]      -- Items present in this level
+  { levelNumber :: Int              -- Level identifier
+  , mapGrid     :: [String]         -- Serialized map grid (row-wise string representation)
+  , monsters    :: [JSONMonster]    -- Monsters present on this level
+  , doors       :: [JSONDoorEntity] -- Doors present on this level
+  , items       :: [JSONItem]       -- Items present on this level
   } deriving (Show, Generic)
 
 instance FromJSON MapLevel
@@ -39,3 +40,12 @@ data JSONItem = JSONItem
 
 instance FromJSON JSONItem
 instance ToJSON JSONItem
+
+-- | JSON representation of a door
+data JSONDoorEntity = JSONDoorEntity
+  { doorPosition :: (Int, Int)
+  , doorLocked   :: Bool
+  } deriving (Show, Generic)
+
+instance FromJSON JSONDoorEntity
+instance ToJSON JSONDoorEntity

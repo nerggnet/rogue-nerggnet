@@ -51,6 +51,18 @@ drawMap wrld plyr =
     drawRow y row =
       hBox $ zipWith (\x tile -> drawTileWithFog wrld plyr x y tile) [0..] row
 
+-- drawTileWithFog :: World -> Player -> Int -> Int -> Tile -> Widget ()
+-- drawTileWithFog world plyr x y tile
+--   | not (visibility world !! y !! x) && not (discovered world !! y !! x) = withAttr (attrName "fog") $ str " "
+--   | not (visibility world !! y !! x) && discovered world !! y !! x = withAttr (attrName "discovered") $ drawTile tile
+--   | position plyr == V2 x y = withAttr (attrName "player") $ str "@"
+--   | any ((== V2 x y) . mPosition) (monsters world) = withAttr (attrName "monster") $ str "M"
+--   | any ((== V2 x y) . iPosition) (items world) = withAttr (attrName "item") $ str "!"
+--   | otherwise = case find (\d -> dePosition d == V2 x y) (doors world) of
+--       Just door | deLocked door -> withAttr (attrName "door") $ str "D" -- Locked door
+--       Just _ -> withAttr (attrName "door") $ str "+"                 -- Unlocked door
+--       Nothing -> drawTile tile
+
 drawTileWithFog :: World -> Player -> Int -> Int -> Tile -> Widget ()
 drawTileWithFog world plyr x y tile
   | not (visibility world !! y !! x) && not (discovered world !! y !! x) = withAttr (attrName "fog") $ str " "
@@ -64,9 +76,9 @@ drawTileWithFog world plyr x y tile
 drawTile :: Tile -> Widget ()
 drawTile Wall      = str "#"
 drawTile Floor     = str "."
-drawTile Door      = str "+"
-drawTile UpStair   = str "<"
-drawTile DownStair = str ">"
+drawTile Door      = withAttr (attrName "door") $ str "+"
+drawTile UpStair   = withAttr (attrName "upStair") $ str "<"
+drawTile DownStair = withAttr (attrName "downStair") $ str ">"
 
 -- Draw the legend as a popup
 drawLegendPopup :: Widget ()

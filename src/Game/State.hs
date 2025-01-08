@@ -75,6 +75,7 @@ transformFileWorld fileWorld = World
   { mapGrid = map (map charToTile) (FT.mapGrid fileWorld)
   , monsters = map transformMonster (FT.monsters fileWorld)
   , items = map transformItem (FT.items fileWorld)
+  , doors = map transformDoorEntity (FT.doors fileWorld)
   , visibility = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
   , discovered = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
   }
@@ -104,6 +105,13 @@ transformItem fi = Item
                   "Special" -> Special
                   _ -> error "Unknown category"
   , iEffectValue = FT.itemEffectValue fi
+  }
+
+-- Transform a File.Types.JSONDoorEntity to Game.Types.DoorEntity
+transformDoorEntity :: FT.JSONDoorEntity -> DoorEntity
+transformDoorEntity jsonDoor = DoorEntity
+  { dePosition = uncurry V2 (FT.doorPosition jsonDoor)
+  , deLocked   = FT.doorLocked jsonDoor
   }
 
 -- Convert a character to a Tile
