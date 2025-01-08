@@ -27,6 +27,7 @@ data Player = Player
 data Monster = Monster
   { mPosition :: V2 Int
   , mHealth   :: Int
+  , mAttack   :: Int
   , mName     :: String
   } deriving (Show, Eq)
 

@@ -7,7 +7,7 @@ import Brick
 import Graphics.Vty (Event(..), Key(..), rgbColor, withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
-import Game.State (initGame, defaultHealth, defaultMonsterAttack, updateVisibility, replaceLevel, manhattanDistance)
+import Game.State (initGame, defaultHealth, updateVisibility, replaceLevel, manhattanDistance)
 import UI.Draw
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
@@ -225,7 +225,7 @@ combat :: Game.GameState -> Game.Monster -> V2 Int -> Game.GameState
 combat state mnstr _ =
   let player = Game.player state
       playerDamage = Game.attack player
-      monsterDamage = max 0 (defaultMonsterAttack - Game.resistance player)
+      monsterDamage = max 0 (Game.mAttack mnstr - Game.resistance player)
       newHealth = max 0 (Game.health player - monsterDamage)
       updatedPlayer = player { Game.health = newHealth }
       currentWorld = Game.levels state !! Game.currentLevel state
@@ -249,30 +249,6 @@ combat state mnstr _ =
            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
            , Game.message = newMessage
            , Game.gameOver = isDead }
--- combat :: Game.GameState -> Game.Monster -> V2 Int -> Game.GameState
--- combat state mnstr _ =
---   let player = Game.player state
---       playerDamage = Game.attack player
---       monsterDamage = max 0 (defaultMonsterAttack - Game.resistance player)
---       newHealth = max 0 (Game.health player - monsterDamage)
---       updatedPlayer = player { Game.health = newHealth }
---       currentWorld = Game.levels state !! Game.currentLevel state
---       updatedMonsters =
---         if Game.mHealth mnstr - playerDamage <= 0
---         then filter (/= mnstr) (Game.monsters currentWorld)
---         else map (\m -> if m == mnstr then m { Game.mHealth = Game.mHealth mnstr - playerDamage } else m)
---                  (Game.monsters currentWorld)
---       updatedWorld = currentWorld { Game.monsters = updatedMonsters }
---       isDead = newHealth == 0
---       newMessage = if isDead
---                    then "You have died! Game Over." : Game.message state
---                    else ("The " ++ Game.mName mnstr ++ " attacked you for " ++ show monsterDamage ++ " damage!") :
---                         ("You attacked " ++ Game.mName mnstr ++ " for " ++ show playerDamage ++ " damage!") :
---                         Game.message state
---   in state { Game.player = updatedPlayer
---            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
---            , Game.message = newMessage
---            , Game.gameOver = isDead }
 
 -- Move monsters in the current level
 moveMonsters :: Game.GameState -> Game.GameState

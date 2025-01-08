@@ -86,6 +86,7 @@ transformMonster :: FT.JSONMonster -> Monster
 transformMonster fm = Monster
   { mPosition = uncurry V2 (FT.position fm) -- Convert (Int, Int) to V2 Int
   , mHealth = FT.health fm
+  , mAttack = FT.attack fm
   , mName = FT.name fm
   }
 

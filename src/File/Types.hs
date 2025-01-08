@@ -21,6 +21,7 @@ instance ToJSON MapLevel
 data JSONMonster = JSONMonster
   { name     :: String             -- Monster name
   , position :: (Int, Int)         -- Monster's position (row, col)
+  , attack   :: Int                -- Monster's attack
   , health   :: Int                -- Monster health
   } deriving (Show, Generic)
 
