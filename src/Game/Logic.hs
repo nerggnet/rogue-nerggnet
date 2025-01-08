@@ -172,83 +172,36 @@ movePlayer dir state =
         Game.East  -> playerPos + V2 1 0
         _          -> playerPos
 
-      monsterAt pos = filter (\m -> Game.mPosition m == pos) (Game.monsters currentWorld)
+      -- Helper to find a monster at a given position
+      monsterAt pos = find (\m -> Game.mPosition m == pos) (Game.monsters currentWorld)
+
+      -- Helper to find a door at a given position
       doorAt pos = find (\d -> Game.dePosition d == pos) (Game.doors currentWorld)
+
+      -- Helper to check if the player can move to a position
       canMove pos =
-        y >= 0 && y < length worldMap &&
-        x >= 0 && x < length (head worldMap) &&
-        (worldMap !! y !! x) /= Game.Wall
-        where
-          V2 x y = pos
-  in case doorAt newPos of
-       Just door | Game.deLocked door ->
+        let V2 x y = pos
+        in y >= 0 && y < length worldMap &&
+           x >= 0 && x < length (head worldMap) &&
+           (worldMap !! y !! x) /= Game.Wall
+
+      -- Helper to handle movement
+      internalHandleMovement nPos =
+        let updatedWorld = updateVisibility (Game.player state) 5 currentWorld
+        in state { Game.player = (Game.player state) { Game.position = nPos }
+                 , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+  in case (doorAt newPos, monsterAt newPos) of
+       (Just door, _) | Game.deLocked door -> -- Locked door case
          state { Game.message = ("The door at " ++ show newPos ++ " is locked.") : Game.message state }
-       Just _ -> -- Unlocked door; allow movement
-         case monsterAt newPos of
-           [] -> if canMove newPos
-                 then
-                   let updatedWorld = updateVisibility (Game.player state) 5 currentWorld
-                   in state { Game.player = (Game.player state) { Game.position = newPos }
-                            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
-                 else state
-           (monster:_) -> combat state monster newPos
-       Nothing -> -- Not a door; default behavior
-         case monsterAt newPos of
-           [] -> if canMove newPos
-                 then
-                   let updatedWorld = updateVisibility (Game.player state) 5 currentWorld
-                   in state { Game.player = (Game.player state) { Game.position = newPos }
-                            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
-                 else state
-           (monster:_) -> combat state monster newPos
-
--- movePlayer :: Game.Direction -> Game.GameState -> Game.GameState
--- movePlayer dir state =
---   let playerPos = Game.position (Game.player state)
---       newPos = case dir of
---         Game.North -> playerPos + V2 0 (-1)
---         Game.South -> playerPos + V2 0 1
---         Game.West  -> playerPos + V2 (-1) 0
---         Game.East  -> playerPos + V2 1 0
---         _          -> playerPos
---       currentWorld = Game.levels state !! Game.currentLevel state
---       doorAt pos = find (\d -> dePosition d == pos) (Game.doors currentWorld)
---   in case doorAt newPos of
---        Just door | deLocked door ->
---          state { Game.message = ("The door at " ++ show newPos ++ " is locked.") : Game.message state }
---        Just _ -> -- Door is unlocked; proceed as normal
---          let updatedWorld = updateVisibility (Game.player state) 5 currentWorld
---          in state { Game.player = (Game.player state) { Game.position = newPos }
---                   , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
---        Nothing -> -- Not a door; default behavior
---          state -- Existing behavior for other tiles
-
--- movePlayer :: Game.Direction -> Game.GameState -> Game.GameState
--- movePlayer dir state =
---   let playerPos = Game.position (Game.player state)
---       currentWorld = Game.levels state !! Game.currentLevel state
---       worldMap = Game.mapGrid currentWorld
---       newPos = case dir of
---         Game.North -> playerPos + V2 0 (-1)
---         Game.South -> playerPos + V2 0 1
---         Game.West  -> playerPos + V2 (-1) 0
---         Game.East  -> playerPos + V2 1 0
---         _          -> playerPos
---       monsterAt pos = filter (\m -> Game.mPosition m == pos) (Game.monsters currentWorld)
---       canMove pos =
---         y >= 0 && y < length worldMap &&
---         x >= 0 && x < length (head worldMap) &&
---         (worldMap !! y !! x) /= Game.Wall
---         where
---           V2 x y = pos
---   in case monsterAt newPos of
---        [] -> if canMove newPos
---              then
---                let updatedWorld = updateVisibility (Game.player state) 5 currentWorld
---                in state { Game.player = (Game.player state) { Game.position = newPos }
---                         , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
---              else state
---        (monster:_) -> combat state monster newPos
+       (Just _, Nothing) | canMove newPos -> -- Unlocked door and no monster
+         internalHandleMovement newPos
+       (Just _, Just monster) -> -- Unlocked door with a monster behind it
+         combat state monster newPos
+       (Nothing, Nothing) | canMove newPos -> -- Open space, allow movement
+         internalHandleMovement newPos
+       (Nothing, Just monster) -> -- Open space with a monster
+         combat state monster newPos
+       _ -> state -- Invalid move
 
 -- Player hits a monster and the monster returns the favor
 combat :: Game.GameState -> Game.Monster -> V2 Int -> Game.GameState
@@ -285,16 +238,25 @@ moveMonsters :: Game.GameState -> Game.GameState
 moveMonsters state =
   let currentWorld = Game.levels state !! Game.currentLevel state
       playerPos = Game.position (Game.player state)
-      updatedMonsters = map (moveMonster currentWorld playerPos) (Game.monsters currentWorld)
+      initialOccupiedPositions = map Game.mPosition (Game.monsters currentWorld) -- Initial positions of all monsters
+      (updatedMonsters, _) =
+        foldl
+          (\(monsters, occupied) monster ->
+             let newMonster = moveMonsterWithOccupied currentWorld playerPos occupied monster
+                 newOccupied = Game.mPosition newMonster : occupied
+             in (monsters ++ [newMonster], newOccupied))
+          ([], initialOccupiedPositions)
+          (Game.monsters currentWorld)
       updatedWorld = currentWorld { Game.monsters = updatedMonsters }
   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
--- Move a single monster towards the player if within range
-moveMonster :: Game.World -> V2 Int -> Game.Monster -> Game.Monster
-moveMonster world playerPos monster =
+moveMonsterWithOccupied :: Game.World -> V2 Int -> [V2 Int] -> Game.Monster -> Game.Monster
+moveMonsterWithOccupied world playerPos occupiedPositions monster =
   let monsterPos = Game.mPosition monster
       distance = manhattanDistance playerPos monsterPos
-      potentialMoves = filter (isValidMove world playerPos) [V2 (x+dx) (y+dy) | (dx, dy) <- moveDirections]
+      potentialMoves =
+        filter (\pos -> isValidMove world playerPos pos && pos `notElem` occupiedPositions)
+               [V2 (x+dx) (y+dy) | (dx, dy) <- moveDirections]
         where V2 x y = monsterPos
       moveDirections =
         if distance <= 4
@@ -309,17 +271,25 @@ isValidMove :: Game.World -> V2 Int -> V2 Int -> Bool
 isValidMove world playerPos pos =
   let V2 x y = pos
       grid = Game.mapGrid world
+      doorAt = find (\d -> Game.dePosition d == pos) (Game.doors world)
   in y >= 0 && y < length grid &&
      x >= 0 && x < length (head grid) &&
      (grid !! y !! x) /= Game.Wall && -- Not a wall
-     pos /= playerPos                 -- Not the player's position
+     pos /= playerPos &&              -- Not the player's position
+     case doorAt of
+       Just door -> not (Game.deLocked door) -- Locked doors block movement
+       Nothing   -> True -- No door, movement is allowed
 
 -- Prioritize movement directions towards the player
 prioritizeTowardsPlayer :: V2 Int -> V2 Int -> [(Int, Int)]
 prioritizeTowardsPlayer (V2 px py) (V2 mx my) =
-  let dx = signum (px - mx) -- Direction in x-axis
-      dy = signum (py - my) -- Direction in y-axis
-  in [(dx, 0), (0, dy), (dx, dy), (dx, -dy), (-dx, dy)] -- Prioritize direct and then diagonal moves
+  let dx = px - mx -- Horizontal distance to player
+      dy = py - my -- Vertical distance to player
+      horizontalFirst = [(signum dx, 0), (0, signum dy)]
+      verticalFirst = [(0, signum dy), (signum dx, 0)]
+  in if abs dx >= abs dy
+     then horizontalFirst ++ [(signum dx, signum dy), (-signum dx, 0), (0, -signum dy)]
+     else verticalFirst ++ [(signum dx, signum dy), (0, -signum dy), (-signum dx, 0)]
 
 defaultAttrMap :: AttrMap
 defaultAttrMap = attrMap defAttr

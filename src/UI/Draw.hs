@@ -51,26 +51,34 @@ drawMap wrld plyr =
     drawRow y row =
       hBox $ zipWith (\x tile -> drawTileWithFog wrld plyr x y tile) [0..] row
 
--- drawTileWithFog :: World -> Player -> Int -> Int -> Tile -> Widget ()
--- drawTileWithFog world plyr x y tile
---   | not (visibility world !! y !! x) && not (discovered world !! y !! x) = withAttr (attrName "fog") $ str " "
---   | not (visibility world !! y !! x) && discovered world !! y !! x = withAttr (attrName "discovered") $ drawTile tile
---   | position plyr == V2 x y = withAttr (attrName "player") $ str "@"
---   | any ((== V2 x y) . mPosition) (monsters world) = withAttr (attrName "monster") $ str "M"
---   | any ((== V2 x y) . iPosition) (items world) = withAttr (attrName "item") $ str "!"
---   | otherwise = case find (\d -> dePosition d == V2 x y) (doors world) of
---       Just door | deLocked door -> withAttr (attrName "door") $ str "D" -- Locked door
---       Just _ -> withAttr (attrName "door") $ str "+"                 -- Unlocked door
---       Nothing -> drawTile tile
-
 drawTileWithFog :: World -> Player -> Int -> Int -> Tile -> Widget ()
 drawTileWithFog world plyr x y tile
-  | not (visibility world !! y !! x) && not (discovered world !! y !! x) = withAttr (attrName "fog") $ str " "
-  | not (visibility world !! y !! x) && discovered world !! y !! x = withAttr (attrName "discovered") $ drawTile tile
-  | position plyr == V2 x y = withAttr (attrName "player") $ str "@"
-  | any ((== V2 x y) . mPosition) (monsters world) = withAttr (attrName "monster") $ str "M"
-  | any ((== V2 x y) . iPosition) (items world) = withAttr (attrName "item") $ str "!"
-  | otherwise = drawTile tile
+  | not (visibility world !! y !! x) && not (discovered world !! y !! x) =
+      -- Completely obscured by fog
+      withAttr (attrName "fog") $ str " "
+  | not (visibility world !! y !! x) && discovered world !! y !! x =
+      -- Previously discovered, but not currently visible
+      withAttr (attrName "discovered") $ drawTileHidden tile
+  | position plyr == V2 x y =
+      -- Player's position
+      withAttr (attrName "player") $ str "@"
+  | any ((== V2 x y) . mPosition) (monsters world) =
+      -- Monster's position
+      withAttr (attrName "monster") $ str "M"
+  | any ((== V2 x y) . iPosition) (items world) =
+      -- Item's position
+      withAttr (attrName "item") $ str "!"
+  | otherwise =
+      -- Regular visible tile
+      drawTile tile
+
+-- Helper to render a hidden tile (e.g., in fog or discovered but not visible)
+drawTileHidden :: Tile -> Widget ()
+drawTileHidden Wall      = str "#"
+drawTileHidden Floor     = str "."  -- Use generic appearance for hidden tiles
+drawTileHidden Door      = str "."  -- Doors appear as regular floor when hidden
+drawTileHidden UpStair   = str "."  -- Up stairs appear as regular floor when hidden
+drawTileHidden DownStair = str "."  -- Down stairs appear as regular floor when hidden
 
 -- Draw a single tile
 drawTile :: Tile -> Widget ()
