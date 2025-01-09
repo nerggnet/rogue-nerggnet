@@ -9,7 +9,7 @@ import File.MapIO (loadMapLevels)
 import Linear.V2 (V2(..))
 import Data.Maybe (fromMaybe)
 
--- Default values for unarmed and unarmored player, plus default monster attack (will be updated later)
+-- Default values for unarmed and unarmored player, plus default monster and fog radii
 defaultHealth :: Int
 defaultHealth = 100
 
@@ -18,9 +18,6 @@ defaultAttack = 5
 
 defaultResistance :: Int
 defaultResistance = 3
-
-defaultMonsterAttack :: Int
-defaultMonsterAttack = 8
 
 defaultMonsterRadius :: Int
 defaultMonsterRadius = 4
@@ -45,13 +42,13 @@ initGame = do
             , equippedArmor = Nothing }
         , levels = allWorlds
         , currentLevel = 0
-        , message = ["Welcome to the roguelike game!", " ", " "]
+        , message = ["Welcome Rogue nerggnet!", " ", " "]
         , commandBuffer = ""
         , commandMode = False
         , showLegend = False
         , gameOver = False
         }
-  let updatedWorld = updateVisibility (player initialState) 5 initialWorld
+  let updatedWorld = updateVisibility (player initialState) defaultFogRadius initialWorld
   let updatedState = initialState { levels = replaceLevel initialState 0 updatedWorld }
   return updatedState
 
@@ -92,7 +89,7 @@ initializeGrid value rows cols = replicate rows (replicate cols value)
 -- Transform a File.Types.JSONMonster to Game.Types.Monster
 transformMonster :: FT.JSONMonster -> Monster
 transformMonster fm = Monster
-  { mPosition = uncurry V2 (FT.position fm) -- Convert (Int, Int) to V2 Int
+  { mPosition = uncurry V2 (FT.position fm)
   , mHealth = FT.health fm
   , mAttack = FT.attack fm
   , mName = FT.name fm
@@ -103,7 +100,7 @@ transformItem :: FT.JSONItem -> Item
 transformItem fi = Item
   { iName = FT.itemName fi
   , iDescription = FT.itemDescription fi
-  , iPosition = uncurry V2 (FT.itemPosition fi) -- Convert (Int, Int) to V2 Int
+  , iPosition = uncurry V2 (FT.itemPosition fi)
   , iCategory = case FT.itemCategory fi of
                   "Armor" -> Armor
                   "Weapon" -> Weapon

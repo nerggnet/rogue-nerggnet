@@ -218,7 +218,7 @@ movePlayer dir state =
                  , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
   in case (doorAt newPos, monsterAt newPos) of
        (Just door, _) | Game.deLocked door -> -- Locked door case
-         state { Game.message = ("The door at " ++ show newPos ++ " is locked.") : Game.message state }
+         state { Game.message = ("The door in in front of you is locked and is blocking your way.") : Game.message state }
        (Just _, Nothing) | canMove newPos -> -- Unlocked door and no monster
          internalHandleMovement newPos
        (Just _, Just monster) -> -- Unlocked door with a monster behind it
