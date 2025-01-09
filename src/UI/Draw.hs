@@ -40,7 +40,7 @@ drawUI state =
 
 drawTitleBar :: Widget ()
 drawTitleBar =
-      padBottom (Pad 1) $ C.hCenter (str "Rogue-like Game (press ? for help)")
+      padBottom (Pad 1) $ C.hCenter (str "Rogue nerggnet (press ? for help)")
 
 -- Draw the map
 drawMap :: World -> Player -> Widget ()
