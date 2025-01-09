@@ -170,6 +170,10 @@ handleCommandInput key = do
 -- Execute commands
 executeCommand :: String -> EventM () Game.GameState ()
 executeCommand ":q" = halt -- Quit the game
+executeCommand ":heal" = do
+    state <- get
+    let plyr = Game.player state
+    modify (\s -> s { Game.player = plyr { Game.health = defaultHealth } } )
 executeCommand cmd  = modify (\s -> s { Game.message = ("Unknown command: " ++ cmd) : Game.message s })
 
 -- Safe init for empty lists

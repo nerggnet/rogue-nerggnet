@@ -95,10 +95,10 @@ drawLegendPopup =
     B.borderWithLabel (str "Commands") $
       padAll 1 $ vBox $ map str
         [ "Commands:"
-        , "w - Move up"
-        , "s - Move down"
-        , "a - Move left"
-        , "d - Move right"
+        , "w or k - Move up"
+        , "s or j - Move down"
+        , "a or h - Move left"
+        , "d or l - Move right"
         , "< - Ascend stairs/ladder"
         , "> - Descend stairs/ladder"
         , "g - Pick up item"
