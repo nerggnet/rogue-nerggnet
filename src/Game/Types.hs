@@ -10,7 +10,7 @@ data Tile = Wall | Floor | Door | UpStair | DownStair deriving (Eq, Show)
 data Direction = North | South | East | West | Up | Down deriving (Eq, Show)
 
 -- Category of Item
-data ItemCategory = Armor | Weapon | Healing | Special deriving (Eq, Show)
+data ItemCategory = Armor | Weapon | Healing | Special | Key deriving (Eq, Show)
 
 -- Player data
 data Player = Player

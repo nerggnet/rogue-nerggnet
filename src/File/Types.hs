@@ -34,7 +34,7 @@ data JSONItem = JSONItem
   { itemName        :: String      -- Item name
   , itemPosition    :: (Int, Int)  -- Item's position (row, col)
   , itemDescription :: String      -- Item description
-  , itemCategory    :: String      -- Item category, i.e. Armor, Weapon, Healing, or Special
+  , itemCategory    :: String      -- Item category, i.e. Armor, Weapon, Healing, Special, or Key
   , itemEffectValue :: Int         -- Item effect value, e.g. increases attack with this value
   } deriving (Show, Generic)
 

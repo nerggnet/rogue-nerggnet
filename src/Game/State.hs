@@ -103,6 +103,7 @@ transformItem fi = Item
                   "Weapon" -> Weapon
                   "Healing" -> Healing
                   "Special" -> Special
+                  "Key" -> Key
                   _ -> error "Unknown category"
   , iEffectValue = FT.itemEffectValue fi
   }

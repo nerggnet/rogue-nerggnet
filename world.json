@@ -89,7 +89,9 @@
     "items": [
       { "itemName": "Shield", "itemPosition": [9, 9], "itemDescription": "A protective shield.", "itemCategory": "Armor", "itemEffectValue": 10 },
       { "itemName": "Magic Scroll", "itemPosition": [20, 15], "itemDescription": "Contains a spell.", "itemCategory": "Special", "itemEffectValue": 0 },
-      { "itemName": "Amulet", "itemPosition": [12, 25], "itemDescription": "Grants protection.", "itemCategory": "Armor", "itemEffectValue": 5 }
+      { "itemName": "Amulet", "itemPosition": [12, 25], "itemDescription": "Grants protection.", "itemCategory": "Armor", "itemEffectValue": 5 },
+      { "itemName": "Iron Key", "itemPosition": [17, 3], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0 },
+      { "itemName": "Iron Key", "itemPosition": [4, 11], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0 }
     ],
     "doors": [
       { "doorPosition": [7, 4], "doorLocked": false },
@@ -137,7 +139,8 @@
     ],
     "items": [
       { "itemName": "Ring of Power", "itemPosition": [10, 10], "itemDescription": "Grants strength.", "itemCategory": "Weapon", "itemEffectValue": 25 },
-      { "itemName": "Potion of Flight", "itemPosition": [15, 15], "itemDescription": "Grants temporary flight.", "itemCategory": "Special", "itemEffectValue": 0 }
+      { "itemName": "Potion of Flight", "itemPosition": [15, 15], "itemDescription": "Grants temporary flight.", "itemCategory": "Special", "itemEffectValue": 0 },
+      { "itemName": "Iron Key", "itemPosition": [35, 5], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0 }
     ],
     "doors": [
       { "doorPosition": [7, 4], "doorLocked": false },

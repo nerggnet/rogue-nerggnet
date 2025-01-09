@@ -95,13 +95,26 @@ promptUseItem state =
 useItem :: Game.Item -> Game.GameState -> Game.GameState
 useItem itm state =
   let plyr = Game.player state
-      newState = case Game.iCategory itm of
+      doorToUnlock = find (isAdjacent (Game.position plyr) . Game.dePosition)
+                          (Game.doors (Game.levels state !! Game.currentLevel state))
+      updatedState = case Game.iCategory itm of
         Game.Healing ->
           let healedHealth = min defaultHealth (Game.health plyr + Game.iEffectValue itm)
           in state { Game.player = plyr { Game.health = healedHealth
                                         , Game.inventory = filter (/= itm) (Game.inventory plyr) }
                    , Game.message = ("You used " ++ Game.iName itm ++ " and recovered "
                                     ++ show (Game.iEffectValue itm) ++ " HP.") : Game.message state }
+        Game.Key ->
+          case doorToUnlock of
+            Just door ->
+              let updatedDoors = map (\d -> if d == door then d { Game.deLocked = False } else d)
+                                      (Game.doors (Game.levels state !! Game.currentLevel state))
+                  updatedWorld = (Game.levels state !! Game.currentLevel state) { Game.doors = updatedDoors }
+              in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+                       , Game.player = plyr { Game.inventory = filter (/= itm) (Game.inventory plyr) }
+                       , Game.message = ("You used " ++ Game.iName itm ++ " to unlock a door!") : Game.message state }
+            Nothing ->
+              state { Game.message = "There is no door nearby to unlock." : Game.message state }
         Game.Weapon ->
           let oldWeapon = Game.equippedWeapon plyr
               newAttack = Game.attack plyr
@@ -121,7 +134,12 @@ useItem itm state =
         Game.Special ->
           state { Game.message = ("You used " ++ Game.iName itm ++ ". Its effect is mysterious.")
                                : Game.message state }
-  in newState
+  in updatedState
+
+-- Helper function: Check adjacency
+isAdjacent :: V2 Int -> V2 Int -> Bool
+isAdjacent (V2 x1 y1) (V2 x2 y2) =
+  abs (x1 - x2) + abs (y1 - y2) == 1
 
 -- Handle commands
 handleCommandInput :: Key -> EventM () Game.GameState ()
