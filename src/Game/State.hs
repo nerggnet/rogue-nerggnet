@@ -22,6 +22,12 @@ defaultResistance = 3
 defaultMonsterAttack :: Int
 defaultMonsterAttack = 8
 
+defaultMonsterRadius :: Int
+defaultMonsterRadius = 4
+
+defaultFogRadius :: Int
+defaultFogRadius = 5
+
 -- Initialize the game state
 initGame :: IO GameState
 initGame = do

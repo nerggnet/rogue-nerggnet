@@ -5,7 +5,7 @@ module Game.Logic where
 
 import Brick
 import Graphics.Vty (Key(..), rgbColor, withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta)
-import Game.State (defaultHealth, updateVisibility, replaceLevel, manhattanDistance)
+import Game.State (defaultHealth, defaultMonsterRadius, defaultFogRadius, updateVisibility, replaceLevel, manhattanDistance)
 import UI.Draw
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
@@ -41,7 +41,7 @@ goUp state =
          if Game.currentLevel state > 0
          then
            let newLevel = Game.currentLevel state - 1
-               updatedWorld = updateVisibility (Game.player state) 5 (Game.levels state !! newLevel)
+               updatedWorld = updateVisibility (Game.player state) defaultFogRadius (Game.levels state !! newLevel)
             in state { Game.currentLevel = newLevel
                      , Game.levels = replaceLevel state newLevel updatedWorld
                      , Game.message = "You ascend the stairs." : Game.message state }
@@ -59,7 +59,7 @@ goDown state =
          if Game.currentLevel state < length (Game.levels state) - 1
          then
            let newLevel = Game.currentLevel state + 1
-               updatedWorld = updateVisibility (Game.player state) 5 (Game.levels state !! newLevel)
+               updatedWorld = updateVisibility (Game.player state) defaultFogRadius (Game.levels state !! newLevel)
             in state { Game.currentLevel = newLevel
                      , Game.levels = replaceLevel state newLevel updatedWorld
                      , Game.message = "You descend the stairs." : Game.message state }
@@ -170,10 +170,14 @@ handleCommandInput key = do
 -- Execute commands
 executeCommand :: String -> EventM () Game.GameState ()
 executeCommand ":q" = halt -- Quit the game
-executeCommand ":heal" = do
+executeCommand ":heal" = do -- Cheat
     state <- get
     let plyr = Game.player state
     modify (\s -> s { Game.player = plyr { Game.health = defaultHealth } } )
+executeCommand ":super" = do -- Cheat a lot
+    state <- get
+    let plyr = Game.player state
+    modify (\s -> s { Game.player = plyr { Game.health = 1000, Game.attack = 100, Game.resistance = 100 } } )
 executeCommand cmd  = modify (\s -> s { Game.message = ("Unknown command: " ++ cmd) : Game.message s })
 
 -- Safe init for empty lists
@@ -209,7 +213,7 @@ movePlayer dir state =
 
       -- Helper to handle movement
       internalHandleMovement nPos =
-        let updatedWorld = updateVisibility (Game.player state) 5 currentWorld
+        let updatedWorld = updateVisibility (Game.player state) defaultFogRadius currentWorld
         in state { Game.player = (Game.player state) { Game.position = nPos }
                  , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
   in case (doorAt newPos, monsterAt newPos) of
@@ -281,7 +285,7 @@ moveMonsterWithOccupied world playerPos occupiedPositions monster =
                [V2 (x+dx) (y+dy) | (dx, dy) <- moveDirections]
         where V2 x y = monsterPos
       moveDirections =
-        if distance <= 4
+        if distance <= defaultMonsterRadius
         then prioritizeTowardsPlayer playerPos monsterPos
         else [(0, 0)] -- Stay in place if out of range
   in case potentialMoves of
