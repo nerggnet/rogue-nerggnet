@@ -18,16 +18,16 @@ handleMovement key = do
   isGameOver <- gets Game.gameOver
   modify $ case key of
       KChar '?' -> \s -> s { Game.showLegend = not (Game.showLegend s) }
-      KChar 'w' -> if isGameOver then id else movePlayer Game.North
-      KChar 's' -> if isGameOver then id else movePlayer Game.South
-      KChar 'a' -> if isGameOver then id else movePlayer Game.West
-      KChar 'd' -> if isGameOver then id else movePlayer Game.East
+      KChar c | c == 'w' || c == 'k' -> if isGameOver then id else movePlayer Game.North
+      KChar c | c == 's' || c == 'j' -> if isGameOver then id else movePlayer Game.South
+      KChar c | c == 'a' || c == 'h' -> if isGameOver then id else movePlayer Game.West
+      KChar c | c == 'd' || c == 'l' -> if isGameOver then id else movePlayer Game.East
       KChar '<' -> if isGameOver then id else goUp
       KChar '>' -> if isGameOver then id else goDown
       KChar 'g' -> if isGameOver then id else pickUpItem
       KChar 'u' -> if isGameOver then id else promptUseItem
       KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
-      _         -> id
+      _ -> id
   modify moveMonsters
 
 -- Go up stairs
