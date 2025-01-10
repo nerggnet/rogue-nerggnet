@@ -47,6 +47,9 @@
       { "doorPosition": [19, 6], "doorLocked": false },
       { "doorPosition": [7, 10], "doorLocked": false },
       { "doorPosition": [22, 10], "doorLocked": false }
+    ],
+    "npcs": [
+      { "npcName": "Friendly NPC", "npcPosition": [2, 2], "npcMessage": "Welcome to the dungeon!" }
     ]
   },
   {
@@ -99,7 +102,8 @@
       { "doorPosition": [26, 10], "doorLocked": true },
       { "doorPosition": [32, 10], "doorLocked": false },
       { "doorPosition": [36, 10], "doorLocked": false }
-    ]
+    ],
+    "npcs": []
   },
   {
     "levelNumber": 3,
@@ -149,7 +153,8 @@
       { "doorPosition": [7, 10], "doorLocked": false },
       { "doorPosition": [22, 10], "doorLocked": false },
       { "doorPosition": [38, 10], "doorLocked": false }
-    ]
+    ],
+    "npcs": []
   },
   {
     "levelNumber": 4,
@@ -195,6 +200,7 @@
       { "doorPosition": [22, 10], "doorLocked": false },
       { "doorPosition": [38, 10], "doorLocked": false },
       { "doorPosition": [25, 12], "doorLocked": false }
-    ]
+    ],
+    "npcs": []
   }
 ]

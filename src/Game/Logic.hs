@@ -4,7 +4,7 @@
 module Game.Logic where
 
 import Brick
-import Graphics.Vty (Key(..), rgbColor, withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta)
+import Graphics.Vty (Key(..), rgbColor, withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta, cyan)
 import Game.State (defaultHealth, defaultMonsterRadius, defaultFogRadius, updateVisibility, replaceLevel, manhattanDistance)
 import UI.Draw
 import qualified Game.Types as Game
@@ -204,6 +204,9 @@ movePlayer dir state =
       -- Helper to find a door at a given position
       doorAt pos = find (\d -> Game.dePosition d == pos) (Game.doors currentWorld)
 
+      -- Check if the new position is occupied by an NPC
+      npcAt pos = find (\npc -> Game.npcPosition npc == pos) (Game.npcs currentWorld)
+
       -- Helper to check if the player can move to a position
       canMove pos =
         let V2 x y = pos
@@ -216,17 +219,15 @@ movePlayer dir state =
         let updatedWorld = updateVisibility (Game.player state) defaultFogRadius currentWorld
         in state { Game.player = (Game.player state) { Game.position = nPos }
                  , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
-  in case (doorAt newPos, monsterAt newPos) of
-       (Just door, _) | Game.deLocked door -> -- Locked door case
+  in case (doorAt newPos, monsterAt newPos, npcAt newPos) of
+       (Just door, _, _) | Game.deLocked door -> -- Locked door case
          state { Game.message = ("The door in in front of you is locked and is blocking your way.") : Game.message state }
-       (Just _, Nothing) | canMove newPos -> -- Unlocked door and no monster
+       (_, Nothing, Nothing) | canMove newPos -> -- No monster or NPC
          internalHandleMovement newPos
-       (Just _, Just monster) -> -- Unlocked door with a monster behind it
+       (_, Just monster, _) -> -- Monster
          combat state monster newPos
-       (Nothing, Nothing) | canMove newPos -> -- Open space, allow movement
-         internalHandleMovement newPos
-       (Nothing, Just monster) -> -- Open space with a monster
-         combat state monster newPos
+       (_, _, Just npc) -> -- NPC
+         state { Game.message = (Game.npcName npc ++ " says: " ++ Game.npcMessage npc) : Game.message state }
        _ -> state -- Invalid move
 
 -- Player hits a monster and the monster returns the favor
@@ -264,7 +265,9 @@ moveMonsters :: Game.GameState -> Game.GameState
 moveMonsters state =
   let currentWorld = Game.levels state !! Game.currentLevel state
       playerPos = Game.position (Game.player state)
-      initialOccupiedPositions = map Game.mPosition (Game.monsters currentWorld) -- Initial positions of all monsters
+      monsterPositions = map Game.mPosition (Game.monsters currentWorld)
+      npcPositions = map Game.npcPosition (Game.npcs currentWorld)
+      initialOccupiedPositions = playerPos : npcPositions ++ monsterPositions
       (updatedMonsters, _) =
         foldl
           (\(monsters, occupied) monster ->
@@ -328,6 +331,7 @@ defaultAttrMap = attrMap defAttr
   , (attrName "downStair", withForeColor defAttr green)
   , (attrName "player", withForeColor defAttr blue)
   , (attrName "monster", withForeColor defAttr red)
+  , (attrName "npc", withForeColor defAttr cyan)
   , (attrName "item", withForeColor defAttr magenta)
   , (attrName "log", withForeColor defAttr yellow)
   ]

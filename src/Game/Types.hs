@@ -26,6 +26,12 @@ data Monster = Monster
   , mName     :: String
   } deriving (Show, Eq)
 
+data NPC = NPC
+  { npcName    :: String
+  , npcPosition :: V2 Int
+  , npcMessage :: String
+  } deriving (Show, Eq)
+
 data Item = Item
   { iName        :: String
   , iDescription :: String
@@ -42,6 +48,7 @@ data DoorEntity = DoorEntity
 data World = World
   { mapGrid    :: [[Tile]]
   , monsters   :: [Monster]
+  , npcs       :: [NPC]
   , items      :: [Item]
   , doors      :: [DoorEntity]
   , visibility :: [[Bool]]

@@ -68,6 +68,9 @@ drawTileWithFog world plyr x y tile
   | any ((== V2 x y) . iPosition) (items world) =
       -- Item's position
       withAttr (attrName "item") $ str "!"
+  | any ((== V2 x y) . npcPosition) (npcs world) =
+      -- NPC's position
+      withAttr (attrName "npc") $ str "N"
   | otherwise =
       -- Regular visible tile
       drawTile tile

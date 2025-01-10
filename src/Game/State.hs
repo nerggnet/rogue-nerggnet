@@ -77,6 +77,7 @@ transformFileWorld :: FT.MapLevel -> World
 transformFileWorld fileWorld = World
   { mapGrid = map (map charToTile) (FT.mapGrid fileWorld)
   , monsters = map transformMonster (FT.monsters fileWorld)
+  , npcs = map transformNPC (FT.npcs fileWorld)
   , items = map transformItem (FT.items fileWorld)
   , doors = map transformDoorEntity (FT.doors fileWorld)
   , visibility = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
@@ -93,6 +94,14 @@ transformMonster fm = Monster
   , mHealth = FT.health fm
   , mAttack = FT.attack fm
   , mName = FT.name fm
+  }
+
+-- Transform a File.Types.JSONNPC to Game.Types.NPC
+transformNPC :: FT.JSONNPC -> NPC
+transformNPC fnpc = NPC
+  { npcName = FT.npcName fnpc
+  , npcPosition = uncurry V2 (FT.npcPosition fnpc)
+  , npcMessage = FT.npcMessage fnpc
   }
 
 -- Transform a File.Types.JSONItem to Game.Types.Item

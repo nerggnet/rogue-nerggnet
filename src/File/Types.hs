@@ -13,6 +13,7 @@ data MapLevel = MapLevel
   , monsters    :: [JSONMonster]    -- Monsters present on this level
   , doors       :: [JSONDoorEntity] -- Doors present on this level
   , items       :: [JSONItem]       -- Items present on this level
+  , npcs        :: [JSONNPC]        -- NPCs on the map level
   } deriving (Show, Generic)
 
 instance FromJSON MapLevel
@@ -49,3 +50,13 @@ data JSONDoorEntity = JSONDoorEntity
 
 instance FromJSON JSONDoorEntity
 instance ToJSON JSONDoorEntity
+
+-- | JSON representation of an NPC
+data JSONNPC = JSONNPC
+  { npcName     :: String        -- NPC name
+  , npcPosition :: (Int, Int)    -- NPC's position (row, col)
+  , npcMessage  :: String        -- Message the NPC displays
+  } deriving (Show, Generic)
+
+instance FromJSON JSONNPC
+instance ToJSON JSONNPC
