@@ -46,6 +46,7 @@ initGame = do
         , commandBuffer = ""
         , commandMode = False
         , showLegend = False
+        , keyPressCount = 0
         , gameOver = False
         }
   let updatedWorld = updateVisibility (player initialState) defaultFogRadius initialWorld
@@ -102,6 +103,7 @@ transformNPC fnpc = NPC
   { npcName = FT.npcName fnpc
   , npcPosition = uncurry V2 (FT.npcPosition fnpc)
   , npcMessage = FT.npcMessage fnpc
+  , npcPreferredDirection = Nothing
   }
 
 -- Transform a File.Types.JSONItem to Game.Types.Item

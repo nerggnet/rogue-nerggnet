@@ -10,6 +10,7 @@ import UI.Draw
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
+import Control.Monad (when)
 import Data.List (find, partition)
 
 -- Handle movement keys
@@ -29,6 +30,9 @@ handleMovement key = do
       KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
       _ -> id
   modify moveMonsters
+  -- Move NPCs every third keypress
+  kyprssCnt <- gets Game.keyPressCount
+  when (kyprssCnt == 0) $ modify moveNPCs
 
 -- Go up stairs
 goUp :: Game.GameState -> Game.GameState
@@ -294,6 +298,35 @@ moveMonsterWithOccupied world playerPos occupiedPositions monster =
   in case potentialMoves of
        (newPos:_) -> monster { Game.mPosition = newPos } -- Move to the first valid position
        _          -> monster -- Stay in place if no valid moves
+
+moveNPCs :: Game.GameState -> Game.GameState
+moveNPCs state =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      playerPos = Game.position (Game.player state)
+      occupiedPositions = playerPos : map Game.mPosition (Game.monsters currentWorld)
+                              ++ map Game.npcPosition (Game.npcs currentWorld)
+      updatedNPCs = map (moveNPCWithOccupied currentWorld occupiedPositions playerPos) (Game.npcs currentWorld)
+      updatedWorld = currentWorld { Game.npcs = updatedNPCs }
+  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+
+moveNPCWithOccupied :: Game.World -> [V2 Int] -> V2 Int -> Game.NPC -> Game.NPC
+moveNPCWithOccupied world occupiedPositions playerPos npc =
+  let npcPos = Game.npcPosition npc
+      directions = [(0, 1, Game.South), (1, 0, Game.East), (0, -1, Game.North), (-1, 0, Game.West)] -- Possible directions
+      currentDirection = Game.npcPreferredDirection npc
+      preferredMove =
+        case currentDirection of
+          Just dir -> find (\(_, _, d) -> d == dir) directions
+          Nothing  -> Nothing
+      allValidMoves =
+        filter (\(dx, dy, _) -> isValidMove world playerPos (npcPos + V2 dx dy) && (npcPos + V2 dx dy) `notElem` occupiedPositions)
+               directions
+      newPreferredMove = if null allValidMoves then Nothing else Just (head allValidMoves)
+      -- selectedMove = preferredMove <|> newPreferredMove
+      selectedMove = if preferredMove `elem` (map Just allValidMoves) then preferredMove else newPreferredMove
+  in case selectedMove of
+       Just (dx, dy, newDir) -> npc { Game.npcPosition = npcPos + V2 dx dy, Game.npcPreferredDirection = Just newDir }
+       Nothing -> npc -- No valid moves, stay in place
 
 -- Check if a position is valid for monster movement
 isValidMove :: Game.World -> V2 Int -> V2 Int -> Bool

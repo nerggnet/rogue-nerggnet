@@ -37,6 +37,7 @@ startGame = do
 handleEvent :: BrickEvent () e -> EventM () Game.GameState ()
 handleEvent (VtyEvent (EvKey key [])) = do
   isCommandMode <- gets Game.commandMode
+  modify $ \s -> s { Game.keyPressCount = (Game.keyPressCount s + 1) `mod` 3 }
   if isCommandMode
     then handleCommandInput key
     else handleMovement key

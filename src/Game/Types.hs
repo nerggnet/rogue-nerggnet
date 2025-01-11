@@ -30,6 +30,7 @@ data NPC = NPC
   { npcName    :: String
   , npcPosition :: V2 Int
   , npcMessage :: String
+  , npcPreferredDirection :: Maybe Direction
   } deriving (Show, Eq)
 
 data Item = Item
@@ -63,5 +64,6 @@ data GameState = GameState
   , commandBuffer :: String
   , commandMode   :: Bool
   , showLegend    :: Bool
+  , keyPressCount :: Int
   , gameOver      :: Bool
   } deriving (Show)
