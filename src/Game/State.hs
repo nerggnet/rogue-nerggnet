@@ -8,6 +8,7 @@ import qualified File.Types as FT
 import File.MapIO (loadMapLevels)
 import Linear.V2 (V2(..))
 import Data.Maybe (fromMaybe)
+import Data.List (isInfixOf)
 
 -- Default values for unarmed and unarmored player, plus default monster and fog radii
 defaultHealth :: Int
@@ -81,6 +82,7 @@ transformFileWorld fileWorld = World
   , npcs = map transformNPC (FT.npcs fileWorld)
   , items = map transformItem (FT.items fileWorld)
   , doors = map transformDoorEntity (FT.doors fileWorld)
+  , triggers = validateTriggers (map transformJSONTrigger (FT.triggers fileWorld)) (FT.items fileWorld)
   , visibility = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
   , discovered = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
   }
@@ -128,6 +130,40 @@ transformDoorEntity jsonDoor = DoorEntity
   { dePosition = uncurry V2 (FT.doorPosition jsonDoor)
   , deLocked   = FT.doorLocked jsonDoor
   }
+
+-- Transform a File.Types.JSONTrigger to Game.Types.Trigger
+transformJSONTrigger :: FT.JSONTrigger -> Trigger
+transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
+  "position" -> Trigger
+    { triggerCondition = \state ->
+        case FT.target jsonTrigger of
+          Just (x, y) -> position (player state) == V2 x y
+          Nothing     -> False
+    , triggerAction = \state ->
+        state { message = message state ++ [FT.message jsonTrigger] }
+    , triggerDescription = "Position trigger at " ++ show (FT.target jsonTrigger)
+    }
+  "itemPickup" -> Trigger
+    { triggerCondition = \state ->
+        case FT.triggerItemName jsonTrigger of
+          Just name -> any (\item -> iName item == name) (inventory (player state))
+          Nothing   -> False
+    , triggerAction = \state ->
+        state { message = message state ++ [FT.message jsonTrigger] }
+    , triggerDescription = "Item pickup trigger for " ++ show (FT.triggerItemName jsonTrigger)
+    }
+  _ -> error $ "Unknown trigger type: " ++ FT.triggerType jsonTrigger
+
+validateTriggers :: [Trigger] -> [FT.JSONItem] -> [Trigger]
+validateTriggers trggrs triggerItems = map validateTrigger trggrs
+  where
+    itemNames = map FT.itemName triggerItems
+    validateTrigger trigger@(Trigger { triggerCondition = _, triggerAction = _, triggerDescription = desc })
+      | "itemPickup" `isInfixOf` desc =
+          if any (\item -> item `isInfixOf` desc) itemNames
+          then trigger
+          else error $ "Trigger refers to an unknown item: " ++ desc
+      | otherwise = trigger
 
 -- Convert a character to a Tile
 charToTile :: Char -> Tile

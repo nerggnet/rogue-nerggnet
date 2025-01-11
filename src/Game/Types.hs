@@ -46,15 +46,22 @@ data DoorEntity = DoorEntity
   , deLocked   :: Bool
   } deriving (Show, Eq)
 
+data Trigger = Trigger
+  { triggerCondition :: GameState -> Bool -- Condition for activation
+  , triggerAction    :: GameState -> GameState -- Action to execute
+  , triggerDescription :: String -- For debugging/logging
+  }
+
 data World = World
   { mapGrid    :: [[Tile]]
   , monsters   :: [Monster]
   , npcs       :: [NPC]
   , items      :: [Item]
   , doors      :: [DoorEntity]
+  , triggers   :: [Trigger]
   , visibility :: [[Bool]]
   , discovered :: [[Bool]]
-  } deriving (Show)
+  }
 
 data GameState = GameState
   { player        :: Player
@@ -66,4 +73,4 @@ data GameState = GameState
   , showLegend    :: Bool
   , keyPressCount :: Int
   , gameOver      :: Bool
-  } deriving (Show)
+  }

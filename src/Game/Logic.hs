@@ -12,6 +12,7 @@ import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Data.List (find, partition)
+import Debug.Trace
 
 -- Handle movement keys
 handleMovement :: Key -> EventM () Game.GameState ()
@@ -30,9 +31,18 @@ handleMovement key = do
       KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
       _ -> id
   modify moveMonsters
+  modify processTriggers
   -- Move NPCs every third keypress
   kyprssCnt <- gets Game.keyPressCount
   when (kyprssCnt == 0) $ modify moveNPCs
+
+processTriggers :: Game.GameState -> Game.GameState
+processTriggers state =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      (activated, remaining) = partition (\t -> Game.triggerCondition t state) (Game.triggers currentWorld)
+      newWorld = currentWorld { Game.triggers = remaining }
+      newState = foldl (\s t -> trace ("Trigger activated: " ++ Game.triggerDescription t) Game.triggerAction t s) state activated
+  in newState { Game.levels = replaceLevel state (Game.currentLevel state) newWorld }
 
 -- Go up stairs
 goUp :: Game.GameState -> Game.GameState

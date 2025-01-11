@@ -13,6 +13,7 @@ data MapLevel = MapLevel
   , monsters    :: [JSONMonster]    -- Monsters present on this level
   , doors       :: [JSONDoorEntity] -- Doors present on this level
   , items       :: [JSONItem]       -- Items present on this level
+  , triggers    :: [JSONTrigger]   -- Triggers on this level
   , npcs        :: [JSONNPC]        -- NPCs on the map level
   } deriving (Show, Generic)
 
@@ -50,6 +51,17 @@ data JSONDoorEntity = JSONDoorEntity
 
 instance FromJSON JSONDoorEntity
 instance ToJSON JSONDoorEntity
+
+-- src/File/Types.hs
+data JSONTrigger = JSONTrigger
+  { triggerType     :: String      -- Type of trigger: "position", "itemPickup", etc.
+  , target          :: Maybe (Int, Int) -- Target position (for position triggers)
+  , triggerItemName :: Maybe String -- Item name (for itemPickup triggers)
+  , message         :: String       -- Message to display when triggered
+  } deriving (Show, Generic)
+
+instance FromJSON JSONTrigger
+instance ToJSON JSONTrigger
 
 -- | JSON representation of an NPC
 data JSONNPC = JSONNPC
