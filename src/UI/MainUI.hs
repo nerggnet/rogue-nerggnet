@@ -3,6 +3,7 @@ module UI.MainUI (startGame) where
 
 import Brick
 import Graphics.Vty (Event(..))
+import Graphics.Vty (rgbColor, withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta, cyan)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 import Game.State (initGame)
@@ -42,3 +43,19 @@ handleEvent (VtyEvent (EvKey key [])) = do
     then handleCommandInput key
     else handleMovement key
 handleEvent _ = return ()
+
+defaultAttrMap :: AttrMap
+defaultAttrMap = attrMap defAttr
+  [ (attrName "fog", withBackColor defAttr black)
+  , (attrName "discovered", withBackColor defAttr (rgbColor (40 :: Int) 40 40)) -- Dimly lit
+  , (attrName "wall", withForeColor (withBackColor defAttr black) white)
+  , (attrName "floor", withBackColor defAttr white)
+  , (attrName "door", withForeColor defAttr yellow)
+  , (attrName "upStair", withForeColor defAttr green)
+  , (attrName "downStair", withForeColor defAttr green)
+  , (attrName "player", withForeColor defAttr blue)
+  , (attrName "monster", withForeColor defAttr red)
+  , (attrName "npc", withForeColor defAttr cyan)
+  , (attrName "item", withForeColor defAttr magenta)
+  , (attrName "log", withForeColor defAttr yellow)
+  ]

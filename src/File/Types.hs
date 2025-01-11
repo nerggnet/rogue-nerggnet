@@ -57,6 +57,7 @@ data JSONTrigger = JSONTrigger
   { triggerType     :: String      -- Type of trigger: "position", "itemPickup", etc.
   , target          :: Maybe (Int, Int) -- Target position (for position triggers)
   , triggerItemName :: Maybe String -- Item name (for itemPickup triggers)
+  , triggerNpcName  :: Maybe String -- NPC name (for npcTalked triggers)
   , message         :: String       -- Message to display when triggered
   } deriving (Show, Generic)
 

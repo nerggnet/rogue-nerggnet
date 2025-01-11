@@ -56,13 +56,22 @@
         "triggerType": "position",
         "target": [5, 9],
         "triggerItemName": "",
+        "triggerNpcName": "",
         "message": "You stepped on a special tile!"
       },
       {
         "triggerType": "itemPickup",
         "target": [0, 0],
         "triggerItemName": "Gold Coin",
+        "triggerNpcName": "",
         "message": "You picked up the special Gold Coin!"
+      },
+      {
+        "triggerType": "npcTalked",
+        "target": [0, 0],
+        "triggerItemName": "",
+        "triggerNpcName": "Friendly NPC",
+        "message": "You talked to the Friendly NPC!"
       }
     ]
   },

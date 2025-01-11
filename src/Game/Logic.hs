@@ -4,7 +4,7 @@
 module Game.Logic where
 
 import Brick
-import Graphics.Vty (Key(..), rgbColor, withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta, cyan)
+import Graphics.Vty (Key(..))
 import Game.State (defaultHealth, defaultMonsterRadius, defaultFogRadius, updateVisibility, replaceLevel, manhattanDistance)
 import UI.Draw
 import qualified Game.Types as Game
@@ -12,7 +12,6 @@ import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
 import Control.Monad (when)
 import Data.List (find, partition)
-import Debug.Trace
 
 -- Handle movement keys
 handleMovement :: Key -> EventM () Game.GameState ()
@@ -41,7 +40,7 @@ processTriggers state =
   let currentWorld = Game.levels state !! Game.currentLevel state
       (activated, remaining) = partition (\t -> Game.triggerCondition t state) (Game.triggers currentWorld)
       newWorld = currentWorld { Game.triggers = remaining }
-      newState = foldl (\s t -> trace ("Trigger activated: " ++ Game.triggerDescription t) Game.triggerAction t s) state activated
+      newState = foldl (\s t -> Game.triggerAction t s) state activated
   in newState { Game.levels = replaceLevel state (Game.currentLevel state) newWorld }
 
 -- Go up stairs
@@ -241,7 +240,9 @@ movePlayer dir state =
        (_, Just monster, _) -> -- Monster
          combat state monster newPos
        (_, _, Just npc) -> -- NPC
-         state { Game.message = (Game.npcName npc ++ " says: " ++ Game.npcMessage npc) : Game.message state }
+         state { Game.message = (Game.npcName npc ++ " says: " ++ Game.npcMessage npc) : Game.message state
+               , Game.lastInteractedNpc = Just (Game.npcName npc)
+               }
        _ -> state -- Invalid move
 
 -- Player hits a monster and the monster returns the favor
@@ -362,19 +363,3 @@ prioritizeTowardsPlayer (V2 px py) (V2 mx my) =
   in if abs dx >= abs dy
      then horizontalFirst ++ [(signum dx, signum dy), (-signum dx, 0), (0, -signum dy)]
      else verticalFirst ++ [(signum dx, signum dy), (0, -signum dy), (-signum dx, 0)]
-
-defaultAttrMap :: AttrMap
-defaultAttrMap = attrMap defAttr
-  [ (attrName "fog", withBackColor defAttr black)
-  , (attrName "discovered", withBackColor defAttr (rgbColor (40 :: Int) 40 40)) -- Dimly lit
-  , (attrName "wall", withForeColor (withBackColor defAttr black) white)
-  , (attrName "floor", withBackColor defAttr white)
-  , (attrName "door", withForeColor defAttr yellow)
-  , (attrName "upStair", withForeColor defAttr green)
-  , (attrName "downStair", withForeColor defAttr green)
-  , (attrName "player", withForeColor defAttr blue)
-  , (attrName "monster", withForeColor defAttr red)
-  , (attrName "npc", withForeColor defAttr cyan)
-  , (attrName "item", withForeColor defAttr magenta)
-  , (attrName "log", withForeColor defAttr yellow)
-  ]

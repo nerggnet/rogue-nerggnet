@@ -64,13 +64,14 @@ data World = World
   }
 
 data GameState = GameState
-  { player        :: Player
-  , levels        :: [World]
-  , currentLevel  :: Int
-  , message       :: [String]
-  , commandBuffer :: String
-  , commandMode   :: Bool
-  , showLegend    :: Bool
-  , keyPressCount :: Int
-  , gameOver      :: Bool
+  { player            :: Player
+  , levels            :: [World]
+  , currentLevel      :: Int
+  , message           :: [String]
+  , commandBuffer     :: String
+  , commandMode       :: Bool
+  , showLegend        :: Bool
+  , keyPressCount     :: Int
+  , lastInteractedNpc :: Maybe String
+  , gameOver          :: Bool
   }

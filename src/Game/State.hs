@@ -9,6 +9,7 @@ import File.MapIO (loadMapLevels)
 import Linear.V2 (V2(..))
 import Data.Maybe (fromMaybe)
 import Data.List (isInfixOf)
+import Data.List.Extra (dropPrefix)
 
 -- Default values for unarmed and unarmored player, plus default monster and fog radii
 defaultHealth :: Int
@@ -48,6 +49,7 @@ initGame = do
         , commandMode = False
         , showLegend = False
         , keyPressCount = 0
+        , lastInteractedNpc = Nothing
         , gameOver = False
         }
   let updatedWorld = updateVisibility (player initialState) defaultFogRadius initialWorld
@@ -82,7 +84,7 @@ transformFileWorld fileWorld = World
   , npcs = map transformNPC (FT.npcs fileWorld)
   , items = map transformItem (FT.items fileWorld)
   , doors = map transformDoorEntity (FT.doors fileWorld)
-  , triggers = validateTriggers (map transformJSONTrigger (FT.triggers fileWorld)) (FT.items fileWorld)
+  , triggers = validateTriggers (map transformJSONTrigger (FT.triggers fileWorld)) (FT.items fileWorld) (FT.npcs fileWorld)
   , visibility = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
   , discovered = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
   }
@@ -140,7 +142,7 @@ transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
           Just (x, y) -> position (player state) == V2 x y
           Nothing     -> False
     , triggerAction = \state ->
-        state { message = message state ++ [FT.message jsonTrigger] }
+        state { message = FT.message jsonTrigger : message state }
     , triggerDescription = "Position trigger at " ++ show (FT.target jsonTrigger)
     }
   "itemPickup" -> Trigger
@@ -149,20 +151,35 @@ transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
           Just name -> any (\item -> iName item == name) (inventory (player state))
           Nothing   -> False
     , triggerAction = \state ->
-        state { message = message state ++ [FT.message jsonTrigger] }
+        state { message = FT.message jsonTrigger : message state }
     , triggerDescription = "Item pickup trigger for " ++ show (FT.triggerItemName jsonTrigger)
+    }
+  "npcTalked" -> Trigger
+    { triggerCondition = \state ->
+        case (lastInteractedNpc state, FT.triggerNpcName jsonTrigger) of
+          (Just interacted, Just expected) -> interacted == expected
+          _ -> False
+    , triggerAction = \state ->
+        state { message = FT.message jsonTrigger : message state }
+    , triggerDescription = "Talked to NPC " ++ show (FT.triggerNpcName jsonTrigger)
     }
   _ -> error $ "Unknown trigger type: " ++ FT.triggerType jsonTrigger
 
-validateTriggers :: [Trigger] -> [FT.JSONItem] -> [Trigger]
-validateTriggers trggrs triggerItems = map validateTrigger trggrs
+validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> [Trigger]
+validateTriggers trggrs triggerItems triggerNpcs = map validateTrigger trggrs
   where
     itemNames = map FT.itemName triggerItems
+    npcNames = map FT.npcName triggerNpcs
     validateTrigger trigger@(Trigger { triggerCondition = _, triggerAction = _, triggerDescription = desc })
       | "itemPickup" `isInfixOf` desc =
           if any (\item -> item `isInfixOf` desc) itemNames
           then trigger
           else error $ "Trigger refers to an unknown item: " ++ desc
+      | "npcTalked" `isInfixOf` desc =
+          let npc = dropPrefix "Talked to NPC " desc
+           in if npc `elem` npcNames
+              then trigger
+              else error $ "Trigger refers to unknown NPC: " ++ npc
       | otherwise = trigger
 
 -- Convert a character to a Tile
