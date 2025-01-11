@@ -54,15 +54,27 @@ instance ToJSON JSONDoorEntity
 
 -- src/File/Types.hs
 data JSONTrigger = JSONTrigger
-  { triggerType     :: String      -- Type of trigger: "position", "itemPickup", etc.
-  , target          :: Maybe (Int, Int) -- Target position (for position triggers)
-  , triggerItemName :: Maybe String -- Item name (for itemPickup triggers)
-  , triggerNpcName  :: Maybe String -- NPC name (for npcTalked triggers)
-  , message         :: String       -- Message to display when triggered
+  { triggerType     :: String              -- Type of trigger: "position", "itemPickup", etc.
+  , target          :: Maybe (Int, Int)    -- Target position (for position triggers)
+  , triggerItemName :: Maybe String        -- Item name (for itemPickup triggers)
+  , triggerNpcName  :: Maybe String        -- NPC name (for npcTalked triggers)
+  , actions         :: [JSONTriggerAction] -- List of actions to execute
+  , message         :: String              -- Message to display when triggered
   } deriving (Show, Generic)
 
 instance FromJSON JSONTrigger
 instance ToJSON JSONTrigger
+
+data JSONTriggerAction = JSONTriggerAction
+  { actionType     :: String           -- Action type, e.g., "spawnItem", "unlockDoor"
+  , actionPosition :: Maybe (Int, Int) -- General position for actions
+  , actionItemName :: Maybe String     -- For "spawnItem", the item's name
+  , actionTileType :: Maybe Char       -- For "shiftTile", the tile's new type
+  , actionMessage  :: Maybe String     -- For "displayMessage", the custom message
+  } deriving (Show, Generic)
+
+instance FromJSON JSONTriggerAction
+instance ToJSON JSONTriggerAction
 
 -- | JSON representation of an NPC
 data JSONNPC = JSONNPC

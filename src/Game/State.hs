@@ -141,8 +141,7 @@ transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
         case FT.target jsonTrigger of
           Just (x, y) -> position (player state) == V2 x y
           Nothing     -> False
-    , triggerAction = \state ->
-        state { message = FT.message jsonTrigger : message state }
+    , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
     , triggerDescription = "Position trigger at " ++ show (FT.target jsonTrigger)
     }
   "itemPickup" -> Trigger
@@ -150,8 +149,7 @@ transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
         case FT.triggerItemName jsonTrigger of
           Just name -> any (\item -> iName item == name) (inventory (player state))
           Nothing   -> False
-    , triggerAction = \state ->
-        state { message = FT.message jsonTrigger : message state }
+    , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
     , triggerDescription = "Item pickup trigger for " ++ show (FT.triggerItemName jsonTrigger)
     }
   "npcTalked" -> Trigger
@@ -159,18 +157,42 @@ transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
         case (lastInteractedNpc state, FT.triggerNpcName jsonTrigger) of
           (Just interacted, Just expected) -> interacted == expected
           _ -> False
-    , triggerAction = \state ->
-        state { message = FT.message jsonTrigger : message state }
+    , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
     , triggerDescription = "Talked to NPC " ++ show (FT.triggerNpcName jsonTrigger)
     }
   _ -> error $ "Unknown trigger type: " ++ FT.triggerType jsonTrigger
+
+-- Convert JSONTriggerAction to Action
+transformJSONAction :: FT.JSONTriggerAction -> Action
+transformJSONAction jsonAction = case FT.actionType jsonAction of
+  "spawnItem" ->
+    case (FT.actionItemName jsonAction, FT.actionPosition jsonAction) of
+      (Just name, Just (x, y)) -> SpawnItem name (V2 x y)
+      _ -> error "Invalid spawnItem action"
+  "unlockDoor" ->
+    case FT.actionPosition jsonAction of
+      Just (x, y) -> UnlockDoor (V2 x y)
+      _ -> error "Invalid unlockDoor action"
+  "displayMessage" ->
+    case FT.actionMessage jsonAction of
+      Just msg -> DisplayMessage msg
+      _ -> error "Invalid displayMessage action"
+  "shiftTile" ->
+    case (FT.actionPosition jsonAction, FT.actionTileType jsonAction) of
+      (Just (x, y), Just tileType) -> ShiftTile (V2 x y) (charToTile tileType)
+      _ -> error "Invalid shiftTile action"
+  "transportPlayer" ->
+    case FT.actionPosition jsonAction of
+      Just (x, y) -> TransportPlayer (V2 x y)
+      _ -> error "Invalid transportPlayer action"
+  _ -> error $ "Unknown action type: " ++ FT.actionType jsonAction
 
 validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> [Trigger]
 validateTriggers trggrs triggerItems triggerNpcs = map validateTrigger trggrs
   where
     itemNames = map FT.itemName triggerItems
     npcNames = map FT.npcName triggerNpcs
-    validateTrigger trigger@(Trigger { triggerCondition = _, triggerAction = _, triggerDescription = desc })
+    validateTrigger trigger@(Trigger { triggerCondition = _, triggerActions = _, triggerDescription = desc })
       | "itemPickup" `isInfixOf` desc =
           if any (\item -> item `isInfixOf` desc) itemNames
           then trigger

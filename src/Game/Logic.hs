@@ -35,14 +35,6 @@ handleMovement key = do
   kyprssCnt <- gets Game.keyPressCount
   when (kyprssCnt == 0) $ modify moveNPCs
 
-processTriggers :: Game.GameState -> Game.GameState
-processTriggers state =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      (activated, remaining) = partition (\t -> Game.triggerCondition t state) (Game.triggers currentWorld)
-      newWorld = currentWorld { Game.triggers = remaining }
-      newState = foldl (\s t -> Game.triggerAction t s) state activated
-  in newState { Game.levels = replaceLevel state (Game.currentLevel state) newWorld }
-
 -- Go up stairs
 goUp :: Game.GameState -> Game.GameState
 goUp state =
@@ -363,3 +355,45 @@ prioritizeTowardsPlayer (V2 px py) (V2 mx my) =
   in if abs dx >= abs dy
      then horizontalFirst ++ [(signum dx, signum dy), (-signum dx, 0), (0, -signum dy)]
      else verticalFirst ++ [(signum dx, signum dy), (0, -signum dy), (-signum dx, 0)]
+
+processTriggers :: Game.GameState -> Game.GameState
+processTriggers state =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      (activated, remaining) = partition (\t -> Game.triggerCondition t state) (Game.triggers currentWorld)
+      newWorld = currentWorld { Game.triggers = remaining }
+      newState = foldl' executeTrigger state activated
+  in newState { Game.levels = replaceLevel state (Game.currentLevel state) newWorld }
+
+executeTrigger :: Game.GameState -> Game.Trigger -> Game.GameState
+executeTrigger state trigger = foldl executeAction state (Game.triggerActions trigger)
+
+executeAction :: Game.GameState -> Game.Action -> Game.GameState
+executeAction state (Game.SpawnItem name pos) =
+  let newItem = Game.Item { Game.iName = name
+                          , Game.iDescription = "A mysterious item."
+                          , Game.iPosition = pos, Game.iCategory = Game.Special, Game.iEffectValue = 0 }
+      currentWorld = Game.levels state !! Game.currentLevel state
+      updatedWorld = currentWorld { Game.items = newItem : Game.items currentWorld }
+  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+executeAction state (Game.UnlockDoor pos) =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      updatedDoors = map (\d -> if Game.dePosition d == pos then d { Game.deLocked = False } else d) (Game.doors currentWorld)
+      updatedWorld = currentWorld { Game.doors = updatedDoors }
+  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+executeAction state (Game.DisplayMessage msg) =
+  state { Game.message = msg : Game.message state }
+executeAction state (Game.ShiftTile pos newTile) =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      updatedMap = updateTile (Game.mapGrid currentWorld) (pos ^. _x, pos ^. _y) newTile
+      updatedWorld = currentWorld { Game.mapGrid = updatedMap }
+  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+executeAction state (Game.TransportPlayer pos) =
+  state { Game.player = (Game.player state) { Game.position = pos } }
+executeAction _ _ = error "Undefined trigger action"
+
+-- Helper to update a tile in the map grid
+updateTile :: [[Game.Tile]] -> (Int, Int) -> Game.Tile -> [[Game.Tile]]
+updateTile grid (x, y) newTile =
+  take y grid ++
+  [take x (grid !! y) ++ [newTile] ++ drop (x + 1) (grid !! y)] ++
+  drop (y + 1) grid

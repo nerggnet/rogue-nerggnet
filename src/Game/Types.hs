@@ -47,10 +47,19 @@ data DoorEntity = DoorEntity
   } deriving (Show, Eq)
 
 data Trigger = Trigger
-  { triggerCondition :: GameState -> Bool -- Condition for activation
-  , triggerAction    :: GameState -> GameState -- Action to execute
-  , triggerDescription :: String -- For debugging/logging
+  { triggerCondition   :: GameState -> Bool -- Condition for activation
+  , triggerActions     :: [Action]          -- Actions to execute
+  , triggerDescription :: String            -- For debugging/logging
   }
+
+data Action
+  = SpawnItem String (V2 Int)        -- Item name and position
+  | SpawnMonster String (V2 Int)     -- Monster name and position
+  | UnlockDoor (V2 Int)              -- Position of the door
+  | ShiftTile (V2 Int) Tile          -- Position and new tile type
+  | TransportPlayer (V2 Int)         -- Target position for the player
+  | DisplayMessage String            -- Message to display
+  deriving (Show, Eq)
 
 data World = World
   { mapGrid    :: [[Tile]]
