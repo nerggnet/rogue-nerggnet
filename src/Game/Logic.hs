@@ -360,12 +360,13 @@ processTriggers :: Game.GameState -> Game.GameState
 processTriggers state =
   let currentWorld = Game.levels state !! Game.currentLevel state
       (activated, remaining) = partition (\t -> Game.triggerCondition t state) (Game.triggers currentWorld)
-      newWorld = currentWorld { Game.triggers = remaining }
       newState = foldl' executeTrigger state activated
-  in newState { Game.levels = replaceLevel state (Game.currentLevel state) newWorld }
+      updatedCurrentWorld = Game.levels newState !! Game.currentLevel newState
+      updatedCurrentWorldWithRemainingTriggers = updatedCurrentWorld { Game.triggers = remaining }
+  in newState { Game.levels = replaceLevel state (Game.currentLevel state) updatedCurrentWorldWithRemainingTriggers }
 
 executeTrigger :: Game.GameState -> Game.Trigger -> Game.GameState
-executeTrigger state trigger = foldl executeAction state (Game.triggerActions trigger)
+executeTrigger state trigger = foldl' executeAction state (Game.triggerActions trigger)
 
 executeAction :: Game.GameState -> Game.Action -> Game.GameState
 executeAction state (Game.SpawnItem name pos) =
@@ -375,25 +376,30 @@ executeAction state (Game.SpawnItem name pos) =
       currentWorld = Game.levels state !! Game.currentLevel state
       updatedWorld = currentWorld { Game.items = newItem : Game.items currentWorld }
   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+
 executeAction state (Game.UnlockDoor pos) =
   let currentWorld = Game.levels state !! Game.currentLevel state
       updatedDoors = map (\d -> if Game.dePosition d == pos then d { Game.deLocked = False } else d) (Game.doors currentWorld)
       updatedWorld = currentWorld { Game.doors = updatedDoors }
   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+
 executeAction state (Game.DisplayMessage msg) =
   state { Game.message = msg : Game.message state }
+
 executeAction state (Game.ShiftTile pos newTile) =
   let currentWorld = Game.levels state !! Game.currentLevel state
       updatedMap = updateTile (Game.mapGrid currentWorld) (pos ^. _x, pos ^. _y) newTile
       updatedWorld = currentWorld { Game.mapGrid = updatedMap }
-  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+
 executeAction state (Game.TransportPlayer pos) =
   state { Game.player = (Game.player state) { Game.position = pos } }
+
 executeAction _ _ = error "Undefined trigger action"
 
 -- Helper to update a tile in the map grid
 updateTile :: [[Game.Tile]] -> (Int, Int) -> Game.Tile -> [[Game.Tile]]
 updateTile grid (x, y) newTile =
-  take y grid ++
-  [take x (grid !! y) ++ [newTile] ++ drop (x + 1) (grid !! y)] ++
-  drop (y + 1) grid
+  let oldRow = grid !! y
+      newRow = take x oldRow ++ [newTile] ++ drop (x + 1) oldRow
+   in take y grid ++ [newRow] ++ drop (y + 1) grid

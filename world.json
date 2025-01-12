@@ -60,11 +60,18 @@
         "message": "You stepped on a special tile!",
         "actions": [
           {
+            "actionType": "shiftTile",
+            "actionPosition": [5, 6],
+            "actionItemName": null,
+            "actionTileType": ".",
+            "actionMessage": null
+          },
+          {
             "actionType": "displayMessage",
             "actionPosition": null,
             "actionItemName": null,
             "actionTileType": null,
-            "actionMessage": "Oh no, you stepped on my floor"
+            "actionMessage": "Oh no, you let the monster out!"
           }
         ]
       },
