@@ -5,9 +5,7 @@ module Game.State where
 
 import Game.Types
 import qualified File.Types as FT
-import File.MapIO (loadMapLevels)
 import Linear.V2 (V2(..))
-import Data.Maybe (fromMaybe)
 import Data.List (isInfixOf)
 import Data.List.Extra (dropPrefix)
 
@@ -28,12 +26,10 @@ defaultFogRadius :: Int
 defaultFogRadius = 5
 
 -- Initialize the game state
-initGame :: IO GameState
-initGame = do
-  fileMaps <- fromMaybe [] <$> loadMapLevels "world.json"
-  let allWorlds = map transformFileWorld fileMaps
+initGame :: [World] -> GameState
+initGame allWorlds =
   let initialWorld = head allWorlds
-  let initialState = GameState
+      initialState = GameState
         { player = Player
             { position = findStartingPosition initialWorld
             , health = defaultHealth
@@ -52,9 +48,9 @@ initGame = do
         , lastInteractedNpc = Nothing
         , gameOver = False
         }
-  let updatedWorld = updateVisibility (player initialState) defaultFogRadius initialWorld
-  let updatedState = initialState { levels = replaceLevel initialState 0 updatedWorld }
-  return updatedState
+      updatedWorld = updateVisibility (player initialState) defaultFogRadius initialWorld
+      updatedState = initialState { levels = replaceLevel initialState 0 updatedWorld }
+  in updatedState
 
 -- Update what the player sees of the map
 updateVisibility :: Player -> Int -> World -> World

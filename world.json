@@ -55,23 +55,50 @@
       {
         "triggerType": "position",
         "target": [5, 9],
-        "triggerItemName": "",
-        "triggerNpcName": "",
-        "message": "You stepped on a special tile!"
+        "triggerItemName": null,
+        "triggerNpcName": null,
+        "message": "You stepped on a special tile!",
+        "actions": [
+          {
+            "actionType": "displayMessage",
+            "actionPosition": null,
+            "actionItemName": null,
+            "actionTileType": null,
+            "actionMessage": "Oh no, you stepped on my floor"
+          }
+        ]
       },
       {
         "triggerType": "itemPickup",
-        "target": [0, 0],
+        "target": null,
         "triggerItemName": "Gold Coin",
-        "triggerNpcName": "",
-        "message": "You picked up the special Gold Coin!"
+        "triggerNpcName": null,
+        "message": "You picked up the special Gold Coin!",
+        "actions": [
+          {
+            "actionType": "displayMessage",
+            "actionPosition": null,
+            "actionItemName": null,
+            "actionTileType": null,
+            "actionMessage": "Yes, the Gold Coin"
+          }
+        ]
       },
       {
         "triggerType": "npcTalked",
-        "target": [0, 0],
-        "triggerItemName": "",
+        "target": null,
+        "triggerItemName": null,
         "triggerNpcName": "Friendly NPC",
-        "message": "You talked to the Friendly NPC!"
+        "message": "You talked to the Friendly NPC!",
+        "actions": [
+          {
+            "actionType": "displayMessage",
+            "actionPosition": null,
+            "actionItemName": null,
+            "actionTileType": null,
+            "actionMessage": "Nice guy!"
+          }
+        ]
       }
     ]
   },

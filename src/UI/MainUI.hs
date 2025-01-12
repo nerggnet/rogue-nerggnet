@@ -6,7 +6,8 @@ import Graphics.Vty (Event(..))
 import Graphics.Vty (rgbColor, withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta, cyan)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
-import Game.State (initGame)
+import File.MapIO (loadMapLevels)
+import Game.State (initGame, transformFileWorld)
 import Game.Logic
 import UI.Draw
 import qualified Game.Types as Game
@@ -28,7 +29,16 @@ chooseCursor state =
 -- Main function to start the game
 startGame :: IO ()
 startGame = do
-  initialState <- initGame
+  result <- loadMapLevels "world.json"
+  case result of
+    Left err -> putStrLn $ "Failed to parse world.json: " ++ err
+    Right mapLevels -> do
+      let allWorlds = map transformFileWorld mapLevels
+      let initialState = initGame allWorlds
+      runGame initialState
+
+runGame :: Game.GameState -> IO ()
+runGame initialState = do
   let buildVty = mkVty defaultConfig
   vty <- buildVty
   _ <- customMain vty buildVty Nothing app initialState
