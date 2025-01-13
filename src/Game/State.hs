@@ -158,6 +158,11 @@ transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
     , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
     , triggerDescription = "Talked to NPC " ++ show (FT.triggerNpcName jsonTrigger)
     }
+  "allMonstersDefeated" -> Trigger
+    { triggerCondition = allMonstersDefeated
+    , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
+    , triggerDescription = "Trigger when all monsters on the level are defeated"
+    }
   _ -> error $ "Unknown trigger type: " ++ FT.triggerType jsonTrigger
 
 -- Convert JSONTriggerAction to Action
@@ -201,6 +206,11 @@ validateTriggers trggrs triggerItems triggerNpcs = map validateTrigger trggrs
               then trigger
               else error $ "Trigger refers to unknown NPC: " ++ npc
       | otherwise = trigger
+
+-- Helper function to now if all monsters on a level have been defeated
+allMonstersDefeated :: GameState -> Bool
+allMonstersDefeated state =
+  null (monsters (levels state !! currentLevel state))
 
 -- Convert a character to a Tile
 charToTile :: Char -> Tile

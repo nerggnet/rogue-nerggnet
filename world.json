@@ -216,7 +216,24 @@
       { "doorPosition": [36, 10], "doorLocked": false }
     ],
     "npcs": [],
-    "triggers": []
+    "triggers": [
+      {
+        "triggerType": "allMonstersDefeated",
+        "target": null,
+        "triggerItemName": null,
+        "triggerNpcName": null,
+        "message": "All monsters on this level have been defeated!",
+        "actions": [
+          {
+            "actionType": "displayMessage",
+            "actionPosition": null,
+            "actionItemName": null,
+            "actionTileType": null,
+            "actionMessage": "Yes, no more monsters on the level!"
+          }
+        ]
+      }
+    ]
   },
   {
     "levelNumber": 3,
