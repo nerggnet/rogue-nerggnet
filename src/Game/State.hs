@@ -120,6 +120,8 @@ transformItem fi = Item
                   "Key" -> Key
                   _ -> error "Unknown category"
   , iEffectValue = FT.itemEffectValue fi
+  , iHidden = FT.itemHidden fi
+  , iInactive = FT.itemInactive fi
   }
 
 -- Transform a File.Types.JSONDoorEntity to Game.Types.DoorEntity

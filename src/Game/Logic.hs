@@ -76,8 +76,8 @@ pickUpItem :: Game.GameState -> Game.GameState
 pickUpItem state =
   let currentWorld = Game.levels state !! Game.currentLevel state
       playerPos = Game.position (Game.player state)
-      -- Separate items on the player's position from the rest
-      (itemsOnTile, remainingItems) = partition (\item -> Game.iPosition item == playerPos) (Game.items currentWorld)
+      (itemsOnTile, remainingItems) =
+          partition (\item -> Game.iPosition item == playerPos && not (Game.iInactive item)) (Game.items currentWorld)
   in case itemsOnTile of
        [] -> state { Game.message = "There is nothing to pick up here." : Game.message state }
        (item:_) ->
@@ -370,11 +370,11 @@ executeTrigger state trigger = foldl' executeAction state (Game.triggerActions t
 
 executeAction :: Game.GameState -> Game.Action -> Game.GameState
 executeAction state (Game.SpawnItem name pos) =
-  let newItem = Game.Item { Game.iName = name
-                          , Game.iDescription = "A mysterious item."
-                          , Game.iPosition = pos, Game.iCategory = Game.Special, Game.iEffectValue = 0 }
-      currentWorld = Game.levels state !! Game.currentLevel state
-      updatedWorld = currentWorld { Game.items = newItem : Game.items currentWorld }
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      updatedItems = map (\item -> if Game.iName item == name && Game.iPosition item == pos
+                                   then item { Game.iInactive = False }
+                                   else item) (Game.items currentWorld)
+      updatedWorld = currentWorld { Game.items = updatedItems }
   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
 executeAction state (Game.UnlockDoor pos) =

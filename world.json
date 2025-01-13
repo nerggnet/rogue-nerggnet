@@ -37,9 +37,11 @@
       { "name": "Slime", "position": [12, 25], "health": 5, "attack": 2 }
     ],
     "items": [
-      { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores 20 HP.", "itemCategory": "Healing", "itemEffectValue": 60 },
-      { "itemName": "Sword", "itemPosition": [11, 20], "itemDescription": "A sharp blade.", "itemCategory": "Weapon", "itemEffectValue": 15 },
-      { "itemName": "Gold Coin", "itemPosition": [8, 25], "itemDescription": "Shiny and valuable.", "itemCategory": "Special", "itemEffectValue": 0 }
+      { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores 20 HP.", "itemCategory": "Healing", "itemEffectValue": 60, "itemHidden": false, "itemInactive": false },
+      { "itemName": "Sword", "itemPosition": [11, 20], "itemDescription": "A sharp blade.", "itemCategory": "Weapon", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false },
+      { "itemName": "Gold Coin", "itemPosition": [8, 25], "itemDescription": "Shiny and valuable.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
+      { "itemName": "Magic Ring", "itemPosition": [18, 3], "itemDescription": "A ring that glows faintly.", "itemCategory": "Special", "itemEffectValue": 10, "itemHidden": true, "itemInactive": false },
+      { "itemName": "Dark Sword", "itemPosition": [49, 25], "itemDescription": "A nasty looking blade.", "itemCategory": "Weapon", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true }
     ],
     "doors": [
       { "doorPosition": [7, 4], "doorLocked": true },
@@ -72,6 +74,29 @@
             "actionItemName": null,
             "actionTileType": null,
             "actionMessage": "Oh no, you let the monster out!"
+          }
+        ]
+      },
+      {
+        "triggerType": "position",
+        "target": [46, 25],
+        "triggerItemName": null,
+        "triggerNpcName": null,
+        "message": "You stepped on a special tile!",
+        "actions": [
+          {
+            "actionType": "spawnItem",
+            "actionPosition": [49, 25],
+            "actionItemName": "Dark Sword",
+            "actionTileType": null,
+            "actionMessage": null
+          },
+          {
+            "actionType": "displayMessage",
+            "actionPosition": null,
+            "actionItemName": null,
+            "actionTileType": null,
+            "actionMessage": "You hear a clang of metal nearby!"
           }
         ]
       },
@@ -147,11 +172,11 @@
       { "name": "Wraith", "position": [18, 25], "health": 20, "attack": 7 }
     ],
     "items": [
-      { "itemName": "Shield", "itemPosition": [9, 9], "itemDescription": "A protective shield.", "itemCategory": "Armor", "itemEffectValue": 10 },
-      { "itemName": "Magic Scroll", "itemPosition": [20, 15], "itemDescription": "Contains a spell.", "itemCategory": "Special", "itemEffectValue": 0 },
-      { "itemName": "Amulet", "itemPosition": [12, 25], "itemDescription": "Grants protection.", "itemCategory": "Armor", "itemEffectValue": 5 },
-      { "itemName": "Iron Key", "itemPosition": [17, 3], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0 },
-      { "itemName": "Iron Key", "itemPosition": [4, 11], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0 }
+      { "itemName": "Shield", "itemPosition": [9, 9], "itemDescription": "A protective shield.", "itemCategory": "Armor", "itemEffectValue": 10, "itemHidden": false, "itemInactive": false },
+      { "itemName": "Magic Scroll", "itemPosition": [20, 15], "itemDescription": "Contains a spell.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
+      { "itemName": "Amulet", "itemPosition": [12, 25], "itemDescription": "Grants protection.", "itemCategory": "Armor", "itemEffectValue": 5, "itemHidden": false, "itemInactive": false },
+      { "itemName": "Iron Key", "itemPosition": [17, 3], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
+      { "itemName": "Iron Key", "itemPosition": [4, 11], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false }
     ],
     "doors": [
       { "doorPosition": [7, 4], "doorLocked": false },
@@ -200,9 +225,9 @@
       { "name": "Lich", "position": [22, 22], "health": 50, "attack": 12 }
     ],
     "items": [
-      { "itemName": "Ring of Power", "itemPosition": [10, 10], "itemDescription": "Grants strength.", "itemCategory": "Weapon", "itemEffectValue": 25 },
-      { "itemName": "Potion of Flight", "itemPosition": [15, 15], "itemDescription": "Grants temporary flight.", "itemCategory": "Special", "itemEffectValue": 0 },
-      { "itemName": "Iron Key", "itemPosition": [35, 5], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0 }
+      { "itemName": "Ring of Power", "itemPosition": [10, 10], "itemDescription": "Grants strength.", "itemCategory": "Weapon", "itemEffectValue": 25, "itemHidden": false, "itemInactive": false },
+      { "itemName": "Potion of Flight", "itemPosition": [15, 15], "itemDescription": "Grants temporary flight.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
+      { "itemName": "Iron Key", "itemPosition": [35, 5], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false }
     ],
     "doors": [
       { "doorPosition": [7, 4], "doorLocked": false },
@@ -250,7 +275,7 @@
       { "name": "Demon", "position": [12, 12], "health": 60, "attack": 15 }
     ],
     "items": [
-      { "itemName": "Orb of Power", "itemPosition": [10, 10], "itemDescription": "Grants immense power.", "itemCategory": "Weapon", "itemEffectValue": 40 }
+      { "itemName": "Orb of Power", "itemPosition": [10, 10], "itemDescription": "Grants immense power.", "itemCategory": "Weapon", "itemEffectValue": 40, "itemHidden": false, "itemInactive": false }
     ],
     "doors": [
       { "doorPosition": [7, 4], "doorLocked": false },

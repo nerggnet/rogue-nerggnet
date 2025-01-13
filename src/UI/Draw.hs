@@ -30,7 +30,7 @@ drawUI state =
   where
     currentWorld = levels state !! currentLevel state
     playerPos = position (player state)
-    itemsOnPlayerTile = [iName item | item <- items currentWorld, iPosition item == playerPos]
+    itemsOnPlayerTile = [iName item | item <- items currentWorld, iPosition item == playerPos, not (iInactive item)]
     currentTileMessage =
       if null itemsOnPlayerTile then ""
         else "You see: " ++ unwords itemsOnPlayerTile
@@ -54,25 +54,18 @@ drawMap wrld plyr =
 drawTileWithFog :: World -> Player -> Int -> Int -> Tile -> Widget ()
 drawTileWithFog world plyr x y tile
   | not (visibility world !! y !! x) && not (discovered world !! y !! x) =
-      -- Completely obscured by fog
       withAttr (attrName "fog") $ str " "
   | not (visibility world !! y !! x) && discovered world !! y !! x =
-      -- Previously discovered, but not currently visible
       withAttr (attrName "discovered") $ drawTileHidden tile
   | position plyr == V2 x y =
-      -- Player's position
       withAttr (attrName "player") $ str "@"
   | any ((== V2 x y) . mPosition) (monsters world) =
-      -- Monster's position
       withAttr (attrName "monster") $ str "M"
-  | any ((== V2 x y) . iPosition) (items world) =
-      -- Item's position
+  | any (\i -> iPosition i == V2 x y && not (iHidden i) && not (iInactive i)) (items world) =
       withAttr (attrName "item") $ str "!"
   | any ((== V2 x y) . npcPosition) (npcs world) =
-      -- NPC's position
       withAttr (attrName "npc") $ str "N"
   | otherwise =
-      -- Regular visible tile
       drawTile tile
 
 -- Helper to render a hidden tile (e.g., in fog or discovered but not visible)

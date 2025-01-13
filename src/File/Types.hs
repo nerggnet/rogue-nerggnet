@@ -38,6 +38,8 @@ data JSONItem = JSONItem
   , itemDescription :: String      -- Item description
   , itemCategory    :: String      -- Item category, i.e. Armor, Weapon, Healing, Special, or Key
   , itemEffectValue :: Int         -- Item effect value, e.g. increases attack with this value
+  , itemHidden      :: Bool        -- Controls whether or not an item is visible
+  , itemInactive    :: Bool        -- Controls whether or not an item can be found and picked up
   } deriving (Show, Generic)
 
 instance FromJSON JSONItem

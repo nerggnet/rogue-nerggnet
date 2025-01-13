@@ -39,6 +39,8 @@ data Item = Item
   , iPosition    :: V2 Int
   , iCategory    :: ItemCategory
   , iEffectValue :: Int
+  , iHidden      :: Bool
+  , iInactive    :: Bool
   } deriving (Show, Eq)
 
 data DoorEntity = DoorEntity
