@@ -375,13 +375,13 @@ executeAction state (Game.SpawnItem name pos) =
                                    then item { Game.iInactive = False }
                                    else item) (Game.items currentWorld)
       updatedWorld = currentWorld { Game.items = updatedItems }
-  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
 executeAction state (Game.UnlockDoor pos) =
   let currentWorld = Game.levels state !! Game.currentLevel state
       updatedDoors = map (\d -> if Game.dePosition d == pos then d { Game.deLocked = False } else d) (Game.doors currentWorld)
       updatedWorld = currentWorld { Game.doors = updatedDoors }
-  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
 executeAction state (Game.DisplayMessage msg) =
   state { Game.message = msg : Game.message state }
@@ -393,7 +393,12 @@ executeAction state (Game.ShiftTile pos newTile) =
    in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
 executeAction state (Game.TransportPlayer pos) =
-  state { Game.player = (Game.player state) { Game.position = pos } }
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      updatedPlayer = (Game.player state) { Game.position = pos }
+      updatedWorld = updateVisibility updatedPlayer defaultFogRadius currentWorld
+   in state
+       { Game.player = updatedPlayer
+       , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
 executeAction _ _ = error "Undefined trigger action"
 

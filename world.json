@@ -79,6 +79,29 @@
       },
       {
         "triggerType": "position",
+        "target": [1, 25],
+        "triggerItemName": null,
+        "triggerNpcName": null,
+        "message": "You stepped on a special tile!",
+        "actions": [
+          {
+            "actionType": "transportPlayer",
+            "actionPosition": [49, 25],
+            "actionItemName": null,
+            "actionTileType": null,
+            "actionMessage": null
+          },
+          {
+            "actionType": "displayMessage",
+            "actionPosition": null,
+            "actionItemName": null,
+            "actionTileType": null,
+            "actionMessage": "Swoosh!"
+          }
+        ]
+      },
+      {
+        "triggerType": "position",
         "target": [46, 25],
         "triggerItemName": null,
         "triggerNpcName": null,
@@ -124,11 +147,18 @@
         "message": "You talked to the Friendly NPC!",
         "actions": [
           {
+            "actionType": "unlockDoor",
+            "actionPosition": [7, 4],
+            "actionItemName": null,
+            "actionTileType": null,
+            "actionMessage": null
+          },
+          {
             "actionType": "displayMessage",
             "actionPosition": null,
             "actionItemName": null,
             "actionTileType": null,
-            "actionMessage": "Nice guy!"
+            "actionMessage": "You hear the faint sound of a door unlocking."
           }
         ]
       }
