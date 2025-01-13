@@ -31,10 +31,10 @@
       "###################################################"
     ],
     "monsters": [
-      { "name": "Goblin", "position": [5, 5], "health": 10, "attack": 3 },
-      { "name": "Skeleton", "position": [10, 15], "health": 12, "attack": 4 },
-      { "name": "Zombie", "position": [8, 18], "health": 15, "attack": 5 },
-      { "name": "Slime", "position": [12, 25], "health": 5, "attack": 2 }
+      { "name": "Goblin", "position": [5, 5], "health": 10, "attack": 3, "xp": 25 },
+      { "name": "Skeleton", "position": [10, 15], "health": 12, "attack": 4, "xp": 35 },
+      { "name": "Zombie", "position": [8, 18], "health": 15, "attack": 5, "xp": 50 },
+      { "name": "Slime", "position": [12, 25], "health": 5, "attack": 2, "xp": 5 }
     ],
     "items": [
       { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores 20 HP.", "itemCategory": "Healing", "itemEffectValue": 60, "itemHidden": false, "itemInactive": false },
@@ -196,10 +196,10 @@
       "###################################################"
     ],
     "monsters": [
-      { "name": "Orc", "position": [7, 7], "health": 18, "attack": 6 },
-      { "name": "Bat", "position": [15, 20], "health": 8, "attack": 1 },
-      { "name": "Slime", "position": [10, 9], "health": 5, "attack": 2 },
-      { "name": "Wraith", "position": [18, 25], "health": 20, "attack": 7 }
+      { "name": "Orc", "position": [7, 7], "health": 18, "attack": 6, "xp": 70 },
+      { "name": "Bat", "position": [15, 20], "health": 8, "attack": 1, "xp": 6 },
+      { "name": "Slime", "position": [10, 9], "health": 5, "attack": 2, "xp": 5 },
+      { "name": "Wraith", "position": [18, 25], "health": 20, "attack": 7, "xp": 120 }
     ],
     "items": [
       { "itemName": "Shield", "itemPosition": [9, 9], "itemDescription": "A protective shield.", "itemCategory": "Armor", "itemEffectValue": 10, "itemHidden": false, "itemInactive": false },
@@ -267,9 +267,9 @@
       "###################################################"
     ],
     "monsters": [
-      { "name": "Dragon", "position": [25, 25], "health": 100, "attack": 10 },
-      { "name": "Snake", "position": [18, 12], "health": 20, "attack": 7 },
-      { "name": "Lich", "position": [22, 22], "health": 50, "attack": 12 }
+      { "name": "Dragon", "position": [25, 25], "health": 100, "attack": 10, "xp": 600 },
+      { "name": "Snake", "position": [18, 12], "health": 20, "attack": 7, "xp": 50 },
+      { "name": "Lich", "position": [22, 22], "health": 50, "attack": 12, "xp": 500 }
     ],
     "items": [
       { "itemName": "Ring of Power", "itemPosition": [10, 10], "itemDescription": "Grants strength.", "itemCategory": "Weapon", "itemEffectValue": 25, "itemHidden": false, "itemInactive": false },
@@ -319,7 +319,7 @@
       "###################################################"
     ],
     "monsters": [
-      { "name": "Demon", "position": [12, 12], "health": 60, "attack": 15 }
+      { "name": "Demon", "position": [12, 12], "health": 60, "attack": 15, "xp": 400 }
     ],
     "items": [
       { "itemName": "Orb of Power", "itemPosition": [10, 10], "itemDescription": "Grants immense power.", "itemCategory": "Weapon", "itemEffectValue": 40, "itemHidden": false, "itemInactive": false }

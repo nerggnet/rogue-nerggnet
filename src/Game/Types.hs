@@ -10,13 +10,14 @@ data Direction = North | South | East | West | Up | Down deriving (Eq, Show)
 data ItemCategory = Armor | Weapon | Healing | Special | Key deriving (Eq, Show)
 
 data Player = Player
-  { position   :: V2 Int
-  , health     :: Int
-  , attack     :: Int
-  , resistance :: Int
-  , inventory  :: [Item]
+  { position       :: V2 Int
+  , health         :: Int
+  , attack         :: Int
+  , resistance     :: Int
+  , inventory      :: [Item]
   , equippedWeapon :: Maybe Item
   , equippedArmor  :: Maybe Item
+  , xp             :: Int
   } deriving (Show)
 
 data Monster = Monster
@@ -24,12 +25,13 @@ data Monster = Monster
   , mHealth   :: Int
   , mAttack   :: Int
   , mName     :: String
+  , mXP       :: Int
   } deriving (Show, Eq)
 
 data NPC = NPC
-  { npcName    :: String
-  , npcPosition :: V2 Int
-  , npcMessage :: String
+  { npcName               :: String
+  , npcPosition           :: V2 Int
+  , npcMessage            :: String
   , npcPreferredDirection :: Maybe Direction
   } deriving (Show, Eq)
 

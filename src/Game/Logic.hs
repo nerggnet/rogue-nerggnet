@@ -254,7 +254,7 @@ combat state mnstr _ =
       updatedWorld = currentWorld { Game.monsters = updatedMonsters }
       isDead = newHealth == 0
       defeatMessage = if Game.mHealth mnstr - playerDamage <= 0
-                      then "You defeated the " ++ Game.mName mnstr ++ "!"
+                      then "You defeated the " ++ Game.mName mnstr ++ " and gained " ++ show (Game.mXP mnstr) ++ "!"
                       else ""
       newMessage = if isDead
                    then "You have died! Game Over." : Game.message state
@@ -262,7 +262,10 @@ combat state mnstr _ =
                         ("The " ++ Game.mName mnstr ++ " attacked you for " ++ show monsterDamage ++ " damage!") :
                         ("You attacked " ++ Game.mName mnstr ++ " for " ++ show playerDamage ++ " damage!") :
                         Game.message state
-  in state { Game.player = updatedPlayer
+      updatedPlayerWithXP = if Game.mHealth mnstr - playerDamage <= 0
+                            then updatedPlayer { Game.xp = Game.xp updatedPlayer + Game.mXP mnstr }
+                            else updatedPlayer
+  in state { Game.player = updatedPlayerWithXP
            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
            , Game.message = newMessage
            , Game.gameOver = isDead }

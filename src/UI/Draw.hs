@@ -113,6 +113,7 @@ drawStatsBox plyr =
           [ padRight Max $ str $ "HP: " ++ show (health plyr)
           , padRight Max $ str $ "Attack: " ++ show (attack plyr)
           , padRight Max $ str $ "Resistance: " ++ show (resistance plyr)
+          , padRight Max $ str $ "XP: " ++ show (xp plyr)
           ]
 
 -- Draw the inventory, highlighting equipped weapon and armor

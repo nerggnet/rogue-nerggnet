@@ -37,7 +37,8 @@ initGame allWorlds =
             , resistance = defaultResistance
             , inventory = []
             , equippedWeapon = Nothing
-            , equippedArmor = Nothing }
+            , equippedArmor = Nothing
+            , xp = 0 }
         , levels = allWorlds
         , currentLevel = 0
         , message = ["Welcome Rogue nerggnet!", " ", " "]
@@ -95,6 +96,7 @@ transformMonster fm = Monster
   , mHealth = FT.health fm
   , mAttack = FT.attack fm
   , mName = FT.name fm
+  , mXP = FT.xp fm
   }
 
 -- Transform a File.Types.JSONNPC to Game.Types.NPC
