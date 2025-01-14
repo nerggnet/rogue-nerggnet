@@ -107,20 +107,20 @@ drawLegendPopup =
 -- Draw the stats box with Health, Attack, and Resistance
 drawStatsBox :: Player -> Widget ()
 drawStatsBox plyr =
-    hLimit 25 $
+    hLimit 30 $
       B.borderWithLabel (str "Stats") $
         vBox
           [ padRight Max $ str $ "Level: " ++ show (playerXPLevel plyr)
           , padRight Max $ str $ "HP: " ++ show (health plyr)
-          , padRight Max $ str $ "Attack: " ++ show (attack plyr)
-          , padRight Max $ str $ "Resistance: " ++ show (resistance plyr)
+          , padRight Max $ str $ "Attack: " ++ show (attack plyr) ++ " (Base: " ++ show (baseAttack plyr) ++ ")"
+          , padRight Max $ str $ "Resistance: " ++ show (resistance plyr) ++ " (Base: " ++ show (baseResistance plyr) ++ ")"
           , padRight Max $ str $ "XP: " ++ show (xp plyr)
           ]
 
 -- Draw the inventory, highlighting equipped weapon and armor
 drawInventory :: Player -> Widget ()
 drawInventory plyr =
-    hLimit 25 $
+    hLimit 30 $
       B.borderWithLabel (str "Inventory") $
         padRight Max $
           if null inv

@@ -12,6 +12,8 @@ data ItemCategory = Armor | Weapon | Healing | Special | Key deriving (Eq, Show)
 data Player = Player
   { position       :: V2 Int
   , health         :: Int
+  , baseAttack     :: Int
+  , baseResistance :: Int
   , attack         :: Int
   , resistance     :: Int
   , xp             :: Int

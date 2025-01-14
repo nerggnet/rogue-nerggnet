@@ -102,6 +102,9 @@ useItem itm state =
   let plyr = Game.player state
       doorToUnlock = find (isAdjacent (Game.position plyr) . Game.dePosition)
                           (Game.doors (Game.levels state !! Game.currentLevel state))
+      recalculateEffectiveStats p = p
+        { Game.attack = Game.baseAttack p + maybe 0 Game.iEffectValue (Game.equippedWeapon p)
+        , Game.resistance = Game.baseResistance p + maybe 0 Game.iEffectValue (Game.equippedArmor p) }
       updatedState = case Game.iCategory itm of
         Game.Healing ->
           let playerCurrentMaxHealth = Game.xpLevel (Game.xpLevels state !! Game.playerXPLevel plyr)
@@ -122,20 +125,14 @@ useItem itm state =
             Nothing ->
               state { Game.message = "There is no door nearby to unlock." : Game.message state }
         Game.Weapon ->
-          let oldWeapon = Game.equippedWeapon plyr
-              newAttack = Game.attack plyr
-                          - maybe 0 Game.iEffectValue oldWeapon
-                          + Game.iEffectValue itm
-          in state { Game.player = plyr { Game.equippedWeapon = Just itm
-                                        , Game.attack = newAttack }
+          let newPlayer = plyr { Game.equippedWeapon = Just itm }
+              newPlayerWithNewAttack = recalculateEffectiveStats newPlayer
+          in state { Game.player = newPlayerWithNewAttack
                    , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
         Game.Armor  ->
-          let oldArmor = Game.equippedArmor plyr
-              newResistance = Game.resistance plyr
-                              - maybe 0 Game.iEffectValue oldArmor
-                              + Game.iEffectValue itm
-          in state { Game.player = plyr { Game.equippedArmor = Just itm
-                                        , Game.resistance = newResistance }
+          let newPlayer = plyr { Game.equippedArmor = Just itm }
+              newPlayerWithNewResistance = recalculateEffectiveStats newPlayer
+          in state { Game.player = newPlayerWithNewResistance
                    , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
         Game.Special ->
           state { Game.message = ("You used " ++ Game.iName itm ++ ". Its effect is mysterious.")
@@ -279,18 +276,25 @@ levelUp player xpLevels =
   let currentXP = Game.xp player
       currentXPLevel = Game.playerXPLevel player
       nextXPLevel = find (\lvl -> currentXP >= Game.xpThreshold lvl && Game.xpLevel lvl > currentXPLevel) xpLevels
+      calculateEffectiveStats plyr = plyr
+        { Game.attack = Game.baseAttack plyr + maybe 0 Game.iEffectValue (Game.equippedWeapon plyr)
+        , Game.resistance = Game.baseResistance plyr + maybe 0 Game.iEffectValue (Game.equippedArmor plyr)
+        }
   in case nextXPLevel of
        Just lvl ->
-         ( player { Game.playerXPLevel = Game.xpLevel lvl
-                  , Game.health = Game.xpHealth lvl
-                  , Game.attack = Game.xpAttack lvl
-                  , Game.resistance = Game.xpResistance lvl
-                  }
-         , ["You leveled up to level " ++ show (Game.xpLevel lvl) ++ "!",
-            "Health increased to " ++ show (Game.xpHealth lvl) ++ ".",
-            "Attack increased to " ++ show (Game.xpAttack lvl) ++ ".",
-            "Resistance increased to " ++ show (Game.xpResistance lvl) ++ "."]
-         )
+         let updatedPlayer = player
+               { Game.playerXPLevel = Game.xpLevel lvl
+               , Game.health = Game.xpHealth lvl
+               , Game.baseAttack = Game.xpAttack lvl
+               , Game.baseResistance = Game.xpResistance lvl
+               }
+             recalculatedPlayer = calculateEffectiveStats updatedPlayer
+         in (recalculatedPlayer,
+             [ "You leveled up to level " ++ show (Game.xpLevel lvl) ++ "!"
+             , "Health increased to " ++ show (Game.xpHealth lvl) ++ "."
+             , "Base attack increased to " ++ show (Game.xpAttack lvl) ++ "."
+             , "Base resistance increased to " ++ show (Game.xpResistance lvl) ++ "."
+             ])
        Nothing -> (player, [])
 
 -- Move monsters in the current level
