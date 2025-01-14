@@ -14,11 +14,20 @@ data Player = Player
   , health         :: Int
   , attack         :: Int
   , resistance     :: Int
+  , xp             :: Int
+  , playerXPLevel  :: Int
   , inventory      :: [Item]
   , equippedWeapon :: Maybe Item
   , equippedArmor  :: Maybe Item
-  , xp             :: Int
   } deriving (Show)
+
+data XPLevel = XPLevel
+  { xpLevel       :: Int
+  , xpThreshold :: Int
+  , xpHealth      :: Int
+  , xpAttack      :: Int
+  , xpResistance  :: Int
+  }
 
 data Monster = Monster
   { mPosition :: V2 Int
@@ -78,6 +87,7 @@ data World = World
 
 data GameState = GameState
   { player            :: Player
+  , xpLevels          :: [XPLevel]
   , levels            :: [World]
   , currentLevel      :: Int
   , message           :: [String]

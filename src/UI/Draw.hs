@@ -110,7 +110,8 @@ drawStatsBox plyr =
     hLimit 25 $
       B.borderWithLabel (str "Stats") $
         vBox
-          [ padRight Max $ str $ "HP: " ++ show (health plyr)
+          [ padRight Max $ str $ "Level: " ++ show (playerXPLevel plyr)
+          , padRight Max $ str $ "HP: " ++ show (health plyr)
           , padRight Max $ str $ "Attack: " ++ show (attack plyr)
           , padRight Max $ str $ "Resistance: " ++ show (resistance plyr)
           , padRight Max $ str $ "XP: " ++ show (xp plyr)
@@ -151,8 +152,8 @@ keyedInventory inv eqpdWeapon eqpdArmor =
 -- Draw messages/log
 drawMessages :: [String] -> Widget ()
 drawMessages msgs =
-      vLimit 3 $ -- Limit to 3 rows
-        vBox $ map str (reverse . take 3 $ msgs)
+      vLimit 5 $ -- Limit to 3 rows
+        vBox $ map str (reverse . take 5 $ msgs)
 
 -- Draw the command input bar
 drawCommandInput :: GameState -> Widget ()

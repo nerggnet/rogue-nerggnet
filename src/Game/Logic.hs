@@ -5,7 +5,7 @@ module Game.Logic where
 
 import Brick
 import Graphics.Vty (Key(..))
-import Game.State (defaultHealth, defaultMonsterRadius, defaultFogRadius, updateVisibility, replaceLevel, manhattanDistance)
+import Game.State (defaultMonsterRadius, defaultFogRadius, updateVisibility, replaceLevel, manhattanDistance)
 import UI.Draw
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
@@ -104,11 +104,12 @@ useItem itm state =
                           (Game.doors (Game.levels state !! Game.currentLevel state))
       updatedState = case Game.iCategory itm of
         Game.Healing ->
-          let healedHealth = min defaultHealth (Game.health plyr + Game.iEffectValue itm)
-          in state { Game.player = plyr { Game.health = healedHealth
+          let playerCurrentMaxHealth = Game.xpLevel (Game.xpLevels state !! Game.playerXPLevel plyr)
+              healedHealth = min playerCurrentMaxHealth (Game.health plyr + Game.iEffectValue itm)
+           in state { Game.player = plyr { Game.health = healedHealth
                                         , Game.inventory = filter (/= itm) (Game.inventory plyr) }
-                   , Game.message = ("You used " ++ Game.iName itm ++ " and recovered "
-                                    ++ show (Game.iEffectValue itm) ++ " HP.") : Game.message state }
+                    , Game.message = ("You used " ++ Game.iName itm ++ " and recovered "
+                                     ++ show (Game.iEffectValue itm) ++ " HP.") : Game.message state }
         Game.Key ->
           case doorToUnlock of
             Just door ->
@@ -178,7 +179,8 @@ executeCommand ":q" = halt -- Quit the game
 executeCommand ":heal" = do -- Cheat
     state <- get
     let plyr = Game.player state
-    modify (\s -> s { Game.player = plyr { Game.health = defaultHealth } } )
+        playerCurrentMaxHealth = Game.xpLevel (Game.xpLevels state !! Game.playerXPLevel plyr)
+    modify (\s -> s { Game.player = plyr { Game.health = playerCurrentMaxHealth } } )
 executeCommand ":super" = do -- Cheat a lot
     state <- get
     let plyr = Game.player state
@@ -254,7 +256,7 @@ combat state mnstr _ =
       updatedWorld = currentWorld { Game.monsters = updatedMonsters }
       isDead = newHealth == 0
       defeatMessage = if Game.mHealth mnstr - playerDamage <= 0
-                      then "You defeated the " ++ Game.mName mnstr ++ " and gained " ++ show (Game.mXP mnstr) ++ "!"
+                      then "You defeated the " ++ Game.mName mnstr ++ " and gained " ++ show (Game.mXP mnstr) ++ " XP!"
                       else ""
       newMessage = if isDead
                    then "You have died! Game Over." : Game.message state
@@ -265,10 +267,31 @@ combat state mnstr _ =
       updatedPlayerWithXP = if Game.mHealth mnstr - playerDamage <= 0
                             then updatedPlayer { Game.xp = Game.xp updatedPlayer + Game.mXP mnstr }
                             else updatedPlayer
-  in state { Game.player = updatedPlayerWithXP
+      (updatedPlayerWithXPAndPossibleNewLevel, levelUpMessages) = levelUp updatedPlayerWithXP (Game.xpLevels state)
+      completeMessage = levelUpMessages ++ newMessage ++ Game.message state
+  in state { Game.player = updatedPlayerWithXPAndPossibleNewLevel
            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-           , Game.message = newMessage
+           , Game.message = completeMessage
            , Game.gameOver = isDead }
+
+levelUp :: Game.Player -> [Game.XPLevel] -> (Game.Player, [String])
+levelUp player xpLevels =
+  let currentXP = Game.xp player
+      currentXPLevel = Game.playerXPLevel player
+      nextXPLevel = find (\lvl -> currentXP >= Game.xpThreshold lvl && Game.xpLevel lvl > currentXPLevel) xpLevels
+  in case nextXPLevel of
+       Just lvl ->
+         ( player { Game.playerXPLevel = Game.xpLevel lvl
+                  , Game.health = Game.xpHealth lvl
+                  , Game.attack = Game.xpAttack lvl
+                  , Game.resistance = Game.xpResistance lvl
+                  }
+         , ["You leveled up to level " ++ show (Game.xpLevel lvl) ++ "!",
+            "Health increased to " ++ show (Game.xpHealth lvl) ++ ".",
+            "Attack increased to " ++ show (Game.xpAttack lvl) ++ ".",
+            "Resistance increased to " ++ show (Game.xpResistance lvl) ++ "."]
+         )
+       Nothing -> (player, [])
 
 -- Move monsters in the current level
 moveMonsters :: Game.GameState -> Game.GameState

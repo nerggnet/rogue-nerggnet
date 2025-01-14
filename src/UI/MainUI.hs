@@ -7,7 +7,7 @@ import Graphics.Vty (rgbColor, withBackColor, withForeColor, defAttr, black, whi
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 import File.MapIO (loadMapLevels)
-import Game.State (initGame, transformFileWorld)
+import Game.State (initGame)
 import Game.Logic
 import UI.Draw
 import qualified Game.Types as Game
@@ -32,9 +32,8 @@ startGame = do
   result <- loadMapLevels "world.json"
   case result of
     Left err -> putStrLn $ "Failed to parse world.json: " ++ err
-    Right mapLevels -> do
-      let allWorlds = map transformFileWorld mapLevels
-      let initialState = initGame allWorlds
+    Right config -> do
+      let initialState = initGame config
       runGame initialState
 
 runGame :: Game.GameState -> IO ()

@@ -10,15 +10,6 @@ import Data.List (isInfixOf)
 import Data.List.Extra (dropPrefix)
 
 -- Default values for unarmed and unarmored player, plus default monster and fog radii
-defaultHealth :: Int
-defaultHealth = 100
-
-defaultAttack :: Int
-defaultAttack = 5
-
-defaultResistance :: Int
-defaultResistance = 3
-
 defaultMonsterRadius :: Int
 defaultMonsterRadius = 4
 
@@ -26,20 +17,25 @@ defaultFogRadius :: Int
 defaultFogRadius = 5
 
 -- Initialize the game state
-initGame :: [World] -> GameState
-initGame allWorlds =
-  let initialWorld = head allWorlds
+initGame :: FT.GameConfig -> GameState
+initGame config =
+  let allWorlds = map transformFileWorld (FT.levels config)
+      allXPLevels = transformXPLevels (FT.xpLevels config)
+      initialXPLevel = head allXPLevels
+      initialWorld = head allWorlds
       initialState = GameState
         { player = Player
             { position = findStartingPosition initialWorld
-            , health = defaultHealth
-            , attack = defaultAttack
-            , resistance = defaultResistance
+            , health = xpHealth initialXPLevel -- defaultHealth
+            , attack = xpAttack initialXPLevel
+            , resistance = xpResistance initialXPLevel
+            , xp = 0
+            , playerXPLevel = 1
             , inventory = []
             , equippedWeapon = Nothing
-            , equippedArmor = Nothing
-            , xp = 0 }
+            , equippedArmor = Nothing }
         , levels = allWorlds
+        , xpLevels = allXPLevels
         , currentLevel = 0
         , message = ["Welcome Rogue nerggnet!", " ", " "]
         , commandBuffer = ""
@@ -107,6 +103,16 @@ transformNPC fnpc = NPC
   , npcMessage = FT.npcMessage fnpc
   , npcPreferredDirection = Nothing
   }
+
+-- Transform a File.Types.XPLevel to Game.Types.XPLevel
+transformXPLevels :: [FT.XPLevel] -> [XPLevel]
+transformXPLevels fxps = map (\fxp -> XPLevel
+  { xpLevel = FT.xpLevel fxp
+  , xpThreshold = FT.xpThreshold fxp
+  , xpHealth = FT.xpHealth fxp
+  , xpAttack = FT.xpAttack fxp
+  , xpResistance = FT.xpResistance fxp
+  }) fxps
 
 -- Transform a File.Types.JSONItem to Game.Types.Item
 transformItem :: FT.JSONItem -> Item

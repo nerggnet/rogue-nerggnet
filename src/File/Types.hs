@@ -6,14 +6,35 @@ module File.Types where
 import GHC.Generics (Generic)
 import Data.Aeson (FromJSON, ToJSON)
 
--- | JSON representation of a map level
+-- Top-level game configuration
+data GameConfig = GameConfig
+  { xpLevels :: [XPLevel]          -- Experience levels for the player
+  , levels   :: [MapLevel]         -- List of map levels
+  } deriving (Show, Generic)
+
+instance FromJSON GameConfig
+instance ToJSON GameConfig
+
+-- JSON representation of an XP Level
+data XPLevel = XPLevel
+  { xpLevel       :: Int -- Player's level
+  , xpThreshold   :: Int -- XP required to reach this level
+  , xpHealth      :: Int -- Maximum health at this level
+  , xpAttack      :: Int -- Attack power at this level
+  , xpResistance  :: Int -- Resistance at this level
+  } deriving (Show, Generic)
+
+instance FromJSON XPLevel
+instance ToJSON XPLevel
+
+-- JSON representation of a map level
 data MapLevel = MapLevel
   { levelNumber :: Int              -- Level identifier
   , mapGrid     :: [String]         -- Serialized map grid (row-wise string representation)
   , monsters    :: [JSONMonster]    -- Monsters present on this level
   , doors       :: [JSONDoorEntity] -- Doors present on this level
   , items       :: [JSONItem]       -- Items present on this level
-  , triggers    :: [JSONTrigger]   -- Triggers on this level
+  , triggers    :: [JSONTrigger]    -- Triggers on this level
   , npcs        :: [JSONNPC]        -- NPCs on the map level
   } deriving (Show, Generic)
 
