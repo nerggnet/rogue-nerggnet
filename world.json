@@ -323,7 +323,7 @@
         "#.......................#.........................#",
         "#.......................#.........................#",
         "#.......................#.........................#",
-        "#.......................#.........................#",
+        "#.......................#>........................#",
         "###################################################"
       ],
       "monsters": [
@@ -342,6 +342,107 @@
       ],
       "npcs": [],
       "triggers": []
+    },
+    {
+      "levelNumber": 5,
+      "mapGrid": [
+        "###################################################",
+        "#......................##.............#...........#",
+        "#..#####...........#####.#.#####......##.########.#",
+        "#..#...#.........###.....#.#...#.......#.#........#",
+        "#..#...+.........#.......+.#...#.......#.#........#",
+        "#..#...#.........#....######...#####.###.#........#",
+        "#..#####.#######.#.......#.........#.#.#.#####....#",
+        "#........#.....#.#.......#########.#.#............#",
+        "######.###.###.#.#...............#.#.###########..#",
+        "#...........#...#.##############..#...............#",
+        "#.###########...#.#...............##+##.########..#",
+        "#.#.............#.#...###########.#...#.##........#",
+        "#.#.....##.##...#.#...............#.#.#.#######...#",
+        "#.#.#.#.#...#####.#.###############.#.#..........##",
+        "#.#.#.#.#.......#.#.#...............#.#######.....#",
+        "#.#.#.#.#########.###...#############.#######.....#",
+        "#.#.#.#.#.......#.#.....#.............#...........#",
+        "#.#.#.#.#.#####.#.#####.#.#############...........#",
+        "#.#.#.#.#.....#.#.#...#.#......................####",
+        "#.#.###.#####.#.#.#...###.#####.################..#",
+        "#.#...........#...#.......#.......................#",
+        "#.###############.#########.#####################.#",
+        "#.................#.........#.....................#",
+        "###################.#########.#####################",
+        "#...#....#######..............#########...........#",
+        "#.#...##.........########<##............###########",
+        "###################################################"
+      ],
+      "monsters": [
+        { "name": "Spider", "position": [6, 5], "health": 8, "attack": 4, "xp": 20 },
+        { "name": "Orc Warrior", "position": [15, 16], "health": 30, "attack": 8, "xp": 100 },
+        { "name": "Ghost", "position": [25, 20], "health": 15, "attack": 5, "xp": 50 },
+        { "name": "Fire Elemental", "position": [35, 25], "health": 50, "attack": 15, "xp": 200 }
+      ],
+      "items": [
+        { "itemName": "Healing Potion", "itemPosition": [10, 11], "itemDescription": "Restores 50 HP.", "itemCategory": "Healing", "itemEffectValue": 50, "itemHidden": false, "itemInactive": false },
+        { "itemName": "Fireproof Armor", "itemPosition": [19, 18], "itemDescription": "Reduces fire damage.", "itemCategory": "Armor", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false },
+        { "itemName": "Enchanted Amulet", "itemPosition": [26, 6], "itemDescription": "Boosts resistance.", "itemCategory": "Special", "itemEffectValue": 10, "itemHidden": true, "itemInactive": false },
+        { "itemName": "Mystic Wand", "itemPosition": [39, 16], "itemDescription": "A wand of immense power.", "itemCategory": "Weapon", "itemEffectValue": 20, "itemHidden": false, "itemInactive": false }
+      ],
+      "doors": [
+        { "doorPosition": [25, 4], "doorLocked": true },
+        { "doorPosition": [36, 10], "doorLocked": false }
+      ],
+      "npcs": [
+        { "npcName": "Old Wizard", "npcPosition": [30, 10], "npcMessage": "Beware of the Fire Elemental!" }
+      ],
+      "triggers": [
+        {
+          "triggerType": "position",
+          "target": [20, 20],
+          "triggerItemName": null,
+          "triggerNpcName": null,
+          "message": "You feel a magical aura nearby.",
+          "actions": [
+            {
+              "actionType": "spawnItem",
+              "actionPosition": [21, 20],
+              "actionItemName": "Enchanted Amulet",
+              "actionTileType": null,
+              "actionMessage": "An Enchanted Amulet appears before you!"
+            }
+          ]
+        },
+        {
+          "triggerType": "itemPickup",
+          "target": null,
+          "triggerItemName": "Mystic Wand",
+          "triggerNpcName": null,
+          "message": "The Mystic Wand hums with power.",
+          "actions": [
+            {
+              "actionType": "displayMessage",
+              "actionPosition": null,
+              "actionItemName": null,
+              "actionTileType": null,
+              "actionMessage": "You feel your strength surge."
+            }
+          ]
+        },
+        {
+          "triggerType": "npcTalked",
+          "target": null,
+          "triggerItemName": null,
+          "triggerNpcName": "Old Wizard",
+          "message": "The Old Wizard shares his wisdom.",
+          "actions": [
+            {
+              "actionType": "unlockDoor",
+              "actionPosition": [25, 4],
+              "actionItemName": null,
+              "actionTileType": null,
+              "actionMessage": "A nearby door unlocks with a creak."
+            }
+          ]
+        }
+      ]
     }
   ]
 }
