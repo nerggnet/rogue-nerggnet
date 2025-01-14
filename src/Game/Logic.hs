@@ -119,21 +119,39 @@ useItem itm state =
               let updatedDoors = map (\d -> if d == door then d { Game.deLocked = False } else d)
                                       (Game.doors (Game.levels state !! Game.currentLevel state))
                   updatedWorld = (Game.levels state !! Game.currentLevel state) { Game.doors = updatedDoors }
-              in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-                       , Game.player = plyr { Game.inventory = filter (/= itm) (Game.inventory plyr) }
-                       , Game.message = ("You used " ++ Game.iName itm ++ " to unlock a door!") : Game.message state }
+               in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+                        , Game.player = plyr { Game.inventory = filter (/= itm) (Game.inventory plyr) }
+                        , Game.message = ("You used " ++ Game.iName itm ++ " to unlock a door!") : Game.message state }
             Nothing ->
               state { Game.message = "There is no door nearby to unlock." : Game.message state }
         Game.Weapon ->
-          let newPlayer = plyr { Game.equippedWeapon = Just itm }
+          let newPlayer = if Just itm == Game.equippedWeapon plyr
+                          then plyr { Game.equippedWeapon = Nothing }
+                          else plyr { Game.equippedWeapon = Just itm }
               newPlayerWithNewAttack = recalculateEffectiveStats newPlayer
-          in state { Game.player = newPlayerWithNewAttack
-                   , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
+              message = if Just itm == Game.equippedWeapon plyr
+                        then "You unequipped " ++ Game.iName itm ++ "."
+                        else "You equipped " ++ Game.iName itm ++ "."
+           in state { Game.player = newPlayerWithNewAttack
+                    , Game.message = message : Game.message state }
+          -- let newPlayer = plyr { Game.equippedWeapon = Just itm }
+          --     newPlayerWithNewAttack = recalculateEffectiveStats newPlayer
+          -- in state { Game.player = newPlayerWithNewAttack
+          --          , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
         Game.Armor  ->
-          let newPlayer = plyr { Game.equippedArmor = Just itm }
+          let newPlayer = if Just itm == Game.equippedArmor plyr
+                          then plyr { Game.equippedArmor = Nothing }
+                          else plyr { Game.equippedArmor = Just itm }
               newPlayerWithNewResistance = recalculateEffectiveStats newPlayer
-          in state { Game.player = newPlayerWithNewResistance
-                   , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
+              message = if Just itm == Game.equippedArmor plyr
+                        then "You unequipped " ++ Game.iName itm ++ "."
+                        else "You equipped " ++ Game.iName itm ++ "."
+           in state { Game.player = newPlayerWithNewResistance
+                    , Game.message = message : Game.message state }
+          -- let newPlayer = plyr { Game.equippedArmor = Just itm }
+          --     newPlayerWithNewResistance = recalculateEffectiveStats newPlayer
+          -- in state { Game.player = newPlayerWithNewResistance
+          --          , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
         Game.Special ->
           state { Game.message = ("You used " ++ Game.iName itm ++ ". Its effect is mysterious.")
                                : Game.message state }
