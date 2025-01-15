@@ -7,7 +7,8 @@ import Game.Types
 import qualified File.Types as FT
 import Linear.V2 (V2(..))
 import Data.List (isInfixOf)
-import Data.List.Extra (dropPrefix)
+import Data.List.Extra (dropPrefix, replace)
+import Data.Function ((&))
 
 -- Default values for unarmed and unarmored player, plus default monster and fog radii
 defaultMonsterRadius :: Int
@@ -19,8 +20,10 @@ defaultFogRadius = 5
 -- Initialize the game state
 initGame :: Either FT.GameConfig GameState -> GameState
 initGame (Right savedState) =
-  -- Reinitialize triggers from serializedTriggers
-  let reinitializedLevels = map initializeTriggers (levels savedState)
+  -- Reinitialize triggers using serializedTriggers from the saved game
+  let reinitializedLevels =
+        map (\world -> world { triggers = map toRuntimeTrigger (serializedTriggers world) })
+            (levels savedState)
   in savedState { levels = reinitializedLevels }
 
 initGame (Left config) =
@@ -29,10 +32,7 @@ initGame (Left config) =
       allXPLevels = transformXPLevels (FT.xpLevels config)
       initialXPLevel = head allXPLevels
       initialWorld = head allWorlds
-
-      -- Determine the starting position for a new game
       startingPosition = findStartingPosition initialWorld
-
       initialPlayer = Player
         { position = startingPosition
         , health = xpHealth initialXPLevel
@@ -46,7 +46,6 @@ initGame (Left config) =
         , equippedWeapon = Nothing
         , equippedArmor = Nothing
         }
-
       initialState = GameState
         { player = initialPlayer
         , levels = map initializeTriggers allWorlds
@@ -60,8 +59,6 @@ initGame (Left config) =
         , lastInteractedNpc = Nothing
         , gameOver = False
         }
-
-      -- Update visibility in the initial world
       updatedWorld = updateVisibility initialPlayer defaultFogRadius initialWorld
   in initialState { levels = replaceLevel initialState 0 updatedWorld }
 
@@ -188,69 +185,92 @@ transformDoorEntity jsonDoor = DoorEntity
 
 transformToSerializableTrigger :: FT.JSONTrigger -> SerializableTrigger
 transformToSerializableTrigger jsonTrigger =
-  SerializableTrigger
-    { actions = map transformJSONAction (FT.actions jsonTrigger)
-    , description = case FT.triggerType jsonTrigger of
+  let normalizedDescription = case FT.triggerType jsonTrigger of
         "position" ->
           case FT.target jsonTrigger of
             Just (x, y) -> "Position trigger at (" ++ show x ++ "," ++ show y ++ ")"
-            Nothing     -> "Position trigger at unknown coordinates"
-        "itemPickup" -> "Item pickup trigger for " ++ show (FT.triggerItemName jsonTrigger)
-        "npcTalked" -> "Talked to NPC " ++ show (FT.triggerNpcName jsonTrigger)
-        "allMonstersDefeated" -> "Trigger when all monsters are defeated"
-        _ -> "Unknown trigger"
-    }
+            Nothing     -> "Position trigger at (unknown)"
+        "itemPickup" ->
+          case FT.triggerItemName jsonTrigger of
+            Just itemName -> "Item pickup trigger for " ++ itemName
+            Nothing       -> "Item pickup trigger for (unknown item)"
+        "npcTalked" ->
+          case FT.triggerNpcName jsonTrigger of
+            Just nName -> "Talked to NPC " ++ nName
+            Nothing      -> "Talked to NPC (unknown)"
+        "allMonstersDefeated" ->
+          "Trigger when all monsters are defeated"
+        _ ->
+          "Unknown trigger type"
+  in SerializableTrigger
+       { actions = map transformJSONAction (FT.actions jsonTrigger)
+       , description = normalizedDescription
+       }
 
 initializeTriggers :: World -> World
 initializeTriggers world =
   world { triggers = map toRuntimeTrigger (serializedTriggers world) }
 
 toRuntimeTrigger :: SerializableTrigger -> Trigger
-toRuntimeTrigger sTrigger = case parseTriggerType (description sTrigger) of
-  Just (TriggerType "position" (Just (TriggerCoordinates (x, y)))) -> Trigger
-    { triggerCondition = \state -> position (player state) == V2 x y
-    , triggerActions = actions sTrigger
-    , triggerDescription = description sTrigger
-    }
-  Just (TriggerType "itemPickup" (Just (TriggerString itemName))) -> Trigger
-    { triggerCondition = \state -> any (\item -> iName item == itemName) (inventory (player state))
-    , triggerActions = actions sTrigger
-    , triggerDescription = description sTrigger
-    }
-  Just (TriggerType "npcTalked" (Just (TriggerString nName))) -> Trigger
-    { triggerCondition = \state ->
-        case lastInteractedNpc state of
-          Just interactedNpc -> interactedNpc == nName
-          Nothing -> False
-    , triggerActions = actions sTrigger
-    , triggerDescription = description sTrigger
-    }
-  Just (TriggerType "allMonstersDefeated" Nothing) -> Trigger
-    { triggerCondition = allMonstersDefeated
-    , triggerActions = actions sTrigger
-    , triggerDescription = description sTrigger
-    }
-  _ -> error $ "Unknown or unsupported trigger type: " ++ description sTrigger
+toRuntimeTrigger sTrigger =
+ let desc = normalizeDescription (description sTrigger)
+  in case parseTriggerType desc of
+       Just (TriggerType "position" (Just (TriggerCoordinates (x, y)))) ->
+         Trigger
+         { triggerCondition = \state -> position (player state) == V2 x y
+         , triggerActions = actions sTrigger
+         , triggerDescription = desc
+         }
+       Just (TriggerType "itemPickup" (Just (TriggerString itemName))) ->
+         Trigger
+         { triggerCondition = \state -> any (\item -> iName item == itemName) (inventory (player state))
+         , triggerActions = actions sTrigger
+         , triggerDescription = desc
+         }
+       Just (TriggerType "npcTalked" (Just (TriggerString nName))) ->
+         Trigger
+         { triggerCondition = \state ->
+             case lastInteractedNpc state of
+               Just interactedNpc -> interactedNpc == nName
+               Nothing -> False
+         , triggerActions = actions sTrigger
+         , triggerDescription = desc
+         }
+       Just (TriggerType "allMonstersDefeated" Nothing) ->
+         Trigger
+         { triggerCondition = allMonstersDefeated
+         , triggerActions = actions sTrigger
+         , triggerDescription = desc
+         }
+       _ -> error $ "Unknown or unsupported trigger type: " ++ desc
+
+normalizeDescription :: String -> String
+normalizeDescription desc =
+  desc
+    -- Remove unnecessary "Just" annotations
+    & replace "Just \"" ""
+    & replace "\"" ""
 
 parseTriggerType :: String -> Maybe TriggerType
-parseTriggerType desc
-  | "Position trigger at " `isInfixOf` desc =
+parseTriggerType desc =
+    if "Position trigger at " `isInfixOf` desc then
       case extractCoordinates desc of
         Just coords -> Just $ TriggerType "position" (Just $ TriggerCoordinates coords)
         Nothing -> Nothing
-  | "Item pickup trigger for " `isInfixOf` desc =
+    else if "Item pickup trigger for " `isInfixOf` desc then
       Just $ TriggerType "itemPickup" (Just $ TriggerString $ drop (length "Item pickup trigger for ") desc)
-  | "Talked to NPC " `isInfixOf` desc =
+    else if "Talked to NPC " `isInfixOf` desc then
       Just $ TriggerType "npcTalked" (Just $ TriggerString $ drop (length "Talked to NPC ") desc)
-  | "Trigger when all monsters are defeated" `isInfixOf` desc =
+    else if "Trigger when all monsters are defeated" `isInfixOf` desc then
       Just $ TriggerType "allMonstersDefeated" Nothing
-  | otherwise = Nothing
+    else
+      Nothing
 
 extractCoordinates :: String -> Maybe (Int, Int)
 extractCoordinates desc =
-  case reads (drop (length "Position trigger at ") desc) :: [( (Int, Int), String )] of
-    [(coords, "")] -> Just coords
-    _ -> Nothing
+    case reads (drop (length "Position trigger at ") desc) :: [((Int, Int), String)] of
+      [(coords, "")] -> Just coords
+      _ -> Nothing
 
 extractData :: String -> String -> Maybe String
 extractData prefix desc =

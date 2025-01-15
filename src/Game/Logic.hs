@@ -134,10 +134,6 @@ useItem itm state =
                         else "You equipped " ++ Game.iName itm ++ "."
            in state { Game.player = newPlayerWithNewAttack
                     , Game.message = message : Game.message state }
-          -- let newPlayer = plyr { Game.equippedWeapon = Just itm }
-          --     newPlayerWithNewAttack = recalculateEffectiveStats newPlayer
-          -- in state { Game.player = newPlayerWithNewAttack
-          --          , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
         Game.Armor  ->
           let newPlayer = if Just itm == Game.equippedArmor plyr
                           then plyr { Game.equippedArmor = Nothing }
@@ -148,10 +144,6 @@ useItem itm state =
                         else "You equipped " ++ Game.iName itm ++ "."
            in state { Game.player = newPlayerWithNewResistance
                     , Game.message = message : Game.message state }
-          -- let newPlayer = plyr { Game.equippedArmor = Just itm }
-          --     newPlayerWithNewResistance = recalculateEffectiveStats newPlayer
-          -- in state { Game.player = newPlayerWithNewResistance
-          --          , Game.message = ("You equipped " ++ Game.iName itm ++ ".") : Game.message state }
         Game.Special ->
           state { Game.message = ("You used " ++ Game.iName itm ++ ". Its effect is mysterious.")
                                : Game.message state }
@@ -373,7 +365,6 @@ moveNPCWithOccupied world occupiedPositions playerPos npc =
         filter (\(dx, dy, _) -> isValidMove world playerPos (npcPos + V2 dx dy) && (npcPos + V2 dx dy) `notElem` occupiedPositions)
                directions
       newPreferredMove = if null allValidMoves then Nothing else Just (head allValidMoves)
-      -- selectedMove = preferredMove <|> newPreferredMove
       selectedMove = if preferredMove `elem` (map Just allValidMoves) then preferredMove else newPreferredMove
   in case selectedMove of
        Just (dx, dy, newDir) -> npc { Game.npcPosition = npcPos + V2 dx dy, Game.npcPreferredDirection = Just newDir }
