@@ -55,12 +55,42 @@ initGame config =
 updateVisibility :: Player -> Int -> World -> World
 updateVisibility plyr radius world =
   let pos = position plyr
-      updatedVisibility = [ [manhattanDistance (V2 x y) pos <= radius | x <- [0..cols-1]] | y <- [0..rows-1] ]
+      updatedVisibility = [ [isVisible pos (V2 x y) | x <- [0..cols-1]] | y <- [0..rows-1] ]
       updatedDiscovered = zipWith (zipWith (||)) updatedVisibility (discovered world)
   in world { visibility = updatedVisibility, discovered = updatedDiscovered }
   where
     rows = length (mapGrid world)
     cols = length (head (mapGrid world))
+
+    isVisible :: V2 Int -> V2 Int -> Bool
+    isVisible src dest
+      | manhattanDistance src dest > radius = False
+      | otherwise = all (\point -> isPassable (mapGrid world) (doors world) point || point == src || point == dest)
+                        (bresenhamLine src dest)
+
+    isPassable :: [[Tile]] -> [DoorEntity] -> V2 Int -> Bool
+    isPassable grid drs (V2 x y) =
+      let inBounds = y >= 0 && y < length grid && x >= 0 && x < length (head grid)
+          isDoor = any (\door -> dePosition door == V2 x y && deLocked door) drs
+      in inBounds && not isDoor && grid !! y !! x /= Wall
+
+bresenhamLine :: V2 Int -> V2 Int -> [V2 Int]
+bresenhamLine (V2 x0 y0) (V2 x1 y1) =
+  let dx = abs (x1 - x0)
+      dy = abs (y1 - y0)
+      sx = if x0 < x1 then 1 else -1
+      sy = if y0 < y1 then 1 else -1
+      go x y err
+        | x == x1 && y == y1 = [V2 x y]
+        | otherwise =
+            let (newX, newY, newErr) =
+                  if err > -dx
+                  then if err < dy
+                       then (x + sx, y + sy, err - dy + dx)
+                       else (x + sx, y, err - dy)
+                  else (x, y + sy, err + dx)
+            in V2 x y : go newX newY newErr
+  in go x0 y0 (dx - dy)
 
 -- Manhattan distance between two points
 manhattanDistance :: V2 Int -> V2 Int -> Int
