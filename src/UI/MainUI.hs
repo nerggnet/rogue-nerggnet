@@ -6,11 +6,15 @@ import Graphics.Vty (Event(..))
 import Graphics.Vty (rgbColor, withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta, cyan)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
-import File.MapIO (loadMapLevels)
+import File.MapIO (loadNewGame, loadSavedGame, saveGame)
 import Game.State (initGame)
 import Game.Logic
 import UI.Draw
 import qualified Game.Types as Game
+import System.Directory (doesFileExist)
+
+saveFile :: FilePath
+saveFile = "save.json"
 
 -- App definition
 app :: App Game.GameState e ()
@@ -29,19 +33,29 @@ chooseCursor state =
 -- Main function to start the game
 startGame :: IO ()
 startGame = do
-  result <- loadMapLevels "world.json"
-  case result of
-    Left err -> putStrLn $ "Failed to parse world.json: " ++ err
-    Right config -> do
-      let initialState = initGame config
-      runGame initialState
+  saveExists <- doesFileExist saveFile
+  gameState <- if saveExists
+    then do
+      -- Load the saved game state
+      savedGame <- loadSavedGame saveFile
+      case savedGame of
+        Left err -> do
+          putStrLn $ "Failed to load " ++ saveFile ++ ": " ++ err
+          -- Fallback to starting a new game
+          loadNewGame
+        Right state -> return $ Right state
+    else loadNewGame
 
-runGame :: Game.GameState -> IO ()
+  finalState <- runGame $ initGame gameState
+  saveGame saveFile finalState
+  putStrLn "Game Over!"
+
+runGame :: Game.GameState -> IO Game.GameState
 runGame initialState = do
   let buildVty = mkVty defaultConfig
   vty <- buildVty
-  _ <- customMain vty buildVty Nothing app initialState
-  putStrLn "Game Over!"
+  finalState <- customMain vty buildVty Nothing app initialState
+  return finalState
 
 -- Handle events
 handleEvent :: BrickEvent () e -> EventM () Game.GameState ()

@@ -17,29 +17,42 @@ defaultFogRadius :: Int
 defaultFogRadius = 5
 
 -- Initialize the game state
-initGame :: FT.GameConfig -> GameState
-initGame config =
+initGame :: Either FT.GameConfig GameState -> GameState
+initGame (Right savedState) =
+  -- Reinitialize triggers from serializedTriggers
+  let reinitializedLevels = map initializeTriggers (levels savedState)
+  in savedState { levels = reinitializedLevels }
+
+initGame (Left config) =
+  -- Fresh game initialization
   let allWorlds = map transformFileWorld (FT.levels config)
       allXPLevels = transformXPLevels (FT.xpLevels config)
       initialXPLevel = head allXPLevels
       initialWorld = head allWorlds
+
+      -- Determine the starting position for a new game
+      startingPosition = findStartingPosition initialWorld
+
+      initialPlayer = Player
+        { position = startingPosition
+        , health = xpHealth initialXPLevel
+        , baseAttack = xpAttack initialXPLevel
+        , baseResistance = xpResistance initialXPLevel
+        , attack = xpAttack initialXPLevel
+        , resistance = xpResistance initialXPLevel
+        , xp = 0
+        , playerXPLevel = 1
+        , inventory = []
+        , equippedWeapon = Nothing
+        , equippedArmor = Nothing
+        }
+
       initialState = GameState
-        { player = Player
-            { position = findStartingPosition initialWorld
-            , health = xpHealth initialXPLevel
-            , baseAttack = xpAttack initialXPLevel
-            , baseResistance = xpResistance initialXPLevel
-            , attack = xpAttack initialXPLevel
-            , resistance = xpResistance initialXPLevel
-            , xp = 0
-            , playerXPLevel = 1
-            , inventory = []
-            , equippedWeapon = Nothing
-            , equippedArmor = Nothing }
-        , levels = allWorlds
+        { player = initialPlayer
+        , levels = map initializeTriggers allWorlds
         , xpLevels = allXPLevels
         , currentLevel = 0
-        , message = ["Welcome Rogue nerggnet!", " ", " "]
+        , message = ["Welcome to Rogue!"]
         , commandBuffer = ""
         , commandMode = False
         , showLegend = False
@@ -47,9 +60,10 @@ initGame config =
         , lastInteractedNpc = Nothing
         , gameOver = False
         }
-      updatedWorld = updateVisibility (player initialState) defaultFogRadius initialWorld
-      updatedState = initialState { levels = replaceLevel initialState 0 updatedWorld }
-  in updatedState
+
+      -- Update visibility in the initial world
+      updatedWorld = updateVisibility initialPlayer defaultFogRadius initialWorld
+  in initialState { levels = replaceLevel initialState 0 updatedWorld }
 
 -- Update what the player sees of the map
 updateVisibility :: Player -> Int -> World -> World
@@ -110,6 +124,7 @@ transformFileWorld fileWorld = World
   , items = map transformItem (FT.items fileWorld)
   , doors = map transformDoorEntity (FT.doors fileWorld)
   , triggers = validateTriggers (map transformJSONTrigger (FT.triggers fileWorld)) (FT.items fileWorld) (FT.npcs fileWorld)
+  , serializedTriggers = map transformToSerializableTrigger (FT.triggers fileWorld)
   , visibility = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
   , discovered = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
   }
@@ -170,6 +185,77 @@ transformDoorEntity jsonDoor = DoorEntity
   { dePosition = uncurry V2 (FT.doorPosition jsonDoor)
   , deLocked   = FT.doorLocked jsonDoor
   }
+
+transformToSerializableTrigger :: FT.JSONTrigger -> SerializableTrigger
+transformToSerializableTrigger jsonTrigger =
+  SerializableTrigger
+    { actions = map transformJSONAction (FT.actions jsonTrigger)
+    , description = case FT.triggerType jsonTrigger of
+        "position" ->
+          case FT.target jsonTrigger of
+            Just (x, y) -> "Position trigger at (" ++ show x ++ "," ++ show y ++ ")"
+            Nothing     -> "Position trigger at unknown coordinates"
+        "itemPickup" -> "Item pickup trigger for " ++ show (FT.triggerItemName jsonTrigger)
+        "npcTalked" -> "Talked to NPC " ++ show (FT.triggerNpcName jsonTrigger)
+        "allMonstersDefeated" -> "Trigger when all monsters are defeated"
+        _ -> "Unknown trigger"
+    }
+
+initializeTriggers :: World -> World
+initializeTriggers world =
+  world { triggers = map toRuntimeTrigger (serializedTriggers world) }
+
+toRuntimeTrigger :: SerializableTrigger -> Trigger
+toRuntimeTrigger sTrigger = case parseTriggerType (description sTrigger) of
+  Just (TriggerType "position" (Just (TriggerCoordinates (x, y)))) -> Trigger
+    { triggerCondition = \state -> position (player state) == V2 x y
+    , triggerActions = actions sTrigger
+    , triggerDescription = description sTrigger
+    }
+  Just (TriggerType "itemPickup" (Just (TriggerString itemName))) -> Trigger
+    { triggerCondition = \state -> any (\item -> iName item == itemName) (inventory (player state))
+    , triggerActions = actions sTrigger
+    , triggerDescription = description sTrigger
+    }
+  Just (TriggerType "npcTalked" (Just (TriggerString nName))) -> Trigger
+    { triggerCondition = \state ->
+        case lastInteractedNpc state of
+          Just interactedNpc -> interactedNpc == nName
+          Nothing -> False
+    , triggerActions = actions sTrigger
+    , triggerDescription = description sTrigger
+    }
+  Just (TriggerType "allMonstersDefeated" Nothing) -> Trigger
+    { triggerCondition = allMonstersDefeated
+    , triggerActions = actions sTrigger
+    , triggerDescription = description sTrigger
+    }
+  _ -> error $ "Unknown or unsupported trigger type: " ++ description sTrigger
+
+parseTriggerType :: String -> Maybe TriggerType
+parseTriggerType desc
+  | "Position trigger at " `isInfixOf` desc =
+      case extractCoordinates desc of
+        Just coords -> Just $ TriggerType "position" (Just $ TriggerCoordinates coords)
+        Nothing -> Nothing
+  | "Item pickup trigger for " `isInfixOf` desc =
+      Just $ TriggerType "itemPickup" (Just $ TriggerString $ drop (length "Item pickup trigger for ") desc)
+  | "Talked to NPC " `isInfixOf` desc =
+      Just $ TriggerType "npcTalked" (Just $ TriggerString $ drop (length "Talked to NPC ") desc)
+  | "Trigger when all monsters are defeated" `isInfixOf` desc =
+      Just $ TriggerType "allMonstersDefeated" Nothing
+  | otherwise = Nothing
+
+extractCoordinates :: String -> Maybe (Int, Int)
+extractCoordinates desc =
+  case reads (drop (length "Position trigger at ") desc) :: [( (Int, Int), String )] of
+    [(coords, "")] -> Just coords
+    _ -> Nothing
+
+extractData :: String -> String -> Maybe String
+extractData prefix desc =
+  let trimmed = drop (length prefix) desc
+  in if null trimmed then Nothing else Just trimmed
 
 -- Transform a File.Types.JSONTrigger to Game.Types.Trigger
 transformJSONTrigger :: FT.JSONTrigger -> Trigger
