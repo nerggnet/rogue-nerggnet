@@ -101,6 +101,7 @@ drawLegendPopup =
         , "u - Use an item from inventory"
         , ": - Enter command mode"
         , ":q - Quit the game"
+        , ":restart - Restart the game"
         , "? - Toggle this help popup"
         ]
 
