@@ -5,12 +5,14 @@ module Game.Logic where
 
 import Brick
 import Graphics.Vty (Key(..))
-import Game.State (defaultMonsterRadius, defaultFogRadius, updateVisibility, replaceLevel, manhattanDistance)
+import Game.State (defaultMonsterRadius, defaultFogRadius, updateVisibility, replaceLevel, manhattanDistance, initGame)
+import File.MapIO (loadNewGame)
 import UI.Draw
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
 import Control.Monad (when)
+import Control.Monad.IO.Class (liftIO)
 import Data.List (find, partition)
 
 -- Handle movement keys
@@ -183,6 +185,11 @@ handleCommandInput key = do
 -- Execute commands
 executeCommand :: String -> EventM () Game.GameState ()
 executeCommand ":q" = halt -- Quit the game
+executeCommand ":restart" = do -- Restart the game
+  newState <- liftIO loadNewGame
+  case newState of
+    Left _ -> put $ initGame newState -- $ Left (config { Game.message = ["Game restarted!"] } )
+    Right state -> put state
 executeCommand ":heal" = do -- Cheat
     state <- get
     let plyr = Game.player state
