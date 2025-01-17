@@ -376,3 +376,6 @@ debug.txt
 
 # Compiled sources output file
 compiled_source.md
+
+# Game save file
+save.json
