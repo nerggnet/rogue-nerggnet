@@ -75,6 +75,7 @@ drawTileHidden Floor     = str "."  -- Use generic appearance for hidden tiles
 drawTileHidden Door      = str "."  -- Doors appear as regular floor when hidden
 drawTileHidden UpStair   = str "."  -- Up stairs appear as regular floor when hidden
 drawTileHidden DownStair = str "."  -- Down stairs appear as regular floor when hidden
+drawTileHidden Start     = str "."  -- Starting position
 
 -- Draw a single tile
 drawTile :: Tile -> Widget ()
@@ -83,6 +84,7 @@ drawTile Floor     = str "."
 drawTile Door      = withAttr (attrName "door") $ str "+"
 drawTile UpStair   = withAttr (attrName "upStair") $ str "<"
 drawTile DownStair = withAttr (attrName "downStair") $ str ">"
+drawTile Start     = str "."
 
 -- Draw the legend as a popup
 drawLegendPopup :: Widget ()

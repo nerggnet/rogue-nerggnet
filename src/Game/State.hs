@@ -365,12 +365,13 @@ charToTile '.' = Floor
 charToTile '+' = Door
 charToTile '<' = UpStair
 charToTile '>' = DownStair
+charToTile 'S' = Start
 charToTile _   = Floor -- Default to Floor for unknown characters.
 
 -- Find the starting position (e.g., the first Floor tile)
 findStartingPosition :: World -> V2 Int
 findStartingPosition wrld =
   let grid = mapGrid wrld
-  in case [(x, y) | (y, row) <- zip [0..] grid, (x, tile) <- zip [0..] row, tile == Floor] of
+  in case [(x, y) | (y, row) <- zip [0..] grid, (x, tile) <- zip [0..] row, tile == Start] of
        ((x, y):_) -> V2 x y
        _          -> V2 0 0 -- Default to top-left if no Floor tile is found.
