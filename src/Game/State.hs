@@ -116,6 +116,8 @@ replaceLevel state levelIndex newWorld =
 transformFileWorld :: FT.MapLevel -> World
 transformFileWorld fileWorld = World
   { mapGrid = map (map charToTile) (FT.mapGrid fileWorld)
+  , mapRows = length (FT.mapGrid fileWorld)
+  , mapCols = if length (FT.mapGrid fileWorld) > 0 then length (head (FT.mapGrid fileWorld)) else 0
   , monsters = map transformMonster (FT.monsters fileWorld)
   , npcs = map transformNPC (FT.npcs fileWorld)
   , items = map transformItem (FT.items fileWorld)
@@ -124,6 +126,7 @@ transformFileWorld fileWorld = World
   , serializedTriggers = map transformToSerializableTrigger (FT.triggers fileWorld)
   , visibility = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
   , discovered = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
+  , discoveredCoords = []
   }
 
 initializeGrid :: a -> Int -> Int -> [[a]]

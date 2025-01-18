@@ -1,6 +1,7 @@
 -- src/Game/Types.hs
 {-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-x-partial #-}
 
 module Game.Types where
 
@@ -137,6 +138,8 @@ instance FromJSON Action
 
 data World = World
   { mapGrid    :: [[Tile]]
+  , mapRows    :: Int
+  , mapCols    :: Int
   , monsters   :: [Monster]
   , npcs       :: [NPC]
   , items      :: [Item]
@@ -145,34 +148,59 @@ data World = World
   , serializedTriggers :: [SerializableTrigger]
   , visibility :: [[Bool]]
   , discovered :: [[Bool]]
+  , discoveredCoords   :: [(Int, Int)]
   } deriving (Generic)
 
 instance ToJSON World where
   toJSON world =
     object
       [ Key.fromString "mapGrid" .= mapGrid world
+      , Key.fromString "mapRows" .= mapRows world
+      , Key.fromString "mapCols" .= mapCols world
       , Key.fromString "monsters" .= monsters world
       , Key.fromString "npcs" .= npcs world
       , Key.fromString "items" .= items world
       , Key.fromString "doors" .= doors world
       , Key.fromString "serializedTriggers" .= serializedTriggers world
       , Key.fromString "visibility" .= visibility world
-      , Key.fromString "discovered" .= discovered world
+      , Key.fromString "discoveredCoords" .= discoveredCoords world
       ]
+
+-- Convert the discovered grid to a list of coordinates
+gridToCoords :: [[Bool]] -> [(Int, Int)]
+gridToCoords grid = [ (x, y) | (y, row) <- zip [0..] grid , (x, cell) <- zip [0..] row , cell ]
 
 instance FromJSON World where
   parseJSON = withObject "World" $ \v -> do
     serialized <- v .: Key.fromString "serializedTriggers"
-    World
-      <$> v .: Key.fromString "mapGrid"
-      <*> v .: Key.fromString "monsters"
-      <*> v .: Key.fromString "npcs"
-      <*> v .: Key.fromString "items"
-      <*> v .: Key.fromString "doors"
-      <*> pure [] -- Triggers will be initialized separately
-      <*> pure serialized
-      <*> v .: Key.fromString "visibility"
-      <*> v .: Key.fromString "discovered"
+    grid <- v .: Key.fromString "mapGrid"
+    gridRows <- v .: Key.fromString "mapRows"
+    gridCols <- v .: Key.fromString "mapCols"
+    dscvrdCoords <- v .: Key.fromString "discoveredCoords" -- Parse the coordinates directly
+    let dscvrd = if gridRows > 0 && gridCols > 0 then coordsToGrid dscvrdCoords gridRows gridCols else []
+    mnstrs <- v .: Key.fromString "monsters"
+    ns <- v .: Key.fromString "npcs"
+    itms <- v .: Key.fromString "items"
+    drs <- v .: Key.fromString "doors"
+    vsblt <- v .: Key.fromString "visibility"
+    return World
+      { mapGrid = grid
+      , mapRows = gridRows
+      , mapCols = gridCols
+      , monsters = mnstrs
+      , npcs = ns
+      , items = itms
+      , doors = drs
+      , triggers = [] -- Triggers will be initialized separately
+      , serializedTriggers = serialized
+      , visibility = vsblt
+      , discovered = dscvrd
+      , discoveredCoords = dscvrdCoords
+      }
+
+-- Convert a list of discovered coordinates back to a 2D grid
+coordsToGrid :: [(Int, Int)] -> Int -> Int -> [[Bool]]
+coordsToGrid coords rows cols = [ [ (x, y) `elem` coords | x <- [0 .. cols - 1] ] | y <- [0 .. rows - 1] ]
 
 data GameState = GameState
   { player            :: Player

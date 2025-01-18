@@ -21,7 +21,7 @@ executable rogue-nerggnet
     main-is:          Main.hs
     other-modules:    Game.Logic, Game.Types, Game.State, UI.MainUI, UI.Draw, File.Types, File.MapIO
     -- other-extensions:
-    build-depends:    base ^>=4.20.0.0, containers, brick, vty, vty-crossplatform, mtl, linear, lens, aeson, bytestring, extra, directory
+    build-depends:    base, containers, brick, vty, vty-crossplatform, mtl, linear, lens, aeson, bytestring, extra, directory
     hs-source-dirs:   app, src
     default-language: Haskell2010
     ghc-options:      -threaded

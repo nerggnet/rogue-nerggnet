@@ -36,6 +36,7 @@ handleMovement key = do
   -- Move NPCs every third keypress
   kyprssCnt <- gets Game.keyPressCount
   when (kyprssCnt == 0) $ modify moveNPCs
+  modify (\s -> s { Game.message = take 10 (Game.message s) })
 
 -- Go up stairs
 goUp :: Game.GameState -> Game.GameState
