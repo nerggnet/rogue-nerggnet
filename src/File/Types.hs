@@ -84,6 +84,7 @@ data JSONTrigger = JSONTrigger
   , triggerNpcName  :: Maybe String        -- NPC name (for npcTalked triggers)
   , actions         :: [JSONTriggerAction] -- List of actions to execute
   , message         :: String              -- Message to display when triggered
+  , recurring       :: Bool                -- Is the trigger recurring or not
   } deriving (Show, Generic)
 
 instance FromJSON JSONTrigger

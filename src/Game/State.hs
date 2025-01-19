@@ -208,6 +208,7 @@ transformToSerializableTrigger jsonTrigger =
   in SerializableTrigger
        { actions = map transformJSONAction (FT.actions jsonTrigger)
        , description = normalizedDescription
+       , isRecurring = FT.recurring jsonTrigger
        }
 
 initializeTriggers :: World -> World
@@ -223,12 +224,14 @@ toRuntimeTrigger sTrigger =
          { triggerCondition = \state -> position (player state) == V2 x y
          , triggerActions = actions sTrigger
          , triggerDescription = desc
+         , triggerRecurring = isRecurring sTrigger
          }
        Just (TriggerType "itemPickup" (Just (TriggerString itemName))) ->
          Trigger
          { triggerCondition = \state -> any (\item -> iName item == itemName) (inventory (player state))
          , triggerActions = actions sTrigger
          , triggerDescription = desc
+         , triggerRecurring = isRecurring sTrigger
          }
        Just (TriggerType "npcTalked" (Just (TriggerString nName))) ->
          Trigger
@@ -238,12 +241,14 @@ toRuntimeTrigger sTrigger =
                Nothing -> False
          , triggerActions = actions sTrigger
          , triggerDescription = desc
+         , triggerRecurring = isRecurring sTrigger
          }
        Just (TriggerType "allMonstersDefeated" Nothing) ->
          Trigger
          { triggerCondition = allMonstersDefeated
          , triggerActions = actions sTrigger
          , triggerDescription = desc
+         , triggerRecurring = isRecurring sTrigger
          }
        _ -> error $ "Unknown or unsupported trigger type: " ++ desc
 
@@ -290,6 +295,7 @@ transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
           Nothing     -> False
     , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
     , triggerDescription = "Position trigger at " ++ show (FT.target jsonTrigger)
+    , triggerRecurring = FT.recurring jsonTrigger
     }
   "itemPickup" -> Trigger
     { triggerCondition = \state ->
@@ -298,6 +304,7 @@ transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
           Nothing   -> False
     , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
     , triggerDescription = "Item pickup trigger for " ++ show (FT.triggerItemName jsonTrigger)
+    , triggerRecurring = FT.recurring jsonTrigger
     }
   "npcTalked" -> Trigger
     { triggerCondition = \state ->
@@ -306,11 +313,13 @@ transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
           _ -> False
     , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
     , triggerDescription = "Talked to NPC " ++ show (FT.triggerNpcName jsonTrigger)
+    , triggerRecurring = FT.recurring jsonTrigger
     }
   "allMonstersDefeated" -> Trigger
     { triggerCondition = allMonstersDefeated
     , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
     , triggerDescription = "Trigger when all monsters on the level are defeated"
+    , triggerRecurring = FT.recurring jsonTrigger
     }
   _ -> error $ "Unknown trigger type: " ++ FT.triggerType jsonTrigger
 

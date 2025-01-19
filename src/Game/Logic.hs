@@ -407,10 +407,10 @@ processTriggers :: Game.GameState -> Game.GameState
 processTriggers state =
   let currentWorld = Game.levels state !! Game.currentLevel state
       (activated, remaining) = partition (\t -> Game.triggerCondition t state) (Game.triggers currentWorld)
+      recurringTriggers = filter Game.triggerRecurring activated
       newState = foldl' executeTrigger state activated
-      updatedCurrentWorld = Game.levels newState !! Game.currentLevel newState
-      updatedCurrentWorldWithRemainingTriggers = updatedCurrentWorld { Game.triggers = remaining }
-  in newState { Game.levels = replaceLevel state (Game.currentLevel state) updatedCurrentWorldWithRemainingTriggers }
+      updatedCurrentWorld = (Game.levels newState !! Game.currentLevel newState) { Game.triggers = remaining ++ recurringTriggers }
+  in newState { Game.levels = replaceLevel state (Game.currentLevel state) updatedCurrentWorld }
 
 executeTrigger :: Game.GameState -> Game.Trigger -> Game.GameState
 executeTrigger state trigger = foldl' executeAction state (Game.triggerActions trigger)

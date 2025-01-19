@@ -103,6 +103,7 @@ data Trigger = Trigger
   { triggerCondition   :: GameState -> Bool -- Condition for activation
   , triggerActions     :: [Action]          -- Actions to execute
   , triggerDescription :: String            -- For debugging/logging
+  , triggerRecurring   :: Bool              -- Will this trigger fire once or be recurring
   }
 
 data TriggerData
@@ -118,6 +119,7 @@ data TriggerType = TriggerType
 data SerializableTrigger = SerializableTrigger
   { actions     :: [Action]
   , description :: String
+  , isRecurring :: Bool
   }
   deriving (Show, Generic)
 

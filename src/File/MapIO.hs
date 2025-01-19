@@ -65,6 +65,7 @@ toSerializableTrigger trigger =
   Game.SerializableTrigger
     { Game.actions = Game.triggerActions trigger
     , Game.description = sanitizeDescription $ Game.triggerDescription trigger
+    , Game.isRecurring = Game.triggerRecurring trigger
     }
 
 sanitizeDescription :: String -> String

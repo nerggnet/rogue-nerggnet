@@ -68,6 +68,7 @@
           "triggerItemName": null,
           "triggerNpcName": null,
           "message": "You stepped on a special tile!",
+          "recurring": false,
           "actions": [
             {
               "actionType": "shiftTile",
@@ -91,6 +92,7 @@
           "triggerItemName": null,
           "triggerNpcName": null,
           "message": "You stepped on a special tile!",
+          "recurring": true,
           "actions": [
             {
               "actionType": "transportPlayer",
@@ -114,6 +116,7 @@
           "triggerItemName": null,
           "triggerNpcName": null,
           "message": "You stepped on a special tile!",
+          "recurring": false,
           "actions": [
             {
               "actionType": "spawnItem",
@@ -137,6 +140,7 @@
           "triggerItemName": "Gold Coin",
           "triggerNpcName": null,
           "message": "You picked up the special Gold Coin!",
+          "recurring": false,
           "actions": [
             {
               "actionType": "displayMessage",
@@ -153,6 +157,7 @@
           "triggerItemName": null,
           "triggerNpcName": "Friendly NPC",
           "message": "You talked to the Friendly NPC!",
+          "recurring": false,
           "actions": [
             {
               "actionType": "unlockDoor",
@@ -252,6 +257,7 @@
           "triggerItemName": null,
           "triggerNpcName": null,
           "message": "All monsters on this level have been defeated!",
+          "recurring": false,
           "actions": [
             {
               "actionType": "displayMessage",
@@ -421,6 +427,7 @@
           "triggerItemName": null,
           "triggerNpcName": null,
           "message": "You feel a magical aura nearby.",
+          "recurring": false,
           "actions": [
             {
               "actionType": "spawnItem",
@@ -437,6 +444,7 @@
           "triggerItemName": "Mystic Wand",
           "triggerNpcName": null,
           "message": "The Mystic Wand hums with power.",
+          "recurring": false,
           "actions": [
             {
               "actionType": "displayMessage",
@@ -453,6 +461,7 @@
           "triggerItemName": null,
           "triggerNpcName": "Old Wizard",
           "message": "The Old Wizard shares his wisdom.",
+          "recurring": false,
           "actions": [
             {
               "actionType": "unlockDoor",
