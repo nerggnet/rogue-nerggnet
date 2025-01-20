@@ -150,6 +150,7 @@ data World = World
   , visibility :: [[Bool]]
   , discovered :: [[Bool]]
   , discoveredCoords   :: [(Int, Int)]
+  , tileOverrides      :: [(V2 Int, Tile)]
   } deriving (Generic)
 
 instance ToJSON World where
@@ -165,6 +166,7 @@ instance ToJSON World where
       , Key.fromString "serializedTriggers" .= serializedTriggers world
       , Key.fromString "visibility" .= visibility world
       , Key.fromString "discoveredCoords" .= discoveredCoords world
+      , Key.fromString "tileOverrides" .= tileOverrides world
       ]
 
 -- Convert the discovered grid to a list of coordinates
@@ -184,6 +186,7 @@ instance FromJSON World where
     itms <- v .: Key.fromString "items"
     drs <- v .: Key.fromString "doors"
     vsblt <- v .: Key.fromString "visibility"
+    tileOvrrds <- v .: Key.fromString "tileOverrides"
     return World
       { mapGrid = grid
       , mapRows = gridRows
@@ -197,6 +200,7 @@ instance FromJSON World where
       , visibility = vsblt
       , discovered = dscvrd
       , discoveredCoords = dscvrdCoords
+      , tileOverrides = tileOvrrds
       }
 
 -- Convert a list of discovered coordinates back to a 2D grid

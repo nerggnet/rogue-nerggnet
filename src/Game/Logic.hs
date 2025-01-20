@@ -4,6 +4,7 @@ module Game.Logic where
 import Brick
 import Graphics.Vty (Key(..))
 import Game.State (defaultMonsterRadius, defaultFogRadius, updateVisibility, replaceLevel, manhattanDistance, initGame)
+import Game.GridUtils (updateTile)
 import File.MapIO (loadNewGame)
 import UI.Draw
 import qualified Game.Types as Game
@@ -435,8 +436,9 @@ executeAction state (Game.DisplayMessage msg) =
 
 executeAction state (Game.ShiftTile pos newTile) =
   let currentWorld = Game.levels state !! Game.currentLevel state
+      updatedOverrides = (pos, newTile) : filter ((/= pos) . fst) (Game.tileOverrides currentWorld)
       updatedMap = updateTile (Game.mapGrid currentWorld) (pos ^. _x, pos ^. _y) newTile
-      updatedWorld = currentWorld { Game.mapGrid = updatedMap }
+      updatedWorld = currentWorld { Game.mapGrid = updatedMap, Game.tileOverrides = updatedOverrides }
    in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
 executeAction state (Game.TransportPlayer pos) =
@@ -448,10 +450,3 @@ executeAction state (Game.TransportPlayer pos) =
        , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
 executeAction _ _ = error "Undefined trigger action"
-
--- Helper to update a tile in the map grid
-updateTile :: [[Game.Tile]] -> (Int, Int) -> Game.Tile -> [[Game.Tile]]
-updateTile grid (x, y) newTile =
-  let oldRow = grid !! y
-      newRow = take x oldRow ++ [newTile] ++ drop (x + 1) oldRow
-   in take y grid ++ [newRow] ++ drop (y + 1) grid

@@ -29,13 +29,13 @@ instance ToJSON XPLevel
 
 -- JSON representation of a map level
 data MapLevel = MapLevel
-  { levelNumber :: Int              -- Level identifier
-  , mapGrid     :: [String]         -- Serialized map grid (row-wise string representation)
-  , monsters    :: [JSONMonster]    -- Monsters present on this level
-  , doors       :: [JSONDoorEntity] -- Doors present on this level
-  , items       :: [JSONItem]       -- Items present on this level
-  , triggers    :: [JSONTrigger]    -- Triggers on this level
-  , npcs        :: [JSONNPC]        -- NPCs on the map level
+  { levelNumber   :: Int                -- Level identifier
+  , mapGrid       :: [String]           -- Serialized map grid (row-wise string representation)
+  , monsters      :: [JSONMonster]      -- Monsters present on this level
+  , doors         :: [JSONDoorEntity]   -- Doors present on this level
+  , items         :: [JSONItem]         -- Items present on this level
+  , triggers      :: [JSONTrigger]      -- Triggers on this level
+  , npcs          :: [JSONNPC]          -- NPCs on the map level
   } deriving (Show, Generic)
 
 instance FromJSON MapLevel

@@ -4,8 +4,11 @@ module File.MapIO (loadNewGame, loadSavedGame, saveGame) where
 import File.Types
 import qualified Game.Types as Game
 import Game.State (updateVisibility, defaultFogRadius, charToTile)
+import Game.GridUtils (updateTile)
 import Data.Aeson (eitherDecode, encode, decodeFileStrict)
 import qualified Data.ByteString.Lazy as B
+import Linear.V2 (_x, _y)
+import Control.Lens ((^.))
 import Data.List (stripPrefix, nub)
 
 defaultWorldFile :: FilePath
@@ -85,7 +88,7 @@ sanitizeDescription desc =
 -- Before saving, trim unnecessary fields like visibility
 trimWorldForSaving :: Game.World -> Game.World
 trimWorldForSaving world =
-    let dscvrdCoords = nub $ Game.gridToCoords (Game.discovered world)
+  let dscvrdCoords = nub $ Game.gridToCoords (Game.discovered world)
    in world { Game.mapGrid = []
             , Game.visibility = []
             , Game.discovered = []
@@ -119,10 +122,15 @@ restoreGameState :: Game.GameState -> Game.GameState
 restoreGameState state =
   state { Game.levels = map restoreWorld (Game.levels state) }
 
--- Reload the map grid from the original world.json configuration
+-- Reload the map grid from the original world.json configuration, and apply tile overrides from ShiftTile actions
 restoreMapGrid :: [MapLevel] -> Game.GameState -> Game.GameState
 restoreMapGrid mapLevels state =
-  state { Game.levels = zipWith attachMapGrid mapLevels (Game.levels state) }
+  state { Game.levels = zipWith restoreLevel mapLevels (Game.levels state) }
   where
-    attachMapGrid mapLevel world =
-      world { Game.mapGrid = map (map charToTile) (mapGrid mapLevel) }
+    restoreLevel mapLevel world =
+      let baseGrid = map (map charToTile) (mapGrid mapLevel)
+          overriddenGrid = applyOverrides baseGrid (Game.tileOverrides world)
+       in world { Game.mapGrid = overriddenGrid }
+
+    applyOverrides grid overrides =
+      foldl (\g (pos, tile) -> updateTile g (pos ^. _x, pos ^. _y) tile) grid overrides

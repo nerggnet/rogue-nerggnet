@@ -2,8 +2,10 @@
 module Game.State where
 
 import Game.Types
+import Game.GridUtils (updateTile)
 import qualified File.Types as FT
-import Linear.V2 (V2(..))
+import Linear.V2 (V2(..), _x, _y)
+import Control.Lens ((^.))
 import Data.List (isInfixOf)
 import Data.List.Extra (dropPrefix, replace)
 import Data.Function ((&))
@@ -134,7 +136,13 @@ transformFileWorld fileWorld =
         , visibility = initializeGrid False rows cols
         , discovered = initializeGrid False rows cols
         , discoveredCoords = []
+        , tileOverrides = []
         }
+
+-- Apply overrides to the base grid
+applyTileOverrides :: [[Tile]] -> [(V2 Int, Tile)] -> [[Tile]]
+applyTileOverrides grid overrides =
+  foldl (\g (pos, tile) -> updateTile g (pos ^. _x, pos ^. _y) tile) grid overrides
 
 initializeGrid :: a -> Int -> Int -> [[a]]
 initializeGrid value rows cols = replicate rows (replicate cols value)
@@ -377,7 +385,7 @@ allMonstersDefeated :: GameState -> Bool
 allMonstersDefeated state =
   null (monsters (levels state !! currentLevel state))
 
--- Convert a character to a Tile
+-- Convert a character to a Tile (and back again)
 charToTile :: Char -> Tile
 charToTile '#' = Wall
 charToTile '.' = Floor
@@ -386,6 +394,14 @@ charToTile '<' = UpStair
 charToTile '>' = DownStair
 charToTile 'S' = Start
 charToTile _   = Floor -- Default to Floor for unknown characters.
+
+tileToChar :: Tile -> Char
+tileToChar Wall      = '#'
+tileToChar Floor     = '.'
+tileToChar Door      = '+'
+tileToChar UpStair   = '<'
+tileToChar DownStair = '>'
+tileToChar Start     = 'S'
 
 -- Find the starting position (e.g., the first Floor tile)
 findStartingPosition :: World -> V2 Int
