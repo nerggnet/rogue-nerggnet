@@ -1,7 +1,6 @@
 -- src/Game/Types.hs
 {-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -Wno-x-partial #-}
 
 module Game.Types where
 

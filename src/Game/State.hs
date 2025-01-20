@@ -1,6 +1,4 @@
 -- src/Game/State.hs
-{-# OPTIONS_GHC -Wno-x-partial #-}
-
 module Game.State where
 
 import Game.Types
@@ -30,8 +28,12 @@ initGame (Left config) =
   -- Fresh game initialization
   let allWorlds = map transformFileWorld (FT.levels config)
       allXPLevels = transformXPLevels (FT.xpLevels config)
-      initialXPLevel = head allXPLevels
-      initialWorld = head allWorlds
+      initialXPLevel = case allXPLevels of
+                         []    -> error "No XP levels found"
+                         (l:_) -> l
+      initialWorld = case allWorlds of
+                       []    -> error "No dungeon levels found"
+                       (w:_) -> w
       startingPosition = findStartingPosition initialWorld
       initialPlayer = Player
         { position = startingPosition
@@ -51,7 +53,7 @@ initGame (Left config) =
         , levels = map initializeTriggers allWorlds
         , xpLevels = allXPLevels
         , currentLevel = 0
-        , message = ["Welcome to Rogue!"]
+        , message = ["Welcome to Rogue nerggnet!"]
         , commandBuffer = ""
         , commandMode = False
         , showLegend = False
@@ -70,8 +72,8 @@ updateVisibility plyr radius world =
       updatedDiscovered = zipWith (zipWith (||)) updatedVisibility (discovered world)
   in world { visibility = updatedVisibility, discovered = updatedDiscovered }
   where
-    rows = length (mapGrid world)
-    cols = length (head (mapGrid world))
+    rows = mapRows world
+    cols = mapCols world
 
     isVisible :: V2 Int -> V2 Int -> Bool
     isVisible src dest
@@ -81,7 +83,7 @@ updateVisibility plyr radius world =
 
     isPassable :: [[Tile]] -> [DoorEntity] -> V2 Int -> Bool
     isPassable grid drs (V2 x y) =
-      let inBounds = y >= 0 && y < length grid && x >= 0 && x < length (head grid)
+      let inBounds = y >= 0 && y < rows && x >= 0 && x < cols
           isDoor = any (\door -> dePosition door == V2 x y && deLocked door) drs
       in inBounds && not isDoor && grid !! y !! x /= Wall
 
@@ -114,20 +116,25 @@ replaceLevel state levelIndex newWorld =
 
 -- Transform a File.Types.MapLevel to Game.Types.World
 transformFileWorld :: FT.MapLevel -> World
-transformFileWorld fileWorld = World
-  { mapGrid = map (map charToTile) (FT.mapGrid fileWorld)
-  , mapRows = length (FT.mapGrid fileWorld)
-  , mapCols = if length (FT.mapGrid fileWorld) > 0 then length (head (FT.mapGrid fileWorld)) else 0
-  , monsters = map transformMonster (FT.monsters fileWorld)
-  , npcs = map transformNPC (FT.npcs fileWorld)
-  , items = map transformItem (FT.items fileWorld)
-  , doors = map transformDoorEntity (FT.doors fileWorld)
-  , triggers = validateTriggers (map transformJSONTrigger (FT.triggers fileWorld)) (FT.items fileWorld) (FT.npcs fileWorld)
-  , serializedTriggers = map transformToSerializableTrigger (FT.triggers fileWorld)
-  , visibility = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
-  , discovered = initializeGrid False (length $ FT.mapGrid fileWorld) (length $ head $ FT.mapGrid fileWorld)
-  , discoveredCoords = []
-  }
+transformFileWorld fileWorld =
+  let rows = length (FT.mapGrid fileWorld)
+      cols = case FT.mapGrid fileWorld of
+               []    -> error "Incorrectly formatted dungeon map"
+               (r:_) -> length r
+   in World
+        { mapGrid = map (map charToTile) (FT.mapGrid fileWorld)
+        , mapRows = rows
+        , mapCols = cols
+        , monsters = map transformMonster (FT.monsters fileWorld)
+        , npcs = map transformNPC (FT.npcs fileWorld)
+        , items = map transformItem (FT.items fileWorld)
+        , doors = map transformDoorEntity (FT.doors fileWorld)
+        , triggers = validateTriggers (map transformJSONTrigger (FT.triggers fileWorld)) (FT.items fileWorld) (FT.npcs fileWorld)
+        , serializedTriggers = map transformToSerializableTrigger (FT.triggers fileWorld)
+        , visibility = initializeGrid False rows cols
+        , discovered = initializeGrid False rows cols
+        , discoveredCoords = []
+        }
 
 initializeGrid :: a -> Int -> Int -> [[a]]
 initializeGrid value rows cols = replicate rows (replicate cols value)

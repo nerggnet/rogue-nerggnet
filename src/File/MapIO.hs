@@ -1,6 +1,4 @@
 -- src/File/MapIO.hs
-{-# OPTIONS_GHC -Wno-x-partial #-}
-
 module File.MapIO (loadNewGame, loadSavedGame, saveGame) where
 
 import File.Types
@@ -113,7 +111,7 @@ restoreWorld world =
     if length (Game.mapGrid world) > 0
     then
        let dscvrdCoords = Game.discoveredCoords world
-           dscvrd = Game.coordsToGrid dscvrdCoords (length $ Game.mapGrid world) (length $ head $ Game.mapGrid world)
+           dscvrd = Game.coordsToGrid dscvrdCoords (Game.mapRows world) (Game.mapCols world)
         in world { Game.discovered = dscvrd }
     else world
 

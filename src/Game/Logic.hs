@@ -1,6 +1,4 @@
 -- src/Game/Logic.hs
-{-# OPTIONS_GHC -Wno-x-partial #-}
-
 module Game.Logic where
 
 import Brick
@@ -232,8 +230,8 @@ movePlayer dir state =
       -- Helper to check if the player can move to a position
       canMove pos =
         let V2 x y = pos
-        in y >= 0 && y < length worldMap &&
-           x >= 0 && x < length (head worldMap) &&
+        in y >= 0 && y < Game.mapRows currentWorld &&
+           x >= 0 && x < Game.mapCols currentWorld &&
            (worldMap !! y !! x) /= Game.Wall
 
       -- Helper to handle movement
@@ -372,7 +370,9 @@ moveNPCWithOccupied world occupiedPositions playerPos npc =
       allValidMoves =
         filter (\(dx, dy, _) -> isValidMove world playerPos (npcPos + V2 dx dy) && (npcPos + V2 dx dy) `notElem` occupiedPositions)
                directions
-      newPreferredMove = if null allValidMoves then Nothing else Just (head allValidMoves)
+      newPreferredMove = case allValidMoves of
+                           []    -> Nothing
+                           (m:_) -> Just m
       selectedMove = if preferredMove `elem` (map Just allValidMoves) then preferredMove else newPreferredMove
   in case selectedMove of
        Just (dx, dy, newDir) -> npc { Game.npcPosition = npcPos + V2 dx dy, Game.npcPreferredDirection = Just newDir }
@@ -384,8 +384,8 @@ isValidMove world playerPos pos =
   let V2 x y = pos
       grid = Game.mapGrid world
       doorAt = find (\d -> Game.dePosition d == pos) (Game.doors world)
-  in y >= 0 && y < length grid &&
-     x >= 0 && x < length (head grid) &&
+  in y >= 0 && y < Game.mapRows world &&
+     x >= 0 && x < Game.mapCols world &&
      (grid !! y !! x) /= Game.Wall && -- Not a wall
      pos /= playerPos &&              -- Not the player's position
      case doorAt of
