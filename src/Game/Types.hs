@@ -108,6 +108,7 @@ data Trigger = Trigger
 data TriggerData
   = TriggerCoordinates (Int, Int)
   | TriggerString String
+  | TriggerCoordinatesAndItems ((Int, Int), [String])
   deriving (Show)
 
 data TriggerType = TriggerType

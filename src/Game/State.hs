@@ -6,9 +6,11 @@ import Game.GridUtils (updateTile)
 import qualified File.Types as FT
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
-import Data.List (isInfixOf)
+import Data.List (isInfixOf, intercalate)
 import Data.List.Extra (dropPrefix, replace)
+import Data.List.Split (splitOn)
 import Data.Function ((&))
+import Text.Read (readMaybe)
 
 -- Default values for unarmed and unarmored player, plus default monster and fog radii
 defaultMonsterRadius :: Int
@@ -265,6 +267,15 @@ toRuntimeTrigger sTrigger =
          , triggerDescription = desc
          , triggerRecurring = isRecurring sTrigger
          }
+       Just (TriggerType "posAndItems" (Just (TriggerCoordinatesAndItems (pos, itms)))) ->
+         Trigger
+         { triggerCondition = \state ->
+             position (player state) == V2 (fst pos) (snd pos) &&
+             all (`elem` map iName (inventory (player state))) itms
+         , triggerActions = actions sTrigger
+         , triggerDescription = desc
+         , triggerRecurring = isRecurring sTrigger
+         }
        _ -> error $ "Unknown or unsupported trigger type: " ++ desc
 
 normalizeDescription :: String -> String
@@ -286,8 +297,38 @@ parseTriggerType desc =
       Just $ TriggerType "npcTalked" (Just $ TriggerString $ drop (length "Talked to NPC ") desc)
     else if "Trigger when all monsters are defeated" `isInfixOf` desc then
       Just $ TriggerType "allMonstersDefeated" Nothing
+    else if "Position and items trigger at " `isInfixOf` desc then
+      let coordsPart = takeWhile (/= ' ') $ drop (length "Position and items trigger at ") desc
+          itemsPart = drop (length ("Position and items trigger at " ++ coordsPart ++ " requiring items: ")) desc
+          maybeCoords = readMaybe coordsPart :: Maybe (Int, Int)
+          maybeItems = parseItemList itemsPart
+       in case (maybeCoords, maybeItems) of
+            (Just coords, Just itms) -> Just $ TriggerType "posAndItems" (Just $ TriggerCoordinatesAndItems (coords, itms))
+            _ -> Nothing
     else
       Nothing
+
+parseItemList :: String -> Maybe [String]
+parseItemList itemsPart =
+    let cleanedItemsPart = dropWhile (== '[') . takeWhile (/= ']') $ itemsPart
+        itemList = map (addQuotes . trim) $ splitOn "," cleanedItemsPart
+        reformatted = "[" ++ intercalate "," itemList ++ "]"  -- Use commas, not spaces
+    in readMaybe reformatted
+
+addQuotes :: String -> String
+addQuotes str =
+  case (headMay str, lastMay str) of
+    (Just '"', Just '"') -> str         -- Already quoted, leave unchanged
+    _                    -> "\"" ++ str ++ "\""
+  where
+    headMay []    = Nothing
+    headMay (x:_) = Just x
+    lastMay []    = Nothing
+    lastMay xs    = Just (last xs)
+
+trim :: String -> String
+trim = f . f
+  where f = reverse . dropWhile (`elem` " \t\n")
 
 extractCoordinates :: String -> Maybe (Int, Int)
 extractCoordinates desc =
@@ -310,6 +351,21 @@ transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
           Nothing     -> False
     , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
     , triggerDescription = "Position trigger at " ++ show (FT.target jsonTrigger)
+    , triggerRecurring = FT.recurring jsonTrigger
+    }
+  "posAndItems" -> Trigger
+    { triggerCondition = \state ->
+        case (FT.target jsonTrigger, FT.requiredItems jsonTrigger) of
+          (Just (x, y), Just reqItems) ->
+            let playerPos = position (player state)
+                inventoryItems = map iName (inventory (player state))
+            in playerPos == V2 x y && all (`elem` inventoryItems) reqItems
+          _ -> False
+    , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
+    , triggerDescription = "Position and items trigger at "
+        ++ show (FT.target jsonTrigger)
+        ++ " requiring items: "
+        ++ show (FT.requiredItems jsonTrigger)
     , triggerRecurring = FT.recurring jsonTrigger
     }
   "itemPickup" -> Trigger
@@ -369,6 +425,11 @@ validateTriggers trggrs triggerItems triggerNpcs = map validateTrigger trggrs
     itemNames = map FT.itemName triggerItems
     npcNames = map FT.npcName triggerNpcs
     validateTrigger trigger@(Trigger { triggerCondition = _, triggerActions = _, triggerDescription = desc })
+      | "posAndItems" `isInfixOf` desc =
+          let reqItems = extractRequiredItems desc
+           in if all (`elem` itemNames) reqItems
+              then trigger
+              else error $ "Trigger refers to unknown items: " ++ desc
       | "itemPickup" `isInfixOf` desc =
           if any (\item -> item `isInfixOf` desc) itemNames
           then trigger
@@ -379,6 +440,15 @@ validateTriggers trggrs triggerItems triggerNpcs = map validateTrigger trggrs
               then trigger
               else error $ "Trigger refers to unknown NPC: " ++ npc
       | otherwise = trigger
+
+    extractRequiredItems :: String -> [String]
+    extractRequiredItems desc =
+      case break (== '[') desc of
+        (_, '[':rest) ->
+          case reads (takeWhile (/= ']') rest) of
+            [(itms, "")] -> itms
+            _             -> []
+        _ -> []
 
 -- Helper function to now if all monsters on a level have been defeated
 allMonstersDefeated :: GameState -> Bool

@@ -10,6 +10,8 @@ import qualified Data.ByteString.Lazy as B
 import Linear.V2 (_x, _y)
 import Control.Lens ((^.))
 import Data.List (stripPrefix, nub)
+import Data.Function ((&))
+import Data.List.Extra (replace)
 
 defaultWorldFile :: FilePath
 defaultWorldFile = "world.json"
@@ -71,19 +73,41 @@ toSerializableTrigger trigger =
 
 sanitizeDescription :: String -> String
 sanitizeDescription desc =
-  let removeJustPrefix str =
-        case stripPrefix "Position trigger at Just " str of
-          Just rest -> "Position trigger at " ++ rest
-          Nothing   -> str
-      cleanItemPickup str =
-        case stripPrefix "Item pickup trigger for Just \"" str of
-          Just rest -> "Item pickup trigger for \"" ++ takeWhile (/= '"') rest ++ "\""
-          Nothing   -> str
-      cleanTalkedToNPC str =
-        case stripPrefix "Talked to NPC Just \"" str of
-          Just rest -> "Talked to NPC \"" ++ takeWhile (/= '"') rest ++ "\""
-          Nothing   -> str
-  in cleanTalkedToNPC (cleanItemPickup (removeJustPrefix desc))
+  desc
+    -- Specific cleaning functions for known patterns
+    & cleanPositionTrigger
+    & cleanItemPickupTrigger
+    & cleanTalkedToNpcTrigger
+    & cleanPosAndItemsTrigger
+    -- Generic replacements for "Just"
+    & replace "Just (" "("
+    & replace "Just \"" ""
+    & replace "\"" ""
+    & replace "Just [" "["
+  where
+    cleanPositionTrigger str =
+      case stripPrefix "Position trigger at Just " str of
+        Just rest -> "Position trigger at " ++ rest
+        Nothing   -> str
+
+    cleanItemPickupTrigger str =
+      case stripPrefix "Item pickup trigger for Just " str of
+        Just rest -> "Item pickup trigger for " ++ rest
+        Nothing   -> str
+
+    cleanTalkedToNpcTrigger str =
+      case stripPrefix "Talked to NPC Just " str of
+        Just rest -> "Talked to NPC " ++ rest
+        Nothing   -> str
+
+    cleanPosAndItemsTrigger str =
+      case stripPrefix "Position and items trigger at Just " str of
+        Just rest ->
+          let (coordsPart, remaining) = break (== '[') rest
+              coords = takeWhile (/= ' ') coordsPart
+              itemsPart = drop 1 $ takeWhile (/= ']') remaining -- Extract the list of items
+           in "Position and items trigger at " ++ coords ++ " requiring items: [" ++ itemsPart ++ "]"
+        Nothing -> str
 
 -- Before saving, trim unnecessary fields like visibility
 trimWorldForSaving :: Game.World -> Game.World

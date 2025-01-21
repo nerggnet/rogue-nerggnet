@@ -65,6 +65,7 @@
         {
           "triggerType": "position",
           "target": [5, 9],
+          "requiredItems": null,
           "triggerItemName": null,
           "triggerNpcName": null,
           "message": "You stepped on a special tile!",
@@ -89,6 +90,7 @@
         {
           "triggerType": "position",
           "target": [1, 25],
+          "requiredItems": null,
           "triggerItemName": null,
           "triggerNpcName": null,
           "message": "You stepped on a special tile!",
@@ -113,6 +115,7 @@
         {
           "triggerType": "position",
           "target": [46, 25],
+          "requiredItems": null,
           "triggerItemName": null,
           "triggerNpcName": null,
           "message": "You stepped on a special tile!",
@@ -137,6 +140,7 @@
         {
           "triggerType": "itemPickup",
           "target": null,
+          "requiredItems": null,
           "triggerItemName": "Gold Coin",
           "triggerNpcName": null,
           "message": "You picked up the special Gold Coin!",
@@ -154,6 +158,7 @@
         {
           "triggerType": "npcTalked",
           "target": null,
+          "requiredItems": null,
           "triggerItemName": null,
           "triggerNpcName": "Friendly NPC",
           "message": "You talked to the Friendly NPC!",
@@ -172,6 +177,24 @@
               "actionItemName": null,
               "actionTileType": null,
               "actionMessage": "You hear the faint sound of a door unlocking."
+            }
+          ]
+        },
+        {
+          "triggerType": "posAndItems",
+          "target": [49, 14],
+          "requiredItems": ["Gold Coin", "Magic Ring"],
+          "triggerItemName": null,
+          "triggerNpcName": null,
+          "message": "You have arrived with the goods!",
+          "recurring": false,
+          "actions": [
+            {
+              "actionType": "displayMessage",
+              "actionPosition": null,
+              "actionItemName": null,
+              "actionTileType": null,
+              "actionMessage": "Thank you for bringing me the valuables!"
             }
           ]
         }
@@ -254,6 +277,7 @@
         {
           "triggerType": "allMonstersDefeated",
           "target": null,
+          "requiredItems": null,
           "triggerItemName": null,
           "triggerNpcName": null,
           "message": "All monsters on this level have been defeated!",
@@ -425,6 +449,7 @@
         {
           "triggerType": "position",
           "target": [20, 20],
+          "requiredItems": null,
           "triggerItemName": null,
           "triggerNpcName": null,
           "message": "You feel a magical aura nearby.",
@@ -442,6 +467,7 @@
         {
           "triggerType": "itemPickup",
           "target": null,
+          "requiredItems": null,
           "triggerItemName": "Mystic Wand",
           "triggerNpcName": null,
           "message": "The Mystic Wand hums with power.",
@@ -459,6 +485,7 @@
         {
           "triggerType": "npcTalked",
           "target": null,
+          "requiredItems": null,
           "triggerItemName": null,
           "triggerNpcName": "Old Wizard",
           "message": "The Old Wizard shares his wisdom.",

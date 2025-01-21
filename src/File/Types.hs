@@ -80,6 +80,7 @@ instance ToJSON JSONDoorEntity
 data JSONTrigger = JSONTrigger
   { triggerType     :: String              -- Type of trigger: "position", "itemPickup", etc.
   , target          :: Maybe (Int, Int)    -- Target position (for position triggers)
+  , requiredItems   :: Maybe [String]      -- List of required items for (for posAndItems triggers)
   , triggerItemName :: Maybe String        -- Item name (for itemPickup triggers)
   , triggerNpcName  :: Maybe String        -- NPC name (for npcTalked triggers)
   , actions         :: [JSONTriggerAction] -- List of actions to execute
