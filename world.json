@@ -39,10 +39,11 @@
         "###############################        ############"
       ],
       "monsters": [
-        { "name": "Goblin", "position": [5, 5], "health": 10, "attack": 3, "xp": 25 },
-        { "name": "Skeleton", "position": [10, 15], "health": 12, "attack": 4, "xp": 35 },
-        { "name": "Zombie", "position": [8, 18], "health": 15, "attack": 5, "xp": 50 },
-        { "name": "Slime", "position": [12, 25], "health": 5, "attack": 2, "xp": 5 }
+        { "name": "Goblin", "position": [5, 5], "health": 10, "attack": 3, "xp": 25, "inactive": false },
+        { "name": "Skeleton", "position": [10, 15], "health": 12, "attack": 4, "xp": 35, "inactive": false },
+        { "name": "Zombie", "position": [8, 18], "health": 15, "attack": 5, "xp": 50, "inactive": false },
+        { "name": "Slime", "position": [12, 25], "health": 5, "attack": 2, "xp": 5, "inactive": false },
+        { "name": "Vicous Rat", "position": [3, 1], "health": 8, "attack": 3, "xp": 15, "inactive": true }
       ],
       "items": [
         { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores 20 HP.", "itemCategory": "Healing", "itemEffectValue": 60, "itemHidden": false, "itemInactive": false },
@@ -76,6 +77,7 @@
               "actionType": "shiftTile",
               "actionPosition": [5, 6],
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": ".",
               "actionMessage": null
             },
@@ -83,6 +85,7 @@
               "actionType": "displayMessage",
               "actionPosition": null,
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": "Oh no, you let the monster out!"
             }
@@ -101,6 +104,7 @@
               "actionType": "transportPlayer",
               "actionPosition": [49, 25],
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": null
             },
@@ -108,6 +112,7 @@
               "actionType": "displayMessage",
               "actionPosition": null,
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": "Swoosh!"
             }
@@ -126,6 +131,7 @@
               "actionType": "spawnItem",
               "actionPosition": [49, 25],
               "actionItemName": "Dark Sword",
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": null
             },
@@ -133,6 +139,7 @@
               "actionType": "displayMessage",
               "actionPosition": null,
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": "You hear a clang of metal nearby!"
             }
@@ -151,6 +158,7 @@
               "actionType": "displayMessage",
               "actionPosition": null,
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": "Yes, the Gold Coin"
             }
@@ -169,6 +177,7 @@
               "actionType": "unlockDoor",
               "actionPosition": [7, 4],
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": null
             },
@@ -176,6 +185,7 @@
               "actionType": "displayMessage",
               "actionPosition": null,
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": "You hear the faint sound of a door unlocking."
             }
@@ -194,6 +204,7 @@
               "actionType": "displayMessage",
               "actionPosition": null,
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": "Thank you for bringing me the valuables, here is your reward."
             },
@@ -201,6 +212,7 @@
               "actionType": "consumeItem",
               "actionPosition": null,
               "actionItemName": "Gold Coin",
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": null
             },
@@ -208,6 +220,7 @@
               "actionType": "consumeItem",
               "actionPosition": null,
               "actionItemName": "Magic Ring",
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": null
             },
@@ -215,8 +228,36 @@
               "actionType": "addToInventory",
               "actionPosition": null,
               "actionItemName": "Mithril Shield",
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": null
+            }
+          ]
+        },
+        {
+          "triggerType": "position",
+          "target": [14, 23],
+          "requiredItems": null,
+          "triggerItemName": null,
+          "triggerNpcName": null,
+          "message": "You stepped on a special tile!",
+          "recurring": true,
+          "actions": [
+            {
+              "actionType": "spawnMonster",
+              "actionPosition": [16, 22],
+              "actionItemName": null,
+              "actionMonsterName": "Vicous Rat",
+              "actionTileType": null,
+              "actionMessage": null
+            },
+            {
+              "actionType": "displayMessage",
+              "actionPosition": null,
+              "actionItemName": null,
+              "actionMonsterName": null,
+              "actionTileType": null,
+              "actionMessage": "Oh no, more monsters!"
             }
           ]
         }
@@ -254,22 +295,22 @@
         "   ############################################### "
       ],
       "monsters": [
-        { "name": "Orc", "position": [7, 7], "health": 18, "attack": 6, "xp": 70 },
-        { "name": "Bat", "position": [15, 20], "health": 8, "attack": 1, "xp": 6 },
-        { "name": "Slime", "position": [10, 9], "health": 5, "attack": 2, "xp": 5 },
-        { "name": "Wraith", "position": [18, 25], "health": 20, "attack": 7, "xp": 120 },
-        { "name": "Skeleton", "position": [25, 17], "health": 12, "attack": 4, "xp": 35 },
-        { "name": "Orc Brute", "position": [24, 18], "health": 20, "attack": 8, "xp": 50 },
-        { "name": "Wraith", "position": [26, 18], "health": 15, "attack": 10, "xp": 60 },
-        { "name": "Cave Troll", "position": [28, 10], "health": 30, "attack": 12, "xp": 100 },
-        { "name": "Zombie Horde", "position": [31, 18], "health": 25, "attack": 5, "xp": 40 },
-        { "name": "Goblin Chief", "position": [20, 18], "health": 18, "attack": 7, "xp": 45 },
-        { "name": "Shadow Beast", "position": [34, 14], "health": 22, "attack": 9, "xp": 75 },
-        { "name": "Fire Elemental", "position": [38, 3], "health": 25, "attack": 15, "xp": 120 },
-        { "name": "Dark Bat Swarm", "position": [43, 3], "health": 12, "attack": 3, "xp": 30 },
-        { "name": "Skeleton Archer", "position": [43, 11], "health": 10, "attack": 6, "xp": 40 },
-        { "name": "Lich Apprentice", "position": [45, 16], "health": 20, "attack": 12, "xp": 80 },
-        { "name": "Demonic Soldier", "position": [45, 20], "health": 28, "attack": 10, "xp": 100 }
+        { "name": "Orc", "position": [7, 7], "health": 18, "attack": 6, "xp": 70, "inactive": false },
+        { "name": "Bat", "position": [15, 20], "health": 8, "attack": 1, "xp": 6, "inactive": false },
+        { "name": "Slime", "position": [10, 9], "health": 5, "attack": 2, "xp": 5, "inactive": false },
+        { "name": "Wraith", "position": [18, 25], "health": 20, "attack": 7, "xp": 120, "inactive": false },
+        { "name": "Skeleton", "position": [25, 17], "health": 12, "attack": 4, "xp": 35, "inactive": false },
+        { "name": "Orc Brute", "position": [24, 18], "health": 20, "attack": 8, "xp": 50, "inactive": false },
+        { "name": "Wraith", "position": [26, 18], "health": 15, "attack": 10, "xp": 60, "inactive": false },
+        { "name": "Cave Troll", "position": [28, 10], "health": 30, "attack": 12, "xp": 100, "inactive": false },
+        { "name": "Zombie Horde", "position": [31, 18], "health": 25, "attack": 5, "xp": 40, "inactive": false },
+        { "name": "Goblin Chief", "position": [20, 18], "health": 18, "attack": 7, "xp": 45, "inactive": false },
+        { "name": "Shadow Beast", "position": [34, 14], "health": 22, "attack": 9, "xp": 75, "inactive": false },
+        { "name": "Fire Elemental", "position": [38, 3], "health": 25, "attack": 15, "xp": 120, "inactive": false },
+        { "name": "Dark Bat Swarm", "position": [43, 3], "health": 12, "attack": 3, "xp": 30, "inactive": false },
+        { "name": "Skeleton Archer", "position": [43, 11], "health": 10, "attack": 6, "xp": 40, "inactive": false },
+        { "name": "Lich Apprentice", "position": [45, 16], "health": 20, "attack": 12, "xp": 80, "inactive": false },
+        { "name": "Demonic Soldier", "position": [45, 20], "health": 28, "attack": 10, "xp": 100, "inactive": false }
       ],
       "items": [
         { "itemName": "Shield", "itemPosition": [9, 9], "itemDescription": "A protective shield.", "itemCategory": "Armor", "itemEffectValue": 10, "itemHidden": false, "itemInactive": false },
@@ -309,6 +350,7 @@
               "actionType": "displayMessage",
               "actionPosition": null,
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": "Yes, no more monsters on the level!"
             }
@@ -348,9 +390,9 @@
         "###################################################"
       ],
       "monsters": [
-        { "name": "Dragon", "position": [25, 25], "health": 100, "attack": 10, "xp": 600 },
-        { "name": "Snake", "position": [18, 12], "health": 20, "attack": 7, "xp": 50 },
-        { "name": "Lich", "position": [22, 22], "health": 50, "attack": 12, "xp": 500 }
+        { "name": "Dragon", "position": [25, 25], "health": 100, "attack": 10, "xp": 600, "inactive": false },
+        { "name": "Snake", "position": [18, 12], "health": 20, "attack": 7, "xp": 50, "inactive": false },
+        { "name": "Lich", "position": [22, 22], "health": 50, "attack": 12, "xp": 500, "inactive": false }
       ],
       "items": [
         { "itemName": "Ring of Power", "itemPosition": [10, 10], "itemDescription": "Grants strength.", "itemCategory": "Weapon", "itemEffectValue": 25, "itemHidden": false, "itemInactive": false },
@@ -401,7 +443,7 @@
         "###################################################"
       ],
       "monsters": [
-        { "name": "Demon", "position": [12, 12], "health": 60, "attack": 15, "xp": 400 }
+        { "name": "Demon", "position": [12, 12], "health": 60, "attack": 15, "xp": 400, "inactive": false }
       ],
       "items": [
         { "itemName": "Orb of Power", "itemPosition": [10, 10], "itemDescription": "Grants immense power.", "itemCategory": "Weapon", "itemEffectValue": 40, "itemHidden": false, "itemInactive": false }
@@ -449,10 +491,10 @@
         "###################################################"
       ],
       "monsters": [
-        { "name": "Spider", "position": [6, 5], "health": 8, "attack": 4, "xp": 20 },
-        { "name": "Orc Warrior", "position": [15, 16], "health": 30, "attack": 8, "xp": 100 },
-        { "name": "Ghost", "position": [25, 20], "health": 15, "attack": 5, "xp": 50 },
-        { "name": "Fire Elemental", "position": [35, 25], "health": 50, "attack": 15, "xp": 200 }
+        { "name": "Spider", "position": [6, 5], "health": 8, "attack": 4, "xp": 20, "inactive": false },
+        { "name": "Orc Warrior", "position": [15, 16], "health": 30, "attack": 8, "xp": 100, "inactive": false },
+        { "name": "Ghost", "position": [25, 20], "health": 15, "attack": 5, "xp": 50, "inactive": false },
+        { "name": "Fire Elemental", "position": [35, 25], "health": 50, "attack": 15, "xp": 200, "inactive": false }
       ],
       "items": [
         { "itemName": "Healing Potion", "itemPosition": [10, 11], "itemDescription": "Restores 50 HP.", "itemCategory": "Healing", "itemEffectValue": 50, "itemHidden": false, "itemInactive": false },
@@ -481,6 +523,7 @@
               "actionType": "spawnItem",
               "actionPosition": [21, 20],
               "actionItemName": "Enchanted Amulet",
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": "An Enchanted Amulet appears before you!"
             }
@@ -499,6 +542,7 @@
               "actionType": "displayMessage",
               "actionPosition": null,
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": "You feel your strength surge."
             }
@@ -517,6 +561,7 @@
               "actionType": "unlockDoor",
               "actionPosition": [25, 4],
               "actionItemName": null,
+              "actionMonsterName": null,
               "actionTileType": null,
               "actionMessage": "A nearby door unlocks with a creak."
             }

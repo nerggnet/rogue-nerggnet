@@ -219,8 +219,8 @@ movePlayer dir state =
         Game.East  -> playerPos + V2 1 0
         _          -> playerPos
 
-      -- Helper to find a monster at a given position
-      monsterAt pos = find (\m -> Game.mPosition m == pos) (Game.monsters currentWorld)
+      -- Helper to find an active monster at a given position
+      monsterAt pos = find (\m -> Game.mPosition m == pos) (filter (not . Game.mInactive) (Game.monsters currentWorld))
 
       -- Helper to find a door at a given position
       doorAt pos = find (\d -> Game.dePosition d == pos) (Game.doors currentWorld)
@@ -283,10 +283,12 @@ combat state mnstr _ =
                             else updatedPlayer
       (updatedPlayerWithXPAndPossibleNewLevel, levelUpMessages) = levelUp updatedPlayerWithXP (Game.xpLevels state)
       completeMessage = levelUpMessages ++ newMessage ++ Game.message state
-  in state { Game.player = updatedPlayerWithXPAndPossibleNewLevel
-           , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-           , Game.message = completeMessage
-           , Game.gameOver = isDead }
+  in if Game.mInactive mnstr
+     then state
+     else state { Game.player = updatedPlayerWithXPAndPossibleNewLevel
+                , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+                , Game.message = completeMessage
+                , Game.gameOver = isDead }
 
 levelUp :: Game.Player -> [Game.XPLevel] -> (Game.Player, [String])
 levelUp player xpLevels =
@@ -319,7 +321,8 @@ moveMonsters :: Game.GameState -> Game.GameState
 moveMonsters state =
   let currentWorld = Game.levels state !! Game.currentLevel state
       playerPos = Game.position (Game.player state)
-      monsterPositions = map Game.mPosition (Game.monsters currentWorld)
+      (inactiveMonsters, activeMonsters) = partition Game.mInactive (Game.monsters currentWorld)
+      monsterPositions = map Game.mPosition activeMonsters
       npcPositions = map Game.npcPosition (Game.npcs currentWorld)
       initialOccupiedPositions = playerPos : npcPositions ++ monsterPositions
       (updatedMonsters, _) =
@@ -329,8 +332,8 @@ moveMonsters state =
                  newOccupied = Game.mPosition newMonster : occupied
              in (monsters ++ [newMonster], newOccupied))
           ([], initialOccupiedPositions)
-          (Game.monsters currentWorld)
-      updatedWorld = currentWorld { Game.monsters = updatedMonsters }
+          activeMonsters
+      updatedWorld = currentWorld { Game.monsters = updatedMonsters ++ inactiveMonsters }
   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
 moveMonsterWithOccupied :: Game.World -> V2 Int -> [V2 Int] -> Game.Monster -> Game.Monster
@@ -385,10 +388,12 @@ isValidMove world playerPos pos =
   let V2 x y = pos
       grid = Game.mapGrid world
       doorAt = find (\d -> Game.dePosition d == pos) (Game.doors world)
+      activeMonsters = filter (not . Game.mInactive) (Game.monsters world) -- Only active monsters block movement
   in y >= 0 && y < Game.mapRows world &&
      x >= 0 && x < Game.mapCols world &&
      (grid !! y !! x) /= Game.Wall && -- Not a wall
      pos /= playerPos &&              -- Not the player's position
+     not (any (\m -> Game.mPosition m == pos) activeMonsters) && -- Check active monsters
      case doorAt of
        Just door -> not (Game.deLocked door) -- Locked doors block movement
        Nothing   -> True -- No door, movement is allowed
@@ -424,6 +429,18 @@ executeAction state (Game.SpawnItem name pos) =
                                    else item) (Game.items currentWorld)
       updatedWorld = currentWorld { Game.items = updatedItems }
    in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+
+executeAction state (Game.SpawnMonster name pos) =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      (inactiveMonsters, activeMonsters) = partition Game.mInactive (Game.monsters currentWorld)
+      maybeTemplate = find (\m -> Game.mName m == name) inactiveMonsters
+  in case maybeTemplate of
+       Just template ->
+         let newMonster = template { Game.mPosition = pos, Game.mInactive = False }
+             updatedWorld = currentWorld { Game.monsters = newMonster : (activeMonsters ++ inactiveMonsters) }
+         in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+       Nothing ->
+         state { Game.message = ("No inactive monster template found for " ++ name) : Game.message state }
 
 executeAction state (Game.UnlockDoor pos) =
   let currentWorld = Game.levels state !! Game.currentLevel state

@@ -157,6 +157,7 @@ transformMonster fm = Monster
   , mAttack = FT.attack fm
   , mName = FT.name fm
   , mXP = FT.xp fm
+  , mInactive = maybe False id (FT.inactive fm)
   }
 
 -- Transform a File.Types.JSONNPC to Game.Types.NPC
@@ -401,6 +402,10 @@ transformJSONAction jsonAction = case FT.actionType jsonAction of
     case (FT.actionItemName jsonAction, FT.actionPosition jsonAction) of
       (Just name, Just (x, y)) -> SpawnItem name (V2 x y)
       _ -> error "Invalid spawnItem action"
+  "spawnMonster" ->
+    case (FT.actionMonsterName jsonAction, FT.actionPosition jsonAction) of
+      (Just name, Just (x, y)) -> SpawnMonster name (V2 x y)
+      _ -> error "Invalid spawnMonster action"
   "unlockDoor" ->
     case FT.actionPosition jsonAction of
       Just (x, y) -> UnlockDoor (V2 x y)
@@ -461,7 +466,7 @@ validateTriggers trggrs triggerItems triggerNpcs = map validateTrigger trggrs
 -- Helper function to now if all monsters on a level have been defeated
 allMonstersDefeated :: GameState -> Bool
 allMonstersDefeated state =
-  null (monsters (levels state !! currentLevel state))
+  null (filter (not . mInactive) (monsters (levels state !! currentLevel state)))
 
 -- Convert a character to a Tile (and back again)
 charToTile :: Char -> Tile

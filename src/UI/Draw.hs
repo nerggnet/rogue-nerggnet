@@ -59,7 +59,7 @@ drawTileWithFog world plyr x y tile
       withAttr (attrName "discovered") $ drawTileHidden tile
   | position plyr == V2 x y =
       withAttr (attrName "player") $ str "@"
-  | any ((== V2 x y) . mPosition) (monsters world) =
+  | any ((== V2 x y) . mPosition) activeMonsters =
       withAttr (attrName "monster") $ str "M"
   | any (\i -> iPosition i == V2 x y && not (iHidden i) && not (iInactive i)) (items world) =
       withAttr (attrName "item") $ str "!"
@@ -67,6 +67,8 @@ drawTileWithFog world plyr x y tile
       withAttr (attrName "npc") $ str "N"
   | otherwise =
       drawTile tile
+  where
+    activeMonsters = filter (not . mInactive) (monsters world)
 
 -- Helper to render a hidden tile (e.g., in fog or discovered but not visible)
 drawTileHidden :: Tile -> Widget ()

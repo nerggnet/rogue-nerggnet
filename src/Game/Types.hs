@@ -62,6 +62,7 @@ data Monster = Monster
   , mAttack   :: Int
   , mName     :: String
   , mXP       :: Int
+  , mInactive :: Bool
   } deriving (Show, Eq, Generic)
 
 instance ToJSON Monster

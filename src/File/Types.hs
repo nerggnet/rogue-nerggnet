@@ -48,6 +48,7 @@ data JSONMonster = JSONMonster
   , attack   :: Int         -- Monster's attack
   , health   :: Int         -- Monster health
   , xp       :: Int         -- XP gained from defeating the monster
+  , inactive :: Maybe Bool  -- Inactive monsters act as templates for spawning
   } deriving (Show, Generic)
 
 instance FromJSON JSONMonster
@@ -92,11 +93,12 @@ instance FromJSON JSONTrigger
 instance ToJSON JSONTrigger
 
 data JSONTriggerAction = JSONTriggerAction
-  { actionType     :: String           -- Action type, e.g., "spawnItem", "unlockDoor"
-  , actionPosition :: Maybe (Int, Int) -- General position for actions
-  , actionItemName :: Maybe String     -- For "spawnItem", the item's name
-  , actionTileType :: Maybe Char       -- For "shiftTile", the tile's new type
-  , actionMessage  :: Maybe String     -- For "displayMessage", the custom message
+  { actionType        :: String           -- Action type, e.g., "spawnItem", "unlockDoor"
+  , actionPosition    :: Maybe (Int, Int) -- General position for actions
+  , actionItemName    :: Maybe String     -- For "spawnItem", the item's name
+  , actionMonsterName :: Maybe String     -- For "spawnMonster", the monster's name
+  , actionTileType    :: Maybe Char       -- For "shiftTile", the tile's new type
+  , actionMessage     :: Maybe String     -- For "displayMessage", the custom message
   } deriving (Show, Generic)
 
 instance FromJSON JSONTriggerAction
