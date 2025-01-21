@@ -195,6 +195,20 @@
               "actionItemName": null,
               "actionTileType": null,
               "actionMessage": "Thank you for bringing me the valuables!"
+            },
+            {
+              "actionType": "consumeItem",
+              "actionPosition": null,
+              "actionItemName": "Gold Coin",
+              "actionTileType": null,
+              "actionMessage": null
+            },
+            {
+              "actionType": "consumeItem",
+              "actionPosition": null,
+              "actionItemName": "Magic Ring",
+              "actionTileType": null,
+              "actionMessage": null
             }
           ]
         }

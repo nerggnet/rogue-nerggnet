@@ -449,4 +449,11 @@ executeAction state (Game.TransportPlayer pos) =
        { Game.player = updatedPlayer
        , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
+executeAction state (Game.ConsumeItem itemName) =
+  let plyr = Game.player state
+      updatedInventory = filter (\item -> Game.iName item /= itemName) (Game.inventory plyr)
+      updatedPlayer = plyr { Game.inventory = updatedInventory }
+  in state { Game.player = updatedPlayer
+           , Game.message = ("Consumed item: " ++ itemName) : Game.message state }
+
 executeAction _ _ = error "Undefined trigger action"

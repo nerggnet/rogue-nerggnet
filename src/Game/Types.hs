@@ -132,6 +132,7 @@ data Action
   | UnlockDoor (V2 Int)              -- Position of the door
   | ShiftTile (V2 Int) Tile          -- Position and new tile type
   | TransportPlayer (V2 Int)         -- Target position for the player
+  | ConsumeItem String               -- Remove item from inventory
   | DisplayMessage String            -- Message to display
   deriving (Show, Eq, Generic)
 

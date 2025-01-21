@@ -417,6 +417,10 @@ transformJSONAction jsonAction = case FT.actionType jsonAction of
     case FT.actionPosition jsonAction of
       Just (x, y) -> TransportPlayer (V2 x y)
       _ -> error "Invalid transportPlayer action"
+  "consumeItem" ->
+    case FT.actionItemName jsonAction of
+      Just name -> ConsumeItem name
+      _ -> error "Invalid consumeItem action"
   _ -> error $ "Unknown action type: " ++ FT.actionType jsonAction
 
 validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> [Trigger]
