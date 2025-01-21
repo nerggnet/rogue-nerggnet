@@ -456,4 +456,17 @@ executeAction state (Game.ConsumeItem itemName) =
   in state { Game.player = updatedPlayer
            , Game.message = ("Consumed item: " ++ itemName) : Game.message state }
 
+executeAction state (Game.AddToInventory itemName) =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      (matchingItems, remainingItems) =
+         partition (\item -> Game.iName item == itemName && Game.iInactive item) (Game.items currentWorld)
+   in case matchingItems of
+        [] -> state { Game.message = ("Item not found: " ++ itemName) : Game.message state }
+        (item:_) ->
+           let updatedPlayer = (Game.player state) { Game.inventory = item : Game.inventory (Game.player state) }
+               updatedWorld = currentWorld { Game.items = remainingItems }
+            in state { Game.player = updatedPlayer
+                     , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+                     , Game.message = ("Added " ++ itemName ++ " to your inventory.") : Game.message state }
+
 executeAction _ _ = error "Undefined trigger action"

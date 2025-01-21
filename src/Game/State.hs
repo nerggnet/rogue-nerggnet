@@ -421,6 +421,10 @@ transformJSONAction jsonAction = case FT.actionType jsonAction of
     case FT.actionItemName jsonAction of
       Just name -> ConsumeItem name
       _ -> error "Invalid consumeItem action"
+  "addToInventory" ->
+    case FT.actionItemName jsonAction of
+      Just name -> AddToInventory name
+      _ -> error "Invalid addToInventory action"
   _ -> error $ "Unknown action type: " ++ FT.actionType jsonAction
 
 validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> [Trigger]

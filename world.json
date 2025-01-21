@@ -49,7 +49,8 @@
         { "itemName": "Sword", "itemPosition": [11, 20], "itemDescription": "A sharp blade.", "itemCategory": "Weapon", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false },
         { "itemName": "Gold Coin", "itemPosition": [8, 25], "itemDescription": "Shiny and valuable.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
         { "itemName": "Magic Ring", "itemPosition": [18, 3], "itemDescription": "A ring that glows faintly.", "itemCategory": "Special", "itemEffectValue": 10, "itemHidden": true, "itemInactive": false },
-        { "itemName": "Dark Sword", "itemPosition": [49, 25], "itemDescription": "A nasty looking blade.", "itemCategory": "Weapon", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true }
+        { "itemName": "Dark Sword", "itemPosition": [49, 25], "itemDescription": "A nasty looking blade.", "itemCategory": "Weapon", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true },
+        { "itemName": "Mithril Shield", "itemPosition": [0, 0], "itemDescription": "A mighty shield.", "itemCategory": "Armor", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true }
       ],
       "doors": [
         { "doorPosition": [7, 4], "doorLocked": true },
@@ -194,7 +195,7 @@
               "actionPosition": null,
               "actionItemName": null,
               "actionTileType": null,
-              "actionMessage": "Thank you for bringing me the valuables!"
+              "actionMessage": "Thank you for bringing me the valuables, here is your reward."
             },
             {
               "actionType": "consumeItem",
@@ -207,6 +208,13 @@
               "actionType": "consumeItem",
               "actionPosition": null,
               "actionItemName": "Magic Ring",
+              "actionTileType": null,
+              "actionMessage": null
+            },
+            {
+              "actionType": "addToInventory",
+              "actionPosition": null,
+              "actionItemName": "Mithril Shield",
               "actionTileType": null,
               "actionMessage": null
             }
