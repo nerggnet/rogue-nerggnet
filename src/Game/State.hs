@@ -12,7 +12,7 @@ import Data.List.Split (splitOn)
 import Data.Function ((&))
 import Text.Read (readMaybe)
 
--- Default values for unarmed and unarmored player, plus default monster and fog radii
+-- Default values for monster and fog radii
 defaultMonsterRadius :: Int
 defaultMonsterRadius = 4
 
@@ -63,6 +63,7 @@ initGame (Left config) =
         , showLegend = False
         , keyPressCount = 0
         , lastInteractedNpc = Nothing
+        , aimingState = Nothing
         , gameOver = False
         }
       updatedWorld = updateVisibility initialPlayer defaultFogRadius initialWorld
@@ -188,6 +189,7 @@ transformItem fi = Item
   , iCategory = case FT.itemCategory fi of
                   "Armor" -> Armor
                   "Weapon" -> Weapon
+                  "Range" -> Range
                   "Healing" -> Healing
                   "Special" -> Special
                   "Key" -> Key

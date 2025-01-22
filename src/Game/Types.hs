@@ -23,7 +23,7 @@ data Direction = North | South | East | West | Up | Down deriving (Eq, Show, Gen
 instance ToJSON Direction
 instance FromJSON Direction
 
-data ItemCategory = Armor | Weapon | Healing | Special | Key deriving (Eq, Show, Generic)
+data ItemCategory = Armor | Weapon | Range | Healing | Special | Key deriving (Eq, Show, Generic)
 
 instance ToJSON ItemCategory
 instance FromJSON ItemCategory
@@ -211,6 +211,13 @@ instance FromJSON World where
 coordsToGrid :: [(Int, Int)] -> Int -> Int -> [[Bool]]
 coordsToGrid coords rows cols = [ [ (x, y) `elem` coords | x <- [0 .. cols - 1] ] | y <- [0 .. rows - 1] ]
 
+data AimingState = AimingState
+  { aimingItem :: Item -- The ranged item being used
+  } deriving (Generic)
+
+instance ToJSON AimingState
+instance FromJSON AimingState
+
 data GameState = GameState
   { player            :: Player
   , xpLevels          :: [XPLevel]
@@ -222,6 +229,7 @@ data GameState = GameState
   , showLegend        :: Bool
   , keyPressCount     :: Int
   , lastInteractedNpc :: Maybe String
+  , aimingState       :: Maybe AimingState
   , gameOver          :: Bool
   } deriving (Generic)
 

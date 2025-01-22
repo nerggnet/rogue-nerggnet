@@ -136,6 +136,10 @@ useItem itm state =
                         else "You equipped " ++ Game.iName itm ++ "."
            in state { Game.player = newPlayerWithNewAttack
                     , Game.message = message : Game.message state }
+        Game.Range ->
+          state { Game.aimingState = Just (Game.AimingState itm)
+                , Game.commandMode = True
+                , Game.message = ("You prepare to use " ++ Game.iName itm ++ ". Press a key to aim.") : Game.message state }
         Game.Armor  ->
           let newPlayer = if Just itm == Game.equippedArmor plyr
                           then plyr { Game.equippedArmor = Nothing }
@@ -149,12 +153,73 @@ useItem itm state =
         Game.Special ->
           state { Game.message = ("You used " ++ Game.iName itm ++ ". Its effect is mysterious.")
                                : Game.message state }
-  in updatedState
+   in updatedState
 
 -- Helper function: Check adjacency
 isAdjacent :: V2 Int -> V2 Int -> Bool
 isAdjacent (V2 x1 y1) (V2 x2 y2) =
   abs (x1 - x2) + abs (y1 - y2) == 1
+
+-- Range attack handling (getVisibleMonsters, enterAimingMode, exitAimingMode, monsterList)
+getVisibleMonsters :: Game.GameState -> [(Char, Game.Monster)]
+getVisibleMonsters state =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      visibleMonsters = filter (\m ->
+        let pos = Game.mPosition m
+            x = pos ^. _x
+            y = pos ^. _y
+        in Game.visibility currentWorld !! y !! x) (Game.monsters currentWorld)
+  in zip ['a'..] visibleMonsters
+
+monsterList :: [(Char, Game.Monster)] -> String
+monsterList monsters =
+  unwords $ map (\(c, m) -> [c] ++ ": " ++ Game.mName m) monsters
+
+promptRangedAttack :: Game.Item -> EventM () Game.GameState ()
+promptRangedAttack rangedItem = do
+  state <- get
+  let visibleMonsters = getVisibleMonsters state
+  if null visibleMonsters
+    then modify $ \s -> s { Game.message = "No visible monsters to attack." : Game.message s }
+    else modify $ \s ->
+      s { Game.aimingState = Just (Game.AimingState rangedItem)
+        -- , Game.message = ("Select a target: " ++ unwords (zipWith (\c m -> [c] ++ " -> " ++ Game.mName m) ['a' ..] visibleMonsters)) : Game.message s }
+        , Game.message = ("Select a target: " ++ show visibleMonsters) : Game.message s }
+
+handleAimingInput :: Key -> Game.Item -> EventM () Game.GameState ()
+handleAimingInput key rangedItem = do
+  state <- get
+  let visibleMonsters = getVisibleMonsters state
+      monsterMapping = zip ['a' ..] visibleMonsters
+      selectedChar = case key of
+        KChar c -> Just c
+        _       -> Nothing
+  case selectedChar >>= (`lookup` monsterMapping) of
+    Just (_, monster) -> do
+      modify $ \s -> executeRangedAttack s monster rangedItem
+      modify $ \s -> s { Game.aimingState = Nothing } -- Exit aiming mode after attack
+    Nothing ->
+      case key of
+        KEsc -> modify $ \s -> s { Game.aimingState = Nothing } -- Cancel aiming mode
+        _    -> modify $ \s -> s { Game.message = "Invalid selection." : Game.message s }
+
+executeRangedAttack :: Game.GameState -> Game.Monster -> Game.Item -> Game.GameState
+executeRangedAttack state targetMonster rangedItem =
+  let damage = calculateRangedDamage (Game.player state) targetMonster rangedItem
+      currentWorld = Game.levels state !! Game.currentLevel state
+      updatedMonsters = map (\m -> if m == targetMonster then m { Game.mHealth = Game.mHealth m - damage } else m) (Game.monsters currentWorld)
+      updatedWorld = currentWorld { Game.monsters = filter ((> 0) . Game.mHealth) updatedMonsters }
+      message = "You hit " ++ Game.mName targetMonster ++ " for " ++ show damage ++ " damage!"
+  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+           , Game.message = message : Game.message state }
+
+calculateRangedDamage :: Game.Player -> Game.Monster -> Game.Item -> Int
+calculateRangedDamage player monster rangedItem =
+  let baseDamage = Game.attack player
+      rangedBonus = Game.iEffectValue rangedItem
+      monsterResistance = max 0 (Game.mHealth monster `div` 10) -- Example: Monster's resistance based on health
+      totalDamage = max 0 (baseDamage + rangedBonus - monsterResistance)
+  in totalDamage
 
 -- Handle commands
 handleCommandInput :: Key -> EventM () Game.GameState ()
@@ -486,4 +551,4 @@ executeAction state (Game.AddToInventory itemName) =
                      , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
                      , Game.message = ("Added " ++ itemName ++ " to your inventory.") : Game.message state }
 
-executeAction _ _ = error "Undefined trigger action"
+--executeAction _ _ = error "Undefined trigger action"
