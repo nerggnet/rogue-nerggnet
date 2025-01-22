@@ -17,25 +17,29 @@ import Data.List (find, partition)
 -- Handle movement keys
 handleMovement :: Key -> EventM () Game.GameState ()
 handleMovement key = do
-  isGameOver <- gets Game.gameOver
-  modify $ case key of
-      KChar '?' -> \s -> s { Game.showLegend = not (Game.showLegend s) }
-      KChar c | c == 'w' || c == 'k' -> if isGameOver then id else movePlayer Game.North
-      KChar c | c == 's' || c == 'j' -> if isGameOver then id else movePlayer Game.South
-      KChar c | c == 'a' || c == 'h' -> if isGameOver then id else movePlayer Game.West
-      KChar c | c == 'd' || c == 'l' -> if isGameOver then id else movePlayer Game.East
-      KChar '<' -> if isGameOver then id else goUp
-      KChar '>' -> if isGameOver then id else goDown
-      KChar 'g' -> if isGameOver then id else pickUpItem
-      KChar 'u' -> if isGameOver then id else promptUseItem
-      KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
-      _ -> id
-  modify moveMonsters
-  modify processTriggers
-  -- Move NPCs every third keypress
-  kyprssCnt <- gets Game.keyPressCount
-  when (kyprssCnt == 0) $ modify moveNPCs
-  modify (\s -> s { Game.message = take 10 (Game.message s) })
+  isAiming <- gets (maybe False (const True) . Game.aimingState)
+  if isAiming
+    then handleCommandInput key
+    else do
+      isGameOver <- gets Game.gameOver
+      modify $ case key of
+          KChar '?' -> \s -> s { Game.showLegend = not (Game.showLegend s) }
+          KChar c | c == 'w' || c == 'k' -> if isGameOver then id else movePlayer Game.North
+          KChar c | c == 's' || c == 'j' -> if isGameOver then id else movePlayer Game.South
+          KChar c | c == 'a' || c == 'h' -> if isGameOver then id else movePlayer Game.West
+          KChar c | c == 'd' || c == 'l' -> if isGameOver then id else movePlayer Game.East
+          KChar '<' -> if isGameOver then id else goUp
+          KChar '>' -> if isGameOver then id else goDown
+          KChar 'g' -> if isGameOver then id else pickUpItem
+          KChar 'u' -> if isGameOver then id else promptUseItem
+          KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
+          _ -> id
+      modify moveMonsters
+      modify processTriggers
+      -- Move NPCs every third keypress
+      kyprssCnt <- gets Game.keyPressCount
+      when (kyprssCnt == 0) $ modify moveNPCs
+      modify (\s -> s { Game.message = take 10 (Game.message s) })
 
 -- Go up stairs
 goUp :: Game.GameState -> Game.GameState
@@ -160,7 +164,7 @@ isAdjacent :: V2 Int -> V2 Int -> Bool
 isAdjacent (V2 x1 y1) (V2 x2 y2) =
   abs (x1 - x2) + abs (y1 - y2) == 1
 
--- Range attack handling (getVisibleMonsters, enterAimingMode, exitAimingMode, monsterList)
+-- Range attack handling (getVisibleMonsters, monsterList, executeRangedAttack, calculateRangedDamage)
 getVisibleMonsters :: Game.GameState -> [(Char, Game.Monster)]
 getVisibleMonsters state =
   let currentWorld = Game.levels state !! Game.currentLevel state
@@ -175,43 +179,40 @@ monsterList :: [(Char, Game.Monster)] -> String
 monsterList monsters =
   unwords $ map (\(c, m) -> [c] ++ ": " ++ Game.mName m) monsters
 
-promptRangedAttack :: Game.Item -> EventM () Game.GameState ()
-promptRangedAttack rangedItem = do
-  state <- get
-  let visibleMonsters = getVisibleMonsters state
-  if null visibleMonsters
-    then modify $ \s -> s { Game.message = "No visible monsters to attack." : Game.message s }
-    else modify $ \s ->
-      s { Game.aimingState = Just (Game.AimingState rangedItem)
-        -- , Game.message = ("Select a target: " ++ unwords (zipWith (\c m -> [c] ++ " -> " ++ Game.mName m) ['a' ..] visibleMonsters)) : Game.message s }
-        , Game.message = ("Select a target: " ++ show visibleMonsters) : Game.message s }
-
-handleAimingInput :: Key -> Game.Item -> EventM () Game.GameState ()
-handleAimingInput key rangedItem = do
-  state <- get
-  let visibleMonsters = getVisibleMonsters state
-      monsterMapping = zip ['a' ..] visibleMonsters
-      selectedChar = case key of
-        KChar c -> Just c
-        _       -> Nothing
-  case selectedChar >>= (`lookup` monsterMapping) of
-    Just (_, monster) -> do
-      modify $ \s -> executeRangedAttack s monster rangedItem
-      modify $ \s -> s { Game.aimingState = Nothing } -- Exit aiming mode after attack
-    Nothing ->
-      case key of
-        KEsc -> modify $ \s -> s { Game.aimingState = Nothing } -- Cancel aiming mode
-        _    -> modify $ \s -> s { Game.message = "Invalid selection." : Game.message s }
+-- executeRangedAttack :: Game.GameState -> Game.Monster -> Game.Item -> Game.GameState
+-- executeRangedAttack state targetMonster rangedItem =
+--   let damage = calculateRangedDamage (Game.player state) targetMonster rangedItem
+--       currentWorld = Game.levels state !! Game.currentLevel state
+--       updatedMonsters = map (\m -> if m == targetMonster then m { Game.mHealth = Game.mHealth m - damage } else m) (Game.monsters currentWorld)
+--       updatedWorld = currentWorld { Game.monsters = filter ((> 0) . Game.mHealth) updatedMonsters }
+--       message = "You hit " ++ Game.mName targetMonster ++ " for " ++ show damage ++ " damage!"
+--   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+--            , Game.message = message : Game.message state }
 
 executeRangedAttack :: Game.GameState -> Game.Monster -> Game.Item -> Game.GameState
 executeRangedAttack state targetMonster rangedItem =
   let damage = calculateRangedDamage (Game.player state) targetMonster rangedItem
       currentWorld = Game.levels state !! Game.currentLevel state
       updatedMonsters = map (\m -> if m == targetMonster then m { Game.mHealth = Game.mHealth m - damage } else m) (Game.monsters currentWorld)
-      updatedWorld = currentWorld { Game.monsters = filter ((> 0) . Game.mHealth) updatedMonsters }
-      message = "You hit " ++ Game.mName targetMonster ++ " for " ++ show damage ++ " damage!"
-  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-           , Game.message = message : Game.message state }
+      (defeatedMonsters, remainingMonsters) = partition ((<= 0) . Game.mHealth) updatedMonsters
+      updatedWorld = currentWorld { Game.monsters = remainingMonsters }
+      defeatMessage = if not (null defeatedMonsters)
+                      then "You defeated " ++ Game.mName targetMonster ++ "!"
+                      else ""
+      attackMessage = "You hit " ++ Game.mName targetMonster ++ " for " ++ show damage ++ " damage!"
+      (updatedPlayer, levelUpMessages) = if not (null defeatedMonsters)
+                                         then
+                                           let totalXP = sum (map Game.mXP defeatedMonsters)
+                                               playerWithXP = (Game.player state) { Game.xp = Game.xp (Game.player state) + totalXP }
+                                           in levelUp playerWithXP (Game.xpLevels state)
+                                         else (Game.player state, [])
+      xpGainMessage = if not (null defeatedMonsters)
+                      then "You gained " ++ show (sum (map Game.mXP defeatedMonsters)) ++ " XP!"
+                      else ""
+      completeMessages = levelUpMessages ++ [defeatMessage, xpGainMessage, attackMessage]
+  in state { Game.player = updatedPlayer
+           , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+           , Game.message = completeMessages ++ Game.message state }
 
 calculateRangedDamage :: Game.Player -> Game.Monster -> Game.Item -> Int
 calculateRangedDamage player monster rangedItem =
@@ -225,27 +226,37 @@ calculateRangedDamage player monster rangedItem =
 handleCommandInput :: Key -> EventM () Game.GameState ()
 handleCommandInput key = do
   state <- get
-  if null (Game.commandBuffer state) -- Handle item selection if command buffer is empty
-    then case key of
-      KChar c -> do
-        let inventory = Game.inventory (Game.player state)
-            eqpdWeapon = Game.equippedWeapon (Game.player state)
-            eqpdArmor = Game.equippedArmor (Game.player state)
-        case lookup c (keyedInventory inventory eqpdWeapon eqpdArmor) of
-          Just item -> modify (useItem item) -- Use the selected item
-          Nothing   -> modify (\s -> s { Game.message = "Invalid selection." : Game.message s })
-        modify (\s -> s { Game.commandMode = False }) -- Exit command mode after using an item
-      KEsc -> modify (\s -> s { Game.commandMode = False }) -- Exit command mode without selecting
-      _ -> return () -- No-op for other keys
-    else case key of
-      KChar c   -> modify (\s -> s { Game.commandBuffer = Game.commandBuffer s ++ [c] })     -- Add to command buffer
-      KBS       -> modify (\s -> s { Game.commandBuffer = initSafe (Game.commandBuffer s) }) -- Backspace
-      KEnter    -> do
-        cmd <- gets Game.commandBuffer
-        executeCommand cmd
-        modify (\s -> s { Game.commandMode = False, Game.commandBuffer = "" }) -- Exit command mode after execution
-      KEsc      -> modify (\s -> s { Game.commandMode = False, Game.commandBuffer = "" }) -- Exit command mode without executing
-      _         -> return () -- No-op for other keys
+  case Game.aimingState state of
+    Just (Game.AimingState rangedItem) -> do
+      let visibleMonsters = getVisibleMonsters state
+      case key of
+        KChar c | Just monster <- lookup c visibleMonsters -> do
+          modify $ \s -> executeRangedAttack s monster rangedItem
+          modify $ \s -> s { Game.aimingState = Nothing, Game.commandMode = False }
+        KEsc -> modify $ \s -> s { Game.aimingState = Nothing, Game.commandMode = False }
+        _ -> modify $ \s -> s { Game.message = "Invalid selection. Press ESC to cancel." : Game.message s }
+    Nothing -> do
+      if null (Game.commandBuffer state) -- Handle item selection if command buffer is empty
+        then case key of
+          KChar c -> do
+            let inventory = Game.inventory (Game.player state)
+                eqpdWeapon = Game.equippedWeapon (Game.player state)
+                eqpdArmor = Game.equippedArmor (Game.player state)
+            case lookup c (keyedInventory inventory eqpdWeapon eqpdArmor) of
+              Just item -> modify (useItem item) -- Use the selected item
+              Nothing   -> modify (\s -> s { Game.message = "Invalid selection." : Game.message s })
+            modify (\s -> s { Game.commandMode = False }) -- Exit command mode after using an item
+          KEsc -> modify (\s -> s { Game.commandMode = False }) -- Exit command mode without selecting
+          _ -> return () -- No-op for other keys
+        else case key of
+          KChar c   -> modify (\s -> s { Game.commandBuffer = Game.commandBuffer s ++ [c] })     -- Add to command buffer
+          KBS       -> modify (\s -> s { Game.commandBuffer = initSafe (Game.commandBuffer s) }) -- Backspace
+          KEnter    -> do
+            cmd <- gets Game.commandBuffer
+            executeCommand cmd
+            modify (\s -> s { Game.commandMode = False, Game.commandBuffer = "" }) -- Exit command mode after execution
+          KEsc      -> modify (\s -> s { Game.commandMode = False, Game.commandBuffer = "" }) -- Exit command mode without executing
+          _         -> return () -- No-op for other keys
 
 -- Execute commands
 executeCommand :: String -> EventM () Game.GameState ()

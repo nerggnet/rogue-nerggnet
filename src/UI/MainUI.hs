@@ -27,8 +27,9 @@ app = App
   }
 
 chooseCursor :: Game.GameState -> [CursorLocation n] -> Maybe (CursorLocation n)
-chooseCursor state =
-  if Game.commandMode state then showFirstCursor state else neverShowCursor state
+chooseCursor state crsrs
+  | Game.commandMode state || Game.aimingState state /= Nothing = showFirstCursor state crsrs
+  | otherwise = neverShowCursor state crsrs
 
 -- Main function to start the game
 startGame :: IO ()
@@ -60,15 +61,11 @@ runGame initialState = do
 -- Handle events
 handleEvent :: BrickEvent () e -> EventM () Game.GameState ()
 handleEvent (VtyEvent (EvKey key [])) = do
-  state <- get
-  case Game.aimingState state of
-    Just (Game.AimingState rangedItem) -> handleAimingInput key rangedItem -- Redirect to aiming logic
-    Nothing -> do
-      isCommandMode <- gets Game.commandMode
-      modify $ \s -> s { Game.keyPressCount = (Game.keyPressCount s + 1) `mod` 3 }
-      if isCommandMode
-        then handleCommandInput key
-        else handleMovement key
+  isCommandMode <- gets Game.commandMode
+  modify $ \s -> s { Game.keyPressCount = (Game.keyPressCount s + 1) `mod` 3 }
+  if isCommandMode
+  then handleCommandInput key
+  else handleMovement key
 handleEvent _ = return ()
 
 defaultAttrMap :: AttrMap

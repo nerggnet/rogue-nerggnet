@@ -213,7 +213,7 @@ coordsToGrid coords rows cols = [ [ (x, y) `elem` coords | x <- [0 .. cols - 1] 
 
 data AimingState = AimingState
   { aimingItem :: Item -- The ranged item being used
-  } deriving (Generic)
+  } deriving (Generic, Eq)
 
 instance ToJSON AimingState
 instance FromJSON AimingState
