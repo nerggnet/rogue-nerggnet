@@ -79,6 +79,8 @@ defaultAttrMap = attrMap defAttr
   , (attrName "downStair", withForeColor defAttr green)
   , (attrName "player", withForeColor defAttr blue)
   , (attrName "monster", withForeColor defAttr red)
+  , (attrName "monster", withForeColor defAttr red)
+  , (attrName "aimingMonster", withForeColor defAttr yellow)
   , (attrName "npc", withForeColor defAttr cyan)
   , (attrName "item", withForeColor defAttr magenta)
   , (attrName "log", withForeColor defAttr yellow)

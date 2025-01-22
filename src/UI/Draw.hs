@@ -6,7 +6,8 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import Game.Types
-import Linear.V2 (V2(..))
+import Linear.V2 (V2(..), _x, _y)
+import Control.Lens ((^.))
 
 -- Draw the UI
 drawUI :: GameState -> [Widget ()]
@@ -15,7 +16,7 @@ drawUI state =
   [ vBox
       [ drawTitleBar
       , hBox
-          [ padRight (Pad 2) $ drawMap currentWorld (player state)
+          [ padRight (Pad 2) $ drawMap currentWorld (player state) (aimingState state)
           , padLeft (Pad 2) $
               vBox
                 [ padTop (Pad 1) $ drawStatsBox (player state)
@@ -43,22 +44,25 @@ drawTitleBar =
       padBottom (Pad 1) $ C.hCenter (str "Rogue nerggnet (press ? for help)")
 
 -- Draw the map
-drawMap :: World -> Player -> Widget ()
-drawMap wrld plyr =
+drawMap :: World -> Player -> Maybe AimingState -> Widget ()
+drawMap wrld plyr amngState =
   B.border $
     vBox $ zipWith drawRow [0..] (mapGrid wrld)
   where
     drawRow y row =
-      hBox $ zipWith (\x tile -> drawTileWithFog wrld plyr x y tile) [0..] row
+      hBox $ zipWith (\x tile -> drawTileWithFog wrld plyr x y tile amngState) [0..] row
 
-drawTileWithFog :: World -> Player -> Int -> Int -> Tile -> Widget ()
-drawTileWithFog world plyr x y tile
+drawTileWithFog :: World -> Player -> Int -> Int -> Tile -> Maybe AimingState -> Widget ()
+drawTileWithFog world plyr x y tile amngState
   | not (visibility world !! y !! x) && not (discovered world !! y !! x) =
       withAttr (attrName "fog") $ str " "
   | not (visibility world !! y !! x) && discovered world !! y !! x =
       withAttr (attrName "discovered") $ drawTileHidden tile
   | position plyr == V2 x y =
       withAttr (attrName "player") $ str "@"
+  | Just (AimingState _) <- amngState
+  , Just monsterChar <- lookup (V2 x y) monsterPositionsWithLetters =
+      withAttr (attrName "aimingMonster") $ str [monsterChar]
   | any ((== V2 x y) . mPosition) activeMonsters =
       withAttr (attrName "monster") $ str "M"
   | any (\i -> iPosition i == V2 x y && not (iHidden i) && not (iInactive i)) (items world) =
@@ -69,6 +73,13 @@ drawTileWithFog world plyr x y tile
       drawTile tile
   where
     activeMonsters = filter (not . mInactive) (monsters world)
+    monsterPositionsWithLetters =
+      let visibleMonsters = filter (\m ->
+            let pos = mPosition m
+                px = pos ^. _x
+                py = pos ^. _y
+            in visibility world !! py !! px) activeMonsters
+      in zip (map mPosition visibleMonsters) ['a'..]
 
 -- Helper to render a hidden tile (e.g., in fog or discovered but not visible)
 drawTileHidden :: Tile -> Widget ()
