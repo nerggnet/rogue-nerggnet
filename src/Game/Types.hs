@@ -13,7 +13,7 @@ import Linear.V2 (V2)
 instance ToJSON a => ToJSON (V2 a)
 instance FromJSON a => FromJSON (V2 a)
 
-data Tile = Wall | Floor | Door | UpStair | DownStair | Start deriving (Eq, Show, Generic)
+data Tile = Wall | Floor | Door | UpStair | DownStair | Death | Start deriving (Eq, Show, Generic)
 
 instance ToJSON Tile
 instance FromJSON Tile

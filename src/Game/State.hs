@@ -488,6 +488,7 @@ tileToChar Door      = '+'
 tileToChar UpStair   = '<'
 tileToChar DownStair = '>'
 tileToChar Start     = 'S'
+tileToChar Death     = '†'
 
 -- Find the starting position (e.g., the first Floor tile)
 findStartingPosition :: World -> V2 Int

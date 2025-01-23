@@ -347,7 +347,16 @@ combat state mnstr playerGoesFirst =
         then filter (/= mnstr) (Game.monsters currentWorld)
         else map (\m -> if m == mnstr then m { Game.mHealth = Game.mHealth mnstr - playerDamage } else m)
                  (Game.monsters currentWorld)
-      updatedWorld = currentWorld { Game.monsters = updatedMonsters }
+
+      -- Mark the position where the monster was defeated
+      updatedMapGrid =
+        if Game.mHealth mnstr - playerDamage <= 0
+        then
+          let V2 mx my = Game.mPosition mnstr
+          in updateTile (Game.mapGrid currentWorld) (mx, my) (Game.Death)
+        else Game.mapGrid currentWorld
+      updatedWorld = currentWorld { Game.monsters = updatedMonsters, Game.mapGrid = updatedMapGrid }
+
       isDead = newHealth == 0
       defeatMessage = if Game.mHealth mnstr - playerDamage <= 0
                       then "You defeated the " ++ Game.mName mnstr ++ " and gained " ++ show (Game.mXP mnstr) ++ " XP!"
