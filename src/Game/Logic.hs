@@ -35,6 +35,7 @@ handleMovement key = do
           KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
           _ -> id
       modify moveMonsters
+      modify monstersAttack
       modify processTriggers
       -- Move NPCs every third keypress
       kyprssCnt <- gets Game.keyPressCount
@@ -325,7 +326,7 @@ movePlayer dir state =
        (_, Nothing, Nothing) | canMove newPos -> -- No monster or NPC
          internalHandleMovement newPos
        (_, Just monster, _) -> -- Monster
-         combat state monster newPos
+         combat state monster True
        (_, _, Just npc) -> -- NPC
          state { Game.message = (Game.npcName npc ++ " says: " ++ Game.npcMessage npc) : Game.message state
                , Game.lastInteractedNpc = Just (Game.npcName npc)
@@ -333,8 +334,8 @@ movePlayer dir state =
        _ -> state -- Invalid move
 
 -- Player hits a monster and the monster returns the favor
-combat :: Game.GameState -> Game.Monster -> V2 Int -> Game.GameState
-combat state mnstr _ =
+combat :: Game.GameState -> Game.Monster -> Bool -> Game.GameState
+combat state mnstr playerGoesFirst =
   let player = Game.player state
       playerDamage = Game.attack player
       monsterDamage = max 0 (Game.mAttack mnstr - Game.resistance player)
@@ -351,17 +352,19 @@ combat state mnstr _ =
       defeatMessage = if Game.mHealth mnstr - playerDamage <= 0
                       then "You defeated the " ++ Game.mName mnstr ++ " and gained " ++ show (Game.mXP mnstr) ++ " XP!"
                       else ""
-      newMessage = if isDead
-                   then "You have died! Game Over." : Game.message state
-                   else [defeatMessage | not (null defeatMessage)] ++
-                        ("The " ++ Game.mName mnstr ++ " attacked you for " ++ show monsterDamage ++ " damage!") :
-                        ("You attacked " ++ Game.mName mnstr ++ " for " ++ show playerDamage ++ " damage!") :
-                        Game.message state
+      attackMessage = if playerGoesFirst
+                      then "You attacked " ++ Game.mName mnstr ++ " for " ++ show playerDamage ++ " damage!"
+                      else "The " ++ Game.mName mnstr ++ " attacked you for " ++ show monsterDamage ++ " damage!"
+      counterattackMessage = if playerGoesFirst
+                             then "The " ++ Game.mName mnstr ++ " counterattacked you for " ++ show monsterDamage ++ " damage!"
+                             else "You counterattacked " ++ Game.mName mnstr ++ " for " ++ show playerDamage ++ " damage!"
+      deadMessage = if isDead then "You have died! Game Over." else ""
+      combatMessages = deadMessage : defeatMessage : counterattackMessage : attackMessage : []
       updatedPlayerWithXP = if Game.mHealth mnstr - playerDamage <= 0
                             then updatedPlayer { Game.xp = Game.xp updatedPlayer + Game.mXP mnstr }
                             else updatedPlayer
       (updatedPlayerWithXPAndPossibleNewLevel, levelUpMessages) = levelUp updatedPlayerWithXP (Game.xpLevels state)
-      completeMessage = levelUpMessages ++ newMessage ++ Game.message state
+      completeMessage = levelUpMessages ++ combatMessages ++ Game.message state
   in if Game.mInactive mnstr
      then state
      else state { Game.player = updatedPlayerWithXPAndPossibleNewLevel
@@ -395,6 +398,17 @@ levelUp player xpLevels =
              ])
        Nothing -> (player, [])
 
+-- Monsters in tiles adjacent to the player should attack
+monstersAttack :: Game.GameState -> Game.GameState
+monstersAttack state =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      playerPos = Game.position (Game.player state)
+      (_, activeMonsters) = partition Game.mInactive (Game.monsters currentWorld)
+      monstersAdjacentToPlayer = filter (\m ->
+          let mPos = Game.mPosition m
+           in isAdjacent mPos playerPos) activeMonsters
+    in foldl' (\s m -> combat s m False) state monstersAdjacentToPlayer
+
 -- Move monsters in the current level
 moveMonsters :: Game.GameState -> Game.GameState
 moveMonsters state =
@@ -407,11 +421,18 @@ moveMonsters state =
       (updatedMonsters, _) =
         foldl
           (\(monsters, occupied) monster ->
-             let newMonster = moveMonsterWithOccupied currentWorld playerPos occupied monster
-                 newOccupied = Game.mPosition newMonster : occupied
+             let orgMonsterPos = Game.mPosition monster
+                 newMonster = moveMonsterWithOccupied currentWorld playerPos occupied monster
+                 newOccupied = replace orgMonsterPos (Game.mPosition newMonster) occupied
              in (monsters ++ [newMonster], newOccupied))
           ([], initialOccupiedPositions)
           activeMonsters
+
+      replace _ _ [] = []
+      replace old new (x:xs)
+        | old == x  = new:xs
+        | otherwise = x:replace old new xs
+
       updatedWorld = currentWorld { Game.monsters = updatedMonsters ++ inactiveMonsters }
   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
 
@@ -427,9 +448,12 @@ moveMonsterWithOccupied world playerPos occupiedPositions monster =
         if distance <= defaultMonsterRadius
         then prioritizeTowardsPlayer playerPos monsterPos
         else [(0, 0)] -- Stay in place if out of range
-  in case potentialMoves of
-       (newPos:_) -> monster { Game.mPosition = newPos } -- Move to the first valid position
-       _          -> monster -- Stay in place if no valid moves
+  in if isAdjacent monsterPos playerPos
+     then monster -- Stay if adjacent to player
+     else
+       case potentialMoves of
+         (newPos:_) -> monster { Game.mPosition = newPos } -- Move to the first valid position
+         _          -> monster -- Stay in place if no valid moves
 
 moveNPCs :: Game.GameState -> Game.GameState
 moveNPCs state =
