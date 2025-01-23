@@ -151,8 +151,17 @@ drawInventory plyr =
       let equippedMarker
             | Just itm == eqpdWeapon = " (W)" -- Weapon marker
             | Just itm == eqpdArmor  = " (A)" -- Armor marker
-            | otherwise                  = ""
-      in str [key, ')', ' '] <+> str (iName itm ++ equippedMarker)
+            | otherwise              = ""
+          usesText = case iUses itm of
+                       Just uses -> " (" ++ show uses ++ ")"
+                       Nothing   -> ""
+      in str [key, ')', ' '] <+> str (iName itm ++ usesText ++ equippedMarker)
+    -- renderItem (key, itm) =
+    --   let equippedMarker
+    --         | Just itm == eqpdWeapon = " (W)" -- Weapon marker
+    --         | Just itm == eqpdArmor  = " (A)" -- Armor marker
+    --         | otherwise                  = ""
+    --   in str [key, ')', ' '] <+> str (iName itm ++ equippedMarker)
 
 -- Generate a list of (key, item) pairs with equipped items on top
 keyedInventory :: [Item] -> Maybe Item -> Maybe Item -> [(Char, Item)]

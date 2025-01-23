@@ -197,6 +197,7 @@ transformItem fi = Item
   , iEffectValue = FT.itemEffectValue fi
   , iHidden = FT.itemHidden fi
   , iInactive = FT.itemInactive fi
+  , iUses = FT.itemUses fi
   }
 
 -- Transform a File.Types.JSONDoorEntity to Game.Types.DoorEntity

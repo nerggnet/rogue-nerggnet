@@ -86,6 +86,7 @@ data Item = Item
   , iEffectValue :: Int
   , iHidden      :: Bool
   , iInactive    :: Bool
+  , iUses        :: Maybe Int
   } deriving (Show, Eq, Generic)
 
 instance ToJSON Item

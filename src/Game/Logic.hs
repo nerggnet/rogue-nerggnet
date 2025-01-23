@@ -111,12 +111,18 @@ useItem itm state =
       recalculateEffectiveStats p = p
         { Game.attack = Game.baseAttack p + maybe 0 Game.iEffectValue (Game.equippedWeapon p)
         , Game.resistance = Game.baseResistance p + maybe 0 Game.iEffectValue (Game.equippedArmor p) }
+
+      -- Helper to reduce item uses or remove it if depleted
+      reduceUses inventory =
+        filter (\item -> Game.iUses item /= Just 0) $
+        map (updateUses itm) inventory
+
       updatedState = case Game.iCategory itm of
         Game.Healing ->
-          let playerCurrentMaxHealth = Game.xpLevel (Game.xpLevels state !! Game.playerXPLevel plyr)
+          let playerCurrentMaxHealth = Game.xpHealth (Game.xpLevels state !! (Game.playerXPLevel plyr - 1))
               healedHealth = min playerCurrentMaxHealth (Game.health plyr + Game.iEffectValue itm)
            in state { Game.player = plyr { Game.health = healedHealth
-                                        , Game.inventory = filter (/= itm) (Game.inventory plyr) }
+                                        , Game.inventory = reduceUses (Game.inventory plyr) }
                     , Game.message = ("You used " ++ Game.iName itm ++ " and recovered "
                                      ++ show (Game.iEffectValue itm) ++ " HP.") : Game.message state }
         Game.Key ->
@@ -126,7 +132,7 @@ useItem itm state =
                                       (Game.doors (Game.levels state !! Game.currentLevel state))
                   updatedWorld = (Game.levels state !! Game.currentLevel state) { Game.doors = updatedDoors }
                in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-                        , Game.player = plyr { Game.inventory = filter (/= itm) (Game.inventory plyr) }
+                        , Game.player = plyr { Game.inventory = reduceUses (Game.inventory plyr) }
                         , Game.message = ("You used " ++ Game.iName itm ++ " to unlock a door!") : Game.message state }
             Nothing ->
               state { Game.message = "There is no door nearby to unlock." : Game.message state }
@@ -179,15 +185,11 @@ monsterList :: [(Char, Game.Monster)] -> String
 monsterList monsters =
   unwords $ map (\(c, m) -> [c] ++ ": " ++ Game.mName m) monsters
 
--- executeRangedAttack :: Game.GameState -> Game.Monster -> Game.Item -> Game.GameState
--- executeRangedAttack state targetMonster rangedItem =
---   let damage = calculateRangedDamage (Game.player state) targetMonster rangedItem
---       currentWorld = Game.levels state !! Game.currentLevel state
---       updatedMonsters = map (\m -> if m == targetMonster then m { Game.mHealth = Game.mHealth m - damage } else m) (Game.monsters currentWorld)
---       updatedWorld = currentWorld { Game.monsters = filter ((> 0) . Game.mHealth) updatedMonsters }
---       message = "You hit " ++ Game.mName targetMonster ++ " for " ++ show damage ++ " damage!"
---   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
---            , Game.message = message : Game.message state }
+-- Helper to update item uses
+updateUses :: Game.Item -> Game.Item -> Game.Item
+updateUses usedItem item
+  | item == usedItem = item { Game.iUses = fmap (\n -> n - 1) (Game.iUses item) }
+  | otherwise = item
 
 executeRangedAttack :: Game.GameState -> Game.Monster -> Game.Item -> Game.GameState
 executeRangedAttack state targetMonster rangedItem =
@@ -210,7 +212,8 @@ executeRangedAttack state targetMonster rangedItem =
                       then "You gained " ++ show (sum (map Game.mXP defeatedMonsters)) ++ " XP!"
                       else ""
       completeMessages = levelUpMessages ++ [defeatMessage, xpGainMessage, attackMessage]
-  in state { Game.player = updatedPlayer
+      updatedPlayerWithReducedUsesForItem = updatedPlayer { Game.inventory = filter (\item -> Game.iUses item /= Just 0) $ map (updateUses rangedItem) (Game.inventory updatedPlayer) }
+  in state { Game.player = updatedPlayerWithReducedUsesForItem
            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
            , Game.message = completeMessages ++ Game.message state }
 
@@ -269,7 +272,7 @@ executeCommand ":restart" = do -- Restart the game
 executeCommand ":heal" = do -- Cheat
     state <- get
     let plyr = Game.player state
-        playerCurrentMaxHealth = Game.xpLevel (Game.xpLevels state !! Game.playerXPLevel plyr)
+        playerCurrentMaxHealth = Game.xpHealth (Game.xpLevels state !! (Game.playerXPLevel plyr - 1))
     modify (\s -> s { Game.player = plyr { Game.health = playerCurrentMaxHealth } } )
 executeCommand ":super" = do -- Cheat a lot
     state <- get

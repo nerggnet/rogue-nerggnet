@@ -46,13 +46,13 @@
         { "name": "Vicous Rat", "position": [3, 1], "health": 8, "attack": 3, "xp": 15, "inactive": true }
       ],
       "items": [
-        { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores 20 HP.", "itemCategory": "Healing", "itemEffectValue": 60, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Sword", "itemPosition": [11, 20], "itemDescription": "A sharp blade.", "itemCategory": "Weapon", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Lesser Bow", "itemPosition": [10, 7], "itemDescription": "A simple bow.", "itemCategory": "Range", "itemEffectValue": 7, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Gold Coin", "itemPosition": [8, 25], "itemDescription": "Shiny and valuable.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Magic Ring", "itemPosition": [18, 3], "itemDescription": "A ring that glows faintly.", "itemCategory": "Special", "itemEffectValue": 10, "itemHidden": true, "itemInactive": false },
-        { "itemName": "Dark Sword", "itemPosition": [49, 25], "itemDescription": "A nasty looking blade.", "itemCategory": "Weapon", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true },
-        { "itemName": "Mithril Shield", "itemPosition": [0, 0], "itemDescription": "A mighty shield.", "itemCategory": "Armor", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true }
+        { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores 20 HP.", "itemCategory": "Healing", "itemEffectValue": 60, "itemHidden": false, "itemInactive": false, "itemUses": 3 },
+        { "itemName": "Sword", "itemPosition": [11, 20], "itemDescription": "A sharp blade.", "itemCategory": "Weapon", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Lesser Bow", "itemPosition": [10, 7], "itemDescription": "A simple bow.", "itemCategory": "Range", "itemEffectValue": 7, "itemHidden": false, "itemInactive": false, "itemUses": 5 },
+        { "itemName": "Gold Coin", "itemPosition": [8, 25], "itemDescription": "Shiny and valuable.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Magic Ring", "itemPosition": [18, 3], "itemDescription": "A ring that glows faintly.", "itemCategory": "Special", "itemEffectValue": 10, "itemHidden": true, "itemInactive": false, "itemUses": null },
+        { "itemName": "Dark Sword", "itemPosition": [49, 25], "itemDescription": "A nasty looking blade.", "itemCategory": "Weapon", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true, "itemUses": null },
+        { "itemName": "Mithril Shield", "itemPosition": [0, 0], "itemDescription": "A mighty shield.", "itemCategory": "Armor", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true, "itemUses": null }
       ],
       "doors": [
         { "doorPosition": [7, 4], "doorLocked": true },
@@ -314,17 +314,17 @@
         { "name": "Demonic Soldier", "position": [45, 20], "health": 28, "attack": 10, "xp": 100, "inactive": false }
       ],
       "items": [
-        { "itemName": "Shield", "itemPosition": [9, 9], "itemDescription": "A protective shield.", "itemCategory": "Armor", "itemEffectValue": 10, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Magic Scroll", "itemPosition": [20, 15], "itemDescription": "Contains a spell.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Amulet", "itemPosition": [12, 25], "itemDescription": "Grants protection.", "itemCategory": "Armor", "itemEffectValue": 5, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Iron Key", "itemPosition": [17, 3], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Iron Key", "itemPosition": [30, 24], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Iron Key", "itemPosition": [4, 11], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Greater Health Potion", "itemPosition": [43, 23], "itemDescription": "Restores 100 HP.", "itemCategory": "Healing", "itemEffectValue": 100, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Steel Armor", "itemPosition": [24, 16], "itemDescription": "Grants strong protection.", "itemCategory": "Armor", "itemEffectValue": 20, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Elven Bow", "itemPosition": [25, 11], "itemDescription": "A finely crafted bow.", "itemCategory": "Weapon", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Scroll of Fireball", "itemPosition": [36, 3], "itemDescription": "Casts a powerful fireball spell.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Golden Key", "itemPosition": [47, 13], "itemDescription": "Unlocks special doors.", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false }
+        { "itemName": "Shield", "itemPosition": [9, 9], "itemDescription": "A protective shield.", "itemCategory": "Armor", "itemEffectValue": 10, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Magic Scroll", "itemPosition": [20, 15], "itemDescription": "Contains a spell.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Amulet", "itemPosition": [12, 25], "itemDescription": "Grants protection.", "itemCategory": "Armor", "itemEffectValue": 5, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Iron Key", "itemPosition": [17, 3], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 1 },
+        { "itemName": "Iron Key", "itemPosition": [30, 24], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 1 },
+        { "itemName": "Iron Key", "itemPosition": [4, 11], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 1 },
+        { "itemName": "Greater Health Potion", "itemPosition": [43, 23], "itemDescription": "Restores 100 HP.", "itemCategory": "Healing", "itemEffectValue": 100, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Steel Armor", "itemPosition": [24, 16], "itemDescription": "Grants strong protection.", "itemCategory": "Armor", "itemEffectValue": 20, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Elven Bow", "itemPosition": [25, 11], "itemDescription": "A finely crafted bow.", "itemCategory": "Range", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false, "itemUses": 15 },
+        { "itemName": "Scroll of Fireball", "itemPosition": [36, 3], "itemDescription": "Casts a powerful fireball spell.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Key chain", "itemPosition": [47, 13], "itemDescription": "A ring of keys.", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 4 }
       ],
       "doors": [
         { "doorPosition": [7, 4], "doorLocked": false },
@@ -396,9 +396,9 @@
         { "name": "Lich", "position": [22, 22], "health": 50, "attack": 12, "xp": 500, "inactive": false }
       ],
       "items": [
-        { "itemName": "Ring of Power", "itemPosition": [10, 10], "itemDescription": "Grants strength.", "itemCategory": "Weapon", "itemEffectValue": 25, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Potion of Flight", "itemPosition": [15, 15], "itemDescription": "Grants temporary flight.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Iron Key", "itemPosition": [35, 5], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false }
+        { "itemName": "Ring of Power", "itemPosition": [10, 10], "itemDescription": "Grants strength.", "itemCategory": "Weapon", "itemEffectValue": 25, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Potion of Flight", "itemPosition": [15, 15], "itemDescription": "Grants temporary flight.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Iron Key", "itemPosition": [35, 5], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 1 }
       ],
       "doors": [
         { "doorPosition": [7, 4], "doorLocked": false },
@@ -447,7 +447,7 @@
         { "name": "Demon", "position": [12, 12], "health": 60, "attack": 15, "xp": 400, "inactive": false }
       ],
       "items": [
-        { "itemName": "Orb of Power", "itemPosition": [10, 10], "itemDescription": "Grants immense power.", "itemCategory": "Weapon", "itemEffectValue": 40, "itemHidden": false, "itemInactive": false }
+        { "itemName": "Orb of Power", "itemPosition": [10, 10], "itemDescription": "Grants immense power.", "itemCategory": "Weapon", "itemEffectValue": 40, "itemHidden": false, "itemInactive": false, "itemUses": null }
       ],
       "doors": [
         { "doorPosition": [7, 4], "doorLocked": false },
@@ -498,10 +498,10 @@
         { "name": "Fire Elemental", "position": [35, 25], "health": 50, "attack": 15, "xp": 200, "inactive": false }
       ],
       "items": [
-        { "itemName": "Healing Potion", "itemPosition": [10, 11], "itemDescription": "Restores 50 HP.", "itemCategory": "Healing", "itemEffectValue": 50, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Fireproof Armor", "itemPosition": [19, 18], "itemDescription": "Reduces fire damage.", "itemCategory": "Armor", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false },
-        { "itemName": "Enchanted Amulet", "itemPosition": [26, 6], "itemDescription": "Boosts resistance.", "itemCategory": "Special", "itemEffectValue": 10, "itemHidden": true, "itemInactive": false },
-        { "itemName": "Mystic Wand", "itemPosition": [39, 16], "itemDescription": "A wand of immense power.", "itemCategory": "Weapon", "itemEffectValue": 20, "itemHidden": false, "itemInactive": false }
+        { "itemName": "Healing Potion", "itemPosition": [10, 11], "itemDescription": "Restores 50 HP.", "itemCategory": "Healing", "itemEffectValue": 50, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Fireproof Armor", "itemPosition": [19, 18], "itemDescription": "Reduces fire damage.", "itemCategory": "Armor", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Enchanted Amulet", "itemPosition": [26, 6], "itemDescription": "Boosts resistance.", "itemCategory": "Special", "itemEffectValue": 10, "itemHidden": true, "itemInactive": false, "itemUses": null },
+        { "itemName": "Mystic Wand", "itemPosition": [39, 16], "itemDescription": "A wand of immense power.", "itemCategory": "Weapon", "itemEffectValue": 20, "itemHidden": false, "itemInactive": false, "itemUses": null }
       ],
       "doors": [
         { "doorPosition": [25, 4], "doorLocked": true },
