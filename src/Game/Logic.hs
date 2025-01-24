@@ -34,9 +34,9 @@ handleMovement key = do
           KChar 'u' -> if isGameOver then id else promptUseItem
           KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
           _ -> id
-      modify moveMonsters
-      modify monstersAttack
-      modify processTriggers
+      modify $ if isGameOver then id else moveMonsters
+      modify $ if isGameOver then id else monstersAttack
+      modify $ if isGameOver then id else processTriggers
       -- Move NPCs every third keypress
       kyprssCnt <- gets Game.keyPressCount
       when (kyprssCnt == 0) $ modify moveNPCs
@@ -416,7 +416,19 @@ monstersAttack state =
       monstersAdjacentToPlayer = filter (\m ->
           let mPos = Game.mPosition m
            in isAdjacent mPos playerPos) activeMonsters
-    in foldl' (\s m -> combat s m False) state monstersAdjacentToPlayer
+    in foldl' monsterAttackOrWait state monstersAdjacentToPlayer
+
+-- Helper for handling either monster going into combat or monster waiting
+monsterAttackOrWait :: Game.GameState -> Game.Monster -> Game.GameState
+monsterAttackOrWait state mnstr =
+  let currentWorld = Game.levels state !! Game.currentLevel state
+      mnstrUpdated = mnstr { Game.mAttackWait = not (Game.mAttackWait mnstr) }
+      updatedMonsters = replace mnstr mnstrUpdated (Game.monsters currentWorld)
+      updatedWorld = currentWorld { Game.monsters = updatedMonsters }
+      updatedState = state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+   in if Game.mAttackWait mnstr
+      then updatedState
+      else combat updatedState mnstrUpdated False
 
 -- Move monsters in the current level
 moveMonsters :: Game.GameState -> Game.GameState
@@ -437,13 +449,15 @@ moveMonsters state =
           ([], initialOccupiedPositions)
           activeMonsters
 
-      replace _ _ [] = []
-      replace old new (x:xs)
-        | old == x  = new:xs
-        | otherwise = x:replace old new xs
-
       updatedWorld = currentWorld { Game.monsters = updatedMonsters ++ inactiveMonsters }
   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+
+-- Helper function to replace an item in a list
+replace :: Eq a => a -> a -> [a] -> [a]
+replace _ _ [] = []
+replace old new (x:xs)
+  | old == x  = new:xs
+  | otherwise = x:replace old new xs
 
 moveMonsterWithOccupied :: Game.World -> V2 Int -> [V2 Int] -> Game.Monster -> Game.Monster
 moveMonsterWithOccupied world playerPos occupiedPositions monster =
@@ -461,8 +475,10 @@ moveMonsterWithOccupied world playerPos occupiedPositions monster =
      then monster -- Stay if adjacent to player
      else
        case potentialMoves of
-         (newPos:_) -> monster { Game.mPosition = newPos } -- Move to the first valid position
-         _          -> monster -- Stay in place if no valid moves
+         (newPos:_) ->
+             let newAttackWaiting = isAdjacent newPos playerPos
+              in monster { Game.mPosition = newPos, Game.mAttackWait = newAttackWaiting } -- Move to the first valid position
+         _ -> monster -- Stay in place if no valid moves
 
 moveNPCs :: Game.GameState -> Game.GameState
 moveNPCs state =

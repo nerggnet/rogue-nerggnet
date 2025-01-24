@@ -159,6 +159,7 @@ transformMonster fm = Monster
   , mName = FT.name fm
   , mXP = FT.xp fm
   , mInactive = maybe False id (FT.inactive fm)
+  , mAttackWait = True
   }
 
 -- Transform a File.Types.JSONNPC to Game.Types.NPC

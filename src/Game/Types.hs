@@ -57,12 +57,13 @@ instance ToJSON XPLevel
 instance FromJSON XPLevel
 
 data Monster = Monster
-  { mPosition :: V2 Int
-  , mHealth   :: Int
-  , mAttack   :: Int
-  , mName     :: String
-  , mXP       :: Int
-  , mInactive :: Bool
+  { mPosition   :: V2 Int
+  , mHealth     :: Int
+  , mAttack     :: Int
+  , mName       :: String
+  , mXP         :: Int
+  , mInactive   :: Bool
+  , mAttackWait :: Bool
   } deriving (Show, Eq, Generic)
 
 instance ToJSON Monster
