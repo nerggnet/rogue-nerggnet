@@ -198,7 +198,16 @@ executeRangedAttack state targetMonster rangedItem =
       currentWorld = Game.levels state !! Game.currentLevel state
       updatedMonsters = map (\m -> if m == targetMonster then m { Game.mHealth = Game.mHealth m - damage } else m) (Game.monsters currentWorld)
       (defeatedMonsters, remainingMonsters) = partition ((<= 0) . Game.mHealth) updatedMonsters
-      updatedWorld = currentWorld { Game.monsters = remainingMonsters }
+
+      -- Mark the position where the monster was defeated
+      updatedMapGrid =
+        if Game.mHealth targetMonster - damage <= 0
+        then
+          let V2 mx my = Game.mPosition targetMonster
+          in updateTile (Game.mapGrid currentWorld) (mx, my) (Game.Death)
+        else Game.mapGrid currentWorld
+      updatedWorld = currentWorld { Game.monsters = remainingMonsters, Game.mapGrid = updatedMapGrid }
+
       defeatMessage = if not (null defeatedMonsters)
                       then "You defeated " ++ Game.mName targetMonster ++ "!"
                       else ""
