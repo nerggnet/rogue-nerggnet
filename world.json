@@ -1,9 +1,15 @@
 {
   "xpLevels": [
-    { "xpLevel": 1, "xpThreshold": 0, "xpHealth": 100, "xpAttack": 5, "xpResistance": 3 },
-    { "xpLevel": 2, "xpThreshold": 100, "xpHealth": 120, "xpAttack": 8, "xpResistance": 4 },
-    { "xpLevel": 3, "xpThreshold": 250, "xpHealth": 150, "xpAttack": 12, "xpResistance": 6 },
-    { "xpLevel": 4, "xpThreshold": 500, "xpHealth": 180, "xpAttack": 16, "xpResistance": 8 }
+    { "xpLevel": 1, "xpThreshold": 0, "xpHealth": 70, "xpAttack": 5, "xpResistance": 3 },
+    { "xpLevel": 2, "xpThreshold": 100, "xpHealth": 100, "xpAttack": 7, "xpResistance": 4 },
+    { "xpLevel": 3, "xpThreshold": 250, "xpHealth": 140, "xpAttack": 9, "xpResistance": 5 },
+    { "xpLevel": 4, "xpThreshold": 500, "xpHealth": 190, "xpAttack": 11, "xpResistance": 6 },
+    { "xpLevel": 5, "xpThreshold": 800, "xpHealth": 250, "xpAttack": 13, "xpResistance": 7 },
+    { "xpLevel": 6, "xpThreshold": 1200, "xpHealth": 320, "xpAttack": 15, "xpResistance": 8 },
+    { "xpLevel": 7, "xpThreshold": 1700, "xpHealth": 400, "xpAttack": 17, "xpResistance": 9 },
+    { "xpLevel": 8, "xpThreshold": 2300, "xpHealth": 490, "xpAttack": 19, "xpResistance": 10 },
+    { "xpLevel": 9, "xpThreshold": 3000, "xpHealth": 590, "xpAttack": 21, "xpResistance": 11 },
+    { "xpLevel": 10, "xpThreshold": 3800, "xpHealth": 700, "xpAttack": 23, "xpResistance": 12 }
   ],
   "levels":
   [
@@ -362,43 +368,80 @@
     {
       "levelNumber": 3,
       "mapGrid": [
-        "###################################################",
-        "#.............#...................#...............#",
-        "#..#####......#..#####............#...............#",
-        "#..#...#......#..#...#............#...............#",
-        "#..#...+......#+###..#............#...............#",
-        "#..#...#......#.#.+...#...........#...............#",
-        "#..#####.######.#.#####...........#####...........#",
-        "#...............#.................................#",
-        "#..#####...######.....#####.......#####...........#",
-        "#..#...##+##..........#...#.......#...#...........#",
-        "#..#...+.....#####....+...........#...+...........#",
-        "#..#>#.#######...######...#.......#...#...........#",
-        "#..#####..............#####.......#####...........#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.................................................#",
-        "#.............<...................................#",
-        "###################################################"
+        "   ##################### ##########################",
+        "   #.......M..#........###...........M.........#..#",
+        " ###.###......#..#####.....####...#######.####.#!M#",
+        "##...#.#......#..#!..#....##..##.##.......#..####.#",
+        "#..###.+...M..#+###.M#....#!..!#.#...M.####.M...#M#",
+        "#..#.!.#......#.#.+...#...##..##.##!........###!#.#",
+        "#..#####.######.#.#####....#..#...###########.###.#",
+        "#...............#..........#......................#",
+        "#...####...######.#####.####......####.M.##########",
+        "#..##..##+##......#!.M###.#...M...#..#####...M....#",
+        "#..#...+..!..######..M+...........#..M+...........#",
+        "#..#>#.#######....#####...#.....####!.#.....###...#",
+        "#..#####........#..#..######...##..####..M..#!....#",
+        "#..#......#####.#..#...#...#..##...........##.....#",
+        "##.##...###...###..#.#.#.#.#.##............#......#",
+        "##..###.##.....!.....#...#...#!..M....#...##......#",
+        "###...#..########################.....##..#..M....#",
+        "#.###.##.......M...!............##.....#..........#",
+        "#...#..########################.###....##..N......#",
+        "#..N##..+...M...................#.......#....#....#",
+        "#...##..#######################.#.......##...##...#",
+        "#..##..##.......#.T.T...........##............#...#",
+        "#..#..##..#######...###########......####.....##..#",
+        "#....##..##..##.#####.........########.!####..!#.M#",
+        "######..##............M..###....#..........#####..#",
+        "#!.....!#..!##<##.M..###.M..........####...M......#",
+        "#####################################  ############"
       ],
       "monsters": [
         { "name": "Dragon", "position": [25, 25], "health": 100, "attack": 10, "xp": 600, "inactive": false },
-        { "name": "Snake", "position": [18, 12], "health": 20, "attack": 7, "xp": 50, "inactive": false },
-        { "name": "Lich", "position": [22, 22], "health": 50, "attack": 12, "xp": 500, "inactive": false }
+        { "name": "Snake", "position": [12, 19], "health": 20, "attack": 7, "xp": 50, "inactive": false },
+        { "name": "Lich", "position": [22, 24], "health": 50, "attack": 12, "xp": 500, "inactive": false },
+        { "name": "Goblin Scout", "position": [11, 1], "health": 35, "attack": 8, "xp": 120, "inactive": false },
+        { "name": "Dark Wraith", "position": [37, 1], "health": 80, "attack": 18, "xp": 300, "inactive": false },
+        { "name": "Stone Golem", "position": [49, 2], "health": 150, "attack": 10, "xp": 500, "inactive": false },
+        { "name": "Cave Bat", "position": [11, 4], "health": 25, "attack": 5, "xp": 50, "inactive": false },
+        { "name": "Orc Warrior", "position": [20, 4], "health": 60, "attack": 14, "xp": 180, "inactive": false },
+        { "name": "Shadow Lurker", "position": [37, 4], "health": 70, "attack": 16, "xp": 250, "inactive": false },
+        { "name": "Ice Elemental", "position": [44, 4], "health": 90, "attack": 12, "xp": 280, "inactive": false },
+        { "name": "Fire Spriggan", "position": [49, 4], "health": 50, "attack": 20, "xp": 220, "inactive": false },
+        { "name": "Swamp Horror", "position": [39, 8], "health": 85, "attack": 14, "xp": 270, "inactive": false },
+        { "name": "Lizard Berserker", "position": [21, 9], "health": 65, "attack": 17, "xp": 200, "inactive": false },
+        { "name": "Dire Wolf", "position": [30, 9], "health": 55, "attack": 12, "xp": 150, "inactive": false },
+        { "name": "Bone Fiend", "position": [45, 9], "health": 100, "attack": 20, "xp": 400, "inactive": false },
+        { "name": "Troll Brute", "position": [21, 10], "health": 130, "attack": 15, "xp": 450, "inactive": false },
+        { "name": "Dagger Imp", "position": [37, 10], "health": 40, "attack": 10, "xp": 130, "inactive": false },
+        { "name": "Blood Phantom", "position": [41, 12], "health": 90, "attack": 18, "xp": 300, "inactive": false },
+        { "name": "Chimera Hatchling", "position": [33, 15], "health": 75, "attack": 15, "xp": 220, "inactive": false },
+        { "name": "Nightmare Stalker", "position": [45, 16], "health": 95, "attack": 22, "xp": 350, "inactive": false },
+        { "name": "Gargoyle Sentinel", "position": [15, 17], "health": 120, "attack": 13, "xp": 400, "inactive": false },
+        { "name": "Undead Warlord", "position": [49, 23], "health": 150, "attack": 25, "xp": 600, "inactive": false },
+        { "name": "Vampiric Shade", "position": [18, 25], "health": 110, "attack": 19, "xp": 340, "inactive": false },
+        { "name": "Storm Revenant", "position": [43, 25], "health": 130, "attack": 21, "xp": 450, "inactive": false }
       ],
       "items": [
         { "itemName": "Ring of Power", "itemPosition": [10, 10], "itemDescription": "Grants strength.", "itemCategory": "Weapon", "itemEffectValue": 25, "itemHidden": false, "itemInactive": false, "itemUses": null },
         { "itemName": "Potion of Flight", "itemPosition": [15, 15], "itemDescription": "Grants temporary flight.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
-        { "itemName": "Iron Key", "itemPosition": [35, 5], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 1 }
+        { "itemName": "Iron Key", "itemPosition": [35, 5], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 1 },
+        { "itemName": "Shadowfang Dagger", "itemPosition": [48, 2], "itemDescription": "A dagger imbued with dark energy.", "itemCategory": "Weapon", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Amulet of Fortitude", "itemPosition": [18, 3], "itemDescription": "Increases resilience against attacks.", "itemCategory": "Armor", "itemEffectValue": 10, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Elven Longbow", "itemPosition": [27, 4], "itemDescription": "A finely crafted longbow with increased accuracy.", "itemCategory": "Range", "itemEffectValue": 20, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Potion of Invisibility", "itemPosition": [30, 4], "itemDescription": "Makes you invisible to monsters for a short time.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Scroll of Fireball", "itemPosition": [5, 5], "itemDescription": "Casts a powerful fireball at enemies.", "itemCategory": "Range", "itemEffectValue": 35, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Ring of Vitality", "itemPosition": [47, 5], "itemDescription": "Gradually restores health over time.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Steel Warhammer", "itemPosition": [19, 9], "itemDescription": "A heavy hammer capable of crushing armor.", "itemCategory": "Weapon", "itemEffectValue": 30, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Sapphire Pendant", "itemPosition": [36, 11], "itemDescription": "Magically enhances resistance.", "itemCategory": "Armor", "itemEffectValue": 12, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Phoenix Feather", "itemPosition": [45, 12], "itemDescription": "Revives you upon death once.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Scroll of Lightning", "itemPosition": [30, 15], "itemDescription": "Summons a bolt of lightning to strike enemies.", "itemCategory": "Range", "itemEffectValue": 40, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Plate Armor", "itemPosition": [19, 17], "itemDescription": "Provides excellent protection against attacks.", "itemCategory": "Armor", "itemEffectValue": 20, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Bloodstone Ring", "itemPosition": [39, 23], "itemDescription": "Absorbs a portion of damage dealt to enemies.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Twinfang Blades", "itemPosition": [46, 23], "itemDescription": "A pair of razor-sharp blades, striking twice.", "itemCategory": "Weapon", "itemEffectValue": 22, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Silver Key", "itemPosition": [1, 25], "itemDescription": "A finely crafted key, unlocking hidden doors.", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Tome of Arcane Knowledge", "itemPosition": [7, 25], "itemDescription": "Increases magical capabilities permanently.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
+        { "itemName": "Gauntlets of Titan Strength", "itemPosition": [11, 25], "itemDescription": "Grants immense physical power.", "itemCategory": "Armor", "itemEffectValue": 18, "itemHidden": false, "itemInactive": false, "itemUses": null }
       ],
       "doors": [
         { "doorPosition": [7, 4], "doorLocked": false },
@@ -407,10 +450,69 @@
         { "doorPosition": [9, 9], "doorLocked": true },
         { "doorPosition": [7, 10], "doorLocked": false },
         { "doorPosition": [22, 10], "doorLocked": false },
-        { "doorPosition": [38, 10], "doorLocked": false }
+        { "doorPosition": [38, 10], "doorLocked": false },
+        { "doorPosition": [8, 19], "doorLocked": true }
       ],
-      "npcs": [],
-      "triggers": []
+      "npcs": [
+        { "npcName": "Monster trainer", "npcPosition": [43, 18], "npcMessage": "I have trained these monsters well, beware!" },
+        { "npcName": "Beggar", "npcPosition": [3, 19], "npcMessage": "Can you can spare some copper?" }
+      ],
+      "triggers": [
+        {
+          "triggerType": "position",
+          "target": [20, 21],
+          "requiredItems": null,
+          "triggerItemName": null,
+          "triggerNpcName": null,
+          "message": "You stepped on a special tile!",
+          "recurring": true,
+          "actions": [
+            {
+              "actionType": "shiftTile",
+              "actionPosition": [16, 21],
+              "actionItemName": null,
+              "actionMonsterName": null,
+              "actionTileType": ".",
+              "actionMessage": null
+            },
+            {
+              "actionType": "displayMessage",
+              "actionPosition": null,
+              "actionItemName": null,
+              "actionMonsterName": null,
+              "actionTileType": null,
+              "actionMessage": "A new exit appears."
+            }
+          ]
+        },
+        {
+          "triggerType": "position",
+          "target": [18, 21],
+          "requiredItems": null,
+          "triggerItemName": null,
+          "triggerNpcName": null,
+          "message": "You stepped on a special tile!",
+          "recurring": true,
+          "actions": [
+            {
+              "actionType": "shiftTile",
+              "actionPosition": [16, 21],
+              "actionItemName": null,
+              "actionMonsterName": null,
+              "actionTileType": "#",
+              "actionMessage": null
+            },
+            {
+              "actionType": "displayMessage",
+              "actionPosition": null,
+              "actionItemName": null,
+              "actionMonsterName": null,
+              "actionTileType": null,
+              "actionMessage": "The new exit disappears."
+            }
+          ]
+        }
+      ]
     },
     {
       "levelNumber": 4,

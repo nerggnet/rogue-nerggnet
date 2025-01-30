@@ -283,11 +283,11 @@ executeCommand ":heal" = do -- Cheat
     state <- get
     let plyr = Game.player state
         playerCurrentMaxHealth = Game.xpHealth (Game.xpLevels state !! (Game.playerXPLevel plyr - 1))
-    modify (\s -> s { Game.player = plyr { Game.health = playerCurrentMaxHealth } } )
+    modify (\s -> s { Game.player = plyr { Game.health = playerCurrentMaxHealth }, Game.gameOver = False } )
 executeCommand ":super" = do -- Cheat a lot
     state <- get
     let plyr = Game.player state
-    modify (\s -> s { Game.player = plyr { Game.health = 1000, Game.attack = 100, Game.resistance = 100 } } )
+    modify (\s -> s { Game.player = plyr { Game.health = 1000, Game.attack = 100, Game.resistance = 100 }, Game.gameOver = False } )
 executeCommand cmd  = modify (\s -> s { Game.message = ("Unknown command: " ++ cmd) : Game.message s })
 
 -- Safe init for empty lists
@@ -381,7 +381,10 @@ combat state mnstr playerGoesFirst =
       updatedPlayerWithXP = if Game.mHealth mnstr - playerDamage <= 0
                             then updatedPlayer { Game.xp = Game.xp updatedPlayer + Game.mXP mnstr }
                             else updatedPlayer
-      (updatedPlayerWithXPAndPossibleNewLevel, levelUpMessages) = levelUp updatedPlayerWithXP (Game.xpLevels state)
+      (updatedPlayerWithXPAndPossibleNewLevel, levelUpMessages) =
+          if isDead
+          then (updatedPlayerWithXP, [])
+          else levelUp updatedPlayerWithXP (Game.xpLevels state)
       completeMessage = levelUpMessages ++ combatMessages ++ Game.message state
   in if Game.mInactive mnstr
      then state
