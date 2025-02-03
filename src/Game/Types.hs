@@ -138,6 +138,7 @@ data Action
   | ConsumeItem String               -- Remove item from inventory
   | AddToInventory String            -- Add an item to the player's inventory
   | DisplayMessage String            -- Message to display
+  | SetGameWon                       -- Indicate that the game has been won
   deriving (Show, Eq, Generic)
 
 instance ToJSON Action
@@ -233,6 +234,7 @@ data GameState = GameState
   , lastInteractedNpc :: Maybe String
   , aimingState       :: Maybe AimingState
   , gameOver          :: Bool
+  , gameWon           :: Bool
   } deriving (Generic)
 
 instance ToJSON GameState

@@ -12,6 +12,7 @@ import Control.Lens ((^.))
 -- Draw the UI
 drawUI :: GameState -> [Widget ()]
 drawUI state =
+  [ drawVictoryScreen | gameWon state ] ++
   [ drawLegendPopup | showLegend state ] ++
   [ vBox
       [ drawTitleBar
@@ -100,6 +101,17 @@ drawTile UpStair   = withAttr (attrName "upStair") $ str "<"
 drawTile DownStair = withAttr (attrName "downStair") $ str ">"
 drawTile Start     = str "."
 drawTile Death     = str "†"
+
+-- Draw the victory screen as a popup
+drawVictoryScreen :: Widget ()
+drawVictoryScreen =
+  C.centerLayer $
+    B.borderWithLabel (str "Victory") $
+      padAll 2 $ vBox
+        [ C.hCenter $ str "Congratulations!"
+        , C.hCenter $ str "You have won the game!"
+        , C.hCenter $ str "Press :q to exit."
+        ]
 
 -- Draw the legend as a popup
 drawLegendPopup :: Widget ()

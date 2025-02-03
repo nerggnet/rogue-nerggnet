@@ -22,21 +22,22 @@ handleMovement key = do
     then handleCommandInput key
     else do
       isGameOver <- gets Game.gameOver
+      isGameWon <- gets Game.gameWon
       modify $ case key of
           KChar '?' -> \s -> s { Game.showLegend = not (Game.showLegend s) }
-          KChar c | c == 'w' || c == 'k' -> if isGameOver then id else movePlayer Game.North
-          KChar c | c == 's' || c == 'j' -> if isGameOver then id else movePlayer Game.South
-          KChar c | c == 'a' || c == 'h' -> if isGameOver then id else movePlayer Game.West
-          KChar c | c == 'd' || c == 'l' -> if isGameOver then id else movePlayer Game.East
-          KChar '<' -> if isGameOver then id else goUp
-          KChar '>' -> if isGameOver then id else goDown
-          KChar 'g' -> if isGameOver then id else pickUpItem
-          KChar 'u' -> if isGameOver then id else promptUseItem
+          KChar c | c == 'w' || c == 'k' -> if isGameWon || isGameOver then id else movePlayer Game.North
+          KChar c | c == 's' || c == 'j' -> if isGameWon || isGameOver then id else movePlayer Game.South
+          KChar c | c == 'a' || c == 'h' -> if isGameWon || isGameOver then id else movePlayer Game.West
+          KChar c | c == 'd' || c == 'l' -> if isGameWon || isGameOver then id else movePlayer Game.East
+          KChar '<' -> if isGameWon || isGameOver then id else goUp
+          KChar '>' -> if isGameWon || isGameOver then id else goDown
+          KChar 'g' -> if isGameWon || isGameOver then id else pickUpItem
+          KChar 'u' -> if isGameWon || isGameOver then id else promptUseItem
           KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
           _ -> id
-      modify $ if isGameOver then id else moveMonsters
-      modify $ if isGameOver then id else monstersAttack
-      modify $ if isGameOver then id else processTriggers
+      modify $ if isGameWon || isGameOver then id else moveMonsters
+      modify $ if isGameWon || isGameOver then id else monstersAttack
+      modify $ if isGameWon || isGameOver then id else processTriggers
       -- Move NPCs every third keypress
       kyprssCnt <- gets Game.keyPressCount
       when (kyprssCnt == 0) $ modify moveNPCs
@@ -625,5 +626,8 @@ executeAction state (Game.AddToInventory itemName) =
             in state { Game.player = updatedPlayer
                      , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
                      , Game.message = ("Added " ++ itemName ++ " to your inventory.") : Game.message state }
+
+executeAction state Game.SetGameWon =
+  state { Game.gameWon = True, Game.message = "Congratulations! You have won the game!" : Game.message state }
 
 --executeAction _ _ = error "Undefined trigger action"

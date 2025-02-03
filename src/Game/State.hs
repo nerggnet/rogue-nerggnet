@@ -65,6 +65,7 @@ initGame (Left config) =
         , lastInteractedNpc = Nothing
         , aimingState = Nothing
         , gameOver = False
+        , gameWon = False
         }
       updatedWorld = updateVisibility initialPlayer defaultFogRadius initialWorld
   in initialState { levels = replaceLevel initialState 0 updatedWorld }
@@ -434,6 +435,7 @@ transformJSONAction jsonAction = case FT.actionType jsonAction of
     case FT.actionItemName jsonAction of
       Just name -> AddToInventory name
       _ -> error "Invalid addToInventory action"
+  "setGameWon" -> SetGameWon
   _ -> error $ "Unknown action type: " ++ FT.actionType jsonAction
 
 validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> [Trigger]
