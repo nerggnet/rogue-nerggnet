@@ -52,11 +52,12 @@
         { "name": "Vicous Rat", "position": [3, 1], "health": 8, "attack": 3, "xp": 15, "inactive": true }
       ],
       "items": [
-        { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores 20 HP.", "itemCategory": "Healing", "itemEffectValue": 60, "itemHidden": false, "itemInactive": false, "itemUses": 3 },
+        { "itemName": "Health Potion", "itemPosition": [6, 5], "itemDescription": "Restores HP.", "itemCategory": "Healing", "itemEffectValue": 60, "itemHidden": false, "itemInactive": false, "itemUses": 3 },
         { "itemName": "Sword", "itemPosition": [11, 20], "itemDescription": "A sharp blade.", "itemCategory": "Weapon", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false, "itemUses": null },
         { "itemName": "Lesser Bow", "itemPosition": [10, 7], "itemDescription": "A simple bow.", "itemCategory": "Range", "itemEffectValue": 7, "itemHidden": false, "itemInactive": false, "itemUses": 5 },
         { "itemName": "Gold Coin", "itemPosition": [8, 25], "itemDescription": "Shiny and valuable.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
         { "itemName": "Magic Ring", "itemPosition": [18, 3], "itemDescription": "A ring that glows faintly.", "itemCategory": "Special", "itemEffectValue": 10, "itemHidden": true, "itemInactive": false, "itemUses": null },
+        { "itemName": "Health Potion", "itemPosition": [40, 25], "itemDescription": "Restores HP.", "itemCategory": "Healing", "itemEffectValue": 60, "itemHidden": false, "itemInactive": false, "itemUses": 2 },
         { "itemName": "Dark Sword", "itemPosition": [49, 25], "itemDescription": "A nasty looking blade.", "itemCategory": "Weapon", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true, "itemUses": null },
         { "itemName": "Mithril Shield", "itemPosition": [0, 0], "itemDescription": "A mighty shield.", "itemCategory": "Armor", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true, "itemUses": null }
       ],

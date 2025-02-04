@@ -79,7 +79,6 @@ goDown state =
          else state { Game.message = "You are already on the bottom level." : Game.message state }
        _ -> state { Game.message = "No stairs to go down here!" : Game.message state }
 
--- Pick up an item at the player's position
 pickUpItem :: Game.GameState -> Game.GameState
 pickUpItem state =
   let currentWorld = Game.levels state !! Game.currentLevel state
@@ -89,11 +88,28 @@ pickUpItem state =
   in case itemsOnTile of
        [] -> state { Game.message = "There is nothing to pick up here." : Game.message state }
        (item:_) ->
-         state
-           { Game.levels = replaceLevel state (Game.currentLevel state) currentWorld { Game.items = remainingItems }
-           , Game.player = (Game.player state) { Game.inventory = item : Game.inventory (Game.player state) }
-           , Game.message = ("You picked up: " ++ Game.iName item) : Game.message state
-           }
+         let existingStackableItem = find
+               (\invItem -> Game.iName invItem == Game.iName item
+                        && Game.iCategory invItem == Game.iCategory item
+                        && Game.iEffectValue invItem == Game.iEffectValue item
+                        && Game.iUses invItem /= Nothing)
+               (Game.inventory (Game.player state))
+
+             updatedInventory = case (existingStackableItem, Game.iUses item) of
+               (Just invItem, Just uses) ->
+                 map (\i -> if i == invItem
+                            then i { Game.iUses = fmap (+ uses) (Game.iUses i) }
+                            else i)
+                     (Game.inventory (Game.player state))
+               _ -> item : Game.inventory (Game.player state)  -- Add as a new item if not stackable
+
+             updatedPlayer = (Game.player state) { Game.inventory = updatedInventory }
+             updatedWorld = currentWorld { Game.items = remainingItems }
+         in state
+              { Game.player = updatedPlayer
+              , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+              , Game.message = ("You picked up: " ++ Game.iName item) : Game.message state
+              }
 
 -- Player has requested to use an item, prompt which item to use
 promptUseItem :: Game.GameState -> Game.GameState
