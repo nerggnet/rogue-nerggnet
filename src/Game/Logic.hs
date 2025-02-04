@@ -33,6 +33,7 @@ handleMovement key = do
           KChar '>' -> if isGameWon || isGameOver then id else goDown
           KChar 'g' -> if isGameWon || isGameOver then id else pickUpItem
           KChar 'u' -> if isGameWon || isGameOver then id else promptUseItem
+          KChar 'x' -> if isGameWon || isGameOver then id else promptDropItem
           KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
           _ -> id
       modify $ if isGameWon || isGameOver then id else moveMonsters
@@ -118,7 +119,18 @@ promptUseItem state =
   in if null inv
        then state { Game.message = "Your inventory is empty." : Game.message state }
        else state { Game.message = "Press a key to use an item." : Game.message state
-                  , Game.commandMode = True }
+                  , Game.commandMode = True
+                  , Game.inventoryMode = Just Game.UseMode }
+
+-- Player has requested to drop an item, prompt which item to drop
+promptDropItem :: Game.GameState -> Game.GameState
+promptDropItem state =
+  let inv = Game.inventory (Game.player state)
+  in if null inv
+       then state { Game.message = "Your inventory is empty." : Game.message state }
+       else state { Game.message = "Press a key to drop an item." : Game.message state
+                  , Game.commandMode = True
+                  , Game.inventoryMode = Just Game.DropMode }
 
 -- Handle the usage of an item from the inventory
 useItem :: Game.Item -> Game.GameState -> Game.GameState
@@ -181,12 +193,32 @@ useItem itm state =
         Game.Special ->
           state { Game.message = ("You used " ++ Game.iName itm ++ ". Its effect is mysterious.")
                                : Game.message state }
-   in updatedState
+   in updatedState { Game.inventoryMode = Nothing }
 
 -- Helper function: Check adjacency
 isAdjacent :: V2 Int -> V2 Int -> Bool
 isAdjacent (V2 x1 y1) (V2 x2 y2) =
   abs (x1 - x2) + abs (y1 - y2) == 1
+
+-- Handle the case where the player wants to drop an item from the inventory
+dropItem :: Game.Item -> Game.GameState -> Game.GameState
+dropItem item state =
+  let plyr = Game.player state
+      currentWorld = Game.levels state !! Game.currentLevel state
+      playerPos = Game.position plyr
+      itemsOnTile = filter (\i -> Game.iPosition i == playerPos && not (Game.iInactive i)) (Game.items currentWorld)
+
+  in if not (null itemsOnTile)
+     then state { Game.message = "You cannot drop an item here, the space is occupied!" : Game.message state }
+     else
+       let updatedInventory = filter (/= item) (Game.inventory plyr)
+           droppedItem = item { Game.iPosition = playerPos, Game.iInactive = False }
+           updatedWorld = currentWorld { Game.items = droppedItem : Game.items currentWorld }
+       in state { Game.player = plyr { Game.inventory = updatedInventory }
+                , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+                , Game.message = ("You dropped: " ++ Game.iName item) : Game.message state
+                , Game.inventoryMode = Nothing
+                }
 
 -- Range attack handling (getVisibleMonsters, monsterList, executeRangedAttack, calculateRangedDamage)
 getVisibleMonsters :: Game.GameState -> [(Char, Game.Monster)]
@@ -273,7 +305,11 @@ handleCommandInput key = do
                 eqpdWeapon = Game.equippedWeapon (Game.player state)
                 eqpdArmor = Game.equippedArmor (Game.player state)
             case lookup c (keyedInventory inventory eqpdWeapon eqpdArmor) of
-              Just item -> modify (useItem item) -- Use the selected item
+              Just item -> do
+                case Game.inventoryMode state of
+                  Just Game.UseMode -> modify (useItem item) -- Use the selected item
+                  Just Game.DropMode -> modify (dropItem item) -- Drop the selected item
+                  Nothing -> modify (\s -> s { Game.message = "Use/Drop error" : Game.message s })
               Nothing   -> modify (\s -> s { Game.message = "Invalid selection." : Game.message s })
             modify (\s -> s { Game.commandMode = False }) -- Exit command mode after using an item
           KEsc -> modify (\s -> s { Game.commandMode = False }) -- Exit command mode without selecting

@@ -28,6 +28,11 @@ data ItemCategory = Armor | Weapon | Range | Healing | Special | Key deriving (E
 instance ToJSON ItemCategory
 instance FromJSON ItemCategory
 
+data InventoryMode = UseMode | DropMode deriving (Eq, Show, Generic)
+
+instance ToJSON InventoryMode
+instance FromJSON InventoryMode
+
 data Player = Player
   { position       :: V2 Int
   , health         :: Int
@@ -229,6 +234,7 @@ data GameState = GameState
   , message           :: [String]
   , commandBuffer     :: String
   , commandMode       :: Bool
+  , inventoryMode     :: Maybe InventoryMode
   , showLegend        :: Bool
   , keyPressCount     :: Int
   , lastInteractedNpc :: Maybe String

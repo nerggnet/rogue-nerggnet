@@ -49,7 +49,7 @@ startGame = do
 
   finalState <- runGame $ initGame gameState
   saveGame saveFile finalState
-  putStrLn "Game Over!"
+  putStrLn $ if Game.gameOver finalState then "Game Over!" else "Saving progress..."
 
 runGame :: Game.GameState -> IO Game.GameState
 runGame initialState = do

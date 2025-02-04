@@ -128,6 +128,7 @@ drawLegendPopup =
         , "> - Descend stairs/ladder"
         , "g - Pick up item"
         , "u - Use an item from inventory"
+        , "x - Drop an item from inventory"
         , ": - Enter command mode"
         , ":q - Quit the game"
         , ":restart - Restart the game"
