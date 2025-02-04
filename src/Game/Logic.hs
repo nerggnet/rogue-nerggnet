@@ -3,7 +3,7 @@ module Game.Logic where
 
 import Brick
 import Graphics.Vty (Key(..))
-import Game.State (defaultMonsterRadius, defaultFogRadius, updateVisibility, replaceLevel, manhattanDistance, initGame)
+import Game.State (defaultMonsterRadius, defaultFogRadius, maxInventorySize, updateVisibility, replaceLevel, manhattanDistance, initGame)
 import Game.GridUtils (updateTile)
 import File.MapIO (loadNewGame)
 import UI.Draw
@@ -84,6 +84,7 @@ pickUpItem :: Game.GameState -> Game.GameState
 pickUpItem state =
   let currentWorld = Game.levels state !! Game.currentLevel state
       playerPos = Game.position (Game.player state)
+      inventorySize = length (Game.inventory (Game.player state))
       (itemsOnTile, remainingItems) =
           partition (\item -> Game.iPosition item == playerPos && not (Game.iInactive item)) (Game.items currentWorld)
   in case itemsOnTile of
@@ -96,20 +97,22 @@ pickUpItem state =
                         && Game.iUses invItem /= Nothing)
                (Game.inventory (Game.player state))
 
-             updatedInventory = case (existingStackableItem, Game.iUses item) of
+             (invFull, invMsgs, updatedInventory) = case (existingStackableItem, Game.iUses item) of
                (Just invItem, Just uses) ->
-                 map (\i -> if i == invItem
+                 (False, ["You picked up: " ++ Game.iName item], map (\i -> if i == invItem
                             then i { Game.iUses = fmap (+ uses) (Game.iUses i) }
                             else i)
-                     (Game.inventory (Game.player state))
-               _ -> item : Game.inventory (Game.player state)  -- Add as a new item if not stackable
+                     (Game.inventory (Game.player state)))
+               _ -> if inventorySize >= maxInventorySize
+                    then (True, ["Your inventory is full! Drop an item before picking up more."], Game.inventory (Game.player state))
+                    else (False, ["You picked up: " ++ Game.iName item], item : Game.inventory (Game.player state))  -- Add as a new item if not stackable
 
              updatedPlayer = (Game.player state) { Game.inventory = updatedInventory }
-             updatedWorld = currentWorld { Game.items = remainingItems }
+             updatedWorld = if invFull then currentWorld else currentWorld { Game.items = remainingItems }
          in state
               { Game.player = updatedPlayer
               , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-              , Game.message = ("You picked up: " ++ Game.iName item) : Game.message state
+              , Game.message =  invMsgs ++ Game.message state
               }
 
 -- Player has requested to use an item, prompt which item to use

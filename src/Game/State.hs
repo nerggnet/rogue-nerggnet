@@ -12,12 +12,15 @@ import Data.List.Split (splitOn)
 import Data.Function ((&))
 import Text.Read (readMaybe)
 
--- Default values for monster and fog radii
+-- Default values for monster, fog radius, and inventory size
 defaultMonsterRadius :: Int
 defaultMonsterRadius = 4
 
 defaultFogRadius :: Int
 defaultFogRadius = 5
+
+maxInventorySize :: Int
+maxInventorySize = 15
 
 -- Initialize the game state
 initGame :: Either FT.GameConfig GameState -> GameState

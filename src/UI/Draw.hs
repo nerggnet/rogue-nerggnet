@@ -6,14 +6,15 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import Game.Types
+import Game.State (maxInventorySize)
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
 
 -- Draw the UI
 drawUI :: GameState -> [Widget ()]
 drawUI state =
-  [ drawVictoryScreen | gameWon state ] ++
   [ drawLegendPopup | showLegend state ] ++
+  [ drawVictoryScreen | gameWon state ] ++
   [ vBox
       [ drawTitleBar
       , hBox
@@ -152,13 +153,14 @@ drawStatsBox plyr =
 drawInventory :: Player -> Widget ()
 drawInventory plyr =
     hLimit 30 $
-      B.borderWithLabel (str "Inventory") $
+      B.borderWithLabel (str $ "Inventory " ++ "(" ++ show inventorySize ++ "/" ++ show maxInventorySize ++ ")") $
         padRight Max $
           if null inv
             then str "No items collected"
             else vBox $ map renderItem (keyedInventory inv eqpdWeapon eqpdArmor)
   where
     inv = inventory plyr
+    inventorySize = length inv
     eqpdWeapon = equippedWeapon plyr
     eqpdArmor = equippedArmor plyr
 
