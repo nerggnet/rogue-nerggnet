@@ -1,26 +1,13 @@
 -- src/Game/Logic.hs
 module Game.Logic where
 
-import Brick
-import Graphics.Vty (Key(..))
-import Game.State (defaultMonsterRadius, defaultFogRadius, maxInventorySize, updateVisibility, replaceLevel, manhattanDistance, initGame)
+import Game.State (defaultMonsterRadius, defaultFogRadius, maxInventorySize, updateVisibility, replaceLevel, manhattanDistance)
 import Game.GridUtils (updateTile)
-import File.MapIO (loadNewGame)
 import UI.Draw
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
-import Control.Monad (when)
-import Control.Monad.IO.Class (liftIO)
 import Data.List (find, partition)
-
--- Handle movement keys
-handleMovement :: Key -> EventM () Game.GameState ()
-handleMovement key = do
-  let keyChar = case key of
-        KChar c -> Just c
-        _       -> Nothing
-  modify (handleMovementInternal keyChar)
 
 handleMovementInternal :: Maybe Char -> Game.GameState -> Game.GameState
 handleMovementInternal key state =
@@ -296,24 +283,6 @@ calculateRangedDamage player monster rangedItem =
       totalDamage = max 0 (baseDamage + rangedBonus - monsterResistance)
   in totalDamage
 
-handleCommandInput :: Key -> EventM () Game.GameState ()
-handleCommandInput key = do
-  state <- get
-  let (keyChar, escPressed) = case key of
-        KChar c -> (Just c, False)
-        KEsc    -> (Nothing, True)
-        KEnter  -> (Just '\n', False)
-        KBS     -> (Just '\b', False)
-        _       -> (Nothing, False)
-  let stateModifier = handleCommandInputInternal keyChar escPressed state
-  modify stateModifier
-
-  -- Check to see if there is a command to execute
-  newState <- get
-  when (Game.commandToExecute newState) $ do
-    executeCommand (Game.commandBuffer newState)
-    modify (\s -> s { Game.commandToExecute = False, Game.commandBuffer = "" })  -- Clear buffer after execution
-
 handleCommandInputInternal :: Maybe Char -> Bool -> Game.GameState -> (Game.GameState -> Game.GameState)
 handleCommandInputInternal key esc state =
   case Game.aimingState state of
@@ -354,25 +323,6 @@ handleCommandInputInternal key esc state =
           Just Game.DropMode -> exitCommandMode $ dropItem item s
           Nothing -> addMessage "Use/Drop error" s
         Nothing -> addMessage "Invalid selection." s
-
--- Execute commands
-executeCommand :: String -> EventM () Game.GameState ()
-executeCommand ":q" = halt -- Quit the game
-executeCommand ":restart" = do -- Restart the game
-  newState <- liftIO loadNewGame
-  case newState of
-    Left _ -> put $ initGame newState -- $ Left (config { Game.message = ["Game restarted!"] } )
-    Right state -> put state
-executeCommand ":heal" = do -- Cheat
-    state <- get
-    let plyr = Game.player state
-        playerCurrentMaxHealth = Game.xpHealth (Game.xpLevels state !! (Game.playerXPLevel plyr - 1))
-    modify (\s -> s { Game.player = plyr { Game.health = playerCurrentMaxHealth }, Game.gameOver = False, Game.commandToExecute = False } )
-executeCommand ":super" = do -- Cheat a lot
-    state <- get
-    let plyr = Game.player state
-    modify (\s -> s { Game.player = plyr { Game.health = 1000, Game.attack = 100, Game.resistance = 100 }, Game.gameOver = False, Game.commandToExecute = False } )
-executeCommand cmd  = modify (\s -> s { Game.message = ("Unknown command: " ++ cmd) : Game.message s, Game.commandToExecute = False })
 
 -- Safe init for empty lists
 initSafe :: [a] -> [a]
