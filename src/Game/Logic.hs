@@ -17,32 +17,41 @@ import Data.List (find, partition)
 -- Handle movement keys
 handleMovement :: Key -> EventM () Game.GameState ()
 handleMovement key = do
-  isAiming <- gets (maybe False (const True) . Game.aimingState)
-  if isAiming
-    then handleCommandInput key
-    else do
-      isGameOver <- gets Game.gameOver
-      isGameWon <- gets Game.gameWon
-      modify $ case key of
-          KChar '?' -> \s -> s { Game.showLegend = not (Game.showLegend s) }
-          KChar c | c == 'w' || c == 'k' -> if isGameWon || isGameOver then id else movePlayer Game.North
-          KChar c | c == 's' || c == 'j' -> if isGameWon || isGameOver then id else movePlayer Game.South
-          KChar c | c == 'a' || c == 'h' -> if isGameWon || isGameOver then id else movePlayer Game.West
-          KChar c | c == 'd' || c == 'l' -> if isGameWon || isGameOver then id else movePlayer Game.East
-          KChar '<' -> if isGameWon || isGameOver then id else goUp
-          KChar '>' -> if isGameWon || isGameOver then id else goDown
-          KChar 'g' -> if isGameWon || isGameOver then id else pickUpItem
-          KChar 'u' -> if isGameWon || isGameOver then id else promptUseItem
-          KChar 'x' -> if isGameWon || isGameOver then id else promptDropItem
-          KChar ':' -> \s -> s { Game.commandMode = True, Game.commandBuffer = ":" }
-          _ -> id
-      modify $ if isGameWon || isGameOver then id else moveMonsters
-      modify $ if isGameWon || isGameOver then id else monstersAttack
-      modify $ if isGameWon || isGameOver then id else processTriggers
-      -- Move NPCs every third keypress
-      kyprssCnt <- gets Game.keyPressCount
-      when (kyprssCnt == 0) $ modify moveNPCs
-      modify (\s -> s { Game.message = take 10 (Game.message s) })
+  let keyChar = case key of
+        KChar c -> Just c
+        _       -> Nothing
+  modify (handleMovementInternal keyChar)
+
+handleMovementInternal :: Maybe Char -> Game.GameState -> Game.GameState
+handleMovementInternal key state =
+  case Game.aimingState state of
+    Just _ -> (handleCommandInputInternal key False state) state -- Delegate to aiming logic
+    Nothing ->
+      let isGameOverOrWon = Game.gameOver state || Game.gameWon state
+          newState = case key of
+            Just '?' -> state { Game.showLegend = not (Game.showLegend state) }
+            Just ':' -> state { Game.commandMode = True, Game.commandBuffer = ":" }
+            _ | isGameOverOrWon -> state -- Prevent movement if game is won/over (except '?' and ':')
+            Just c | c == 'w' || c == 'k' -> movePlayer Game.North state
+            Just c | c == 's' || c == 'j' -> movePlayer Game.South state
+            Just c | c == 'a' || c == 'h' -> movePlayer Game.West state
+            Just c | c == 'd' || c == 'l' -> movePlayer Game.East state
+            Just '<' -> goUp state
+            Just '>' -> goDown state
+            Just 'g' -> pickUpItem state
+            Just 'u' -> promptUseItem state
+            Just 'x' -> promptDropItem state
+            _ -> state
+      in if isGameOverOrWon then newState else processTurn newState
+
+processTurn :: Game.GameState -> Game.GameState
+processTurn state =
+  let state' = moveMonsters state
+      state'' = monstersAttack state'
+      state''' = processTriggers state''
+      kyprssCnt = Game.keyPressCount state'''
+      state'''' = if kyprssCnt == 0 then moveNPCs state''' else state'''
+  in state'''' { Game.message = take 10 (Game.message state'''') }
 
 -- Go up stairs
 goUp :: Game.GameState -> Game.GameState
