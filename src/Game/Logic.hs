@@ -287,45 +287,64 @@ calculateRangedDamage player monster rangedItem =
       totalDamage = max 0 (baseDamage + rangedBonus - monsterResistance)
   in totalDamage
 
--- Handle commands
 handleCommandInput :: Key -> EventM () Game.GameState ()
 handleCommandInput key = do
   state <- get
+  let (keyChar, escPressed) = case key of
+        KChar c -> (Just c, False)
+        KEsc    -> (Nothing, True)
+        KEnter  -> (Just '\n', False)
+        KBS     -> (Just '\b', False)
+        _       -> (Nothing, False)
+  let stateModifier = handleCommandInputInternal keyChar escPressed state
+  modify stateModifier
+
+  -- Check to see if there is a command to execute
+  newState <- get
+  when (Game.commandToExecute newState) $ do
+    executeCommand (Game.commandBuffer newState)
+    modify (\s -> s { Game.commandToExecute = False, Game.commandBuffer = "" })  -- Clear buffer after execution
+
+handleCommandInputInternal :: Maybe Char -> Bool -> Game.GameState -> (Game.GameState -> Game.GameState)
+handleCommandInputInternal key esc state =
   case Game.aimingState state of
-    Just (Game.AimingState rangedItem) -> do
-      let visibleMonsters = getVisibleMonsters state
+    Just (Game.AimingState rangedItem) ->
       case key of
-        KChar c | Just monster <- lookup c visibleMonsters -> do
-          modify $ \s -> executeRangedAttack s monster rangedItem
-          modify $ \s -> s { Game.aimingState = Nothing, Game.commandMode = False }
-        KEsc -> modify $ \s -> s { Game.aimingState = Nothing, Game.commandMode = False }
-        _ -> modify $ \s -> s { Game.message = "Invalid selection. Press ESC to cancel." : Game.message s }
-    Nothing -> do
-      if null (Game.commandBuffer state) -- Handle item selection if command buffer is empty
+        Just c | Just monster <- lookup c (getVisibleMonsters state) ->
+          \s -> exitAimingMode (executeRangedAttack s monster rangedItem)
+        _ | esc -> exitAimingMode
+        _ -> addMessage "Invalid selection. Press ESC to cancel."
+    Nothing ->
+      if null (Game.commandBuffer state)
         then case key of
-          KChar c -> do
-            let inventory = Game.inventory (Game.player state)
-                eqpdWeapon = Game.equippedWeapon (Game.player state)
-                eqpdArmor = Game.equippedArmor (Game.player state)
-            case lookup c (keyedInventory inventory eqpdWeapon eqpdArmor) of
-              Just item -> do
-                case Game.inventoryMode state of
-                  Just Game.UseMode -> modify (useItem item) -- Use the selected item
-                  Just Game.DropMode -> modify (dropItem item) -- Drop the selected item
-                  Nothing -> modify (\s -> s { Game.message = "Use/Drop error" : Game.message s })
-              Nothing   -> modify (\s -> s { Game.message = "Invalid selection." : Game.message s })
-            modify (\s -> s { Game.commandMode = False }) -- Exit command mode after using an item
-          KEsc -> modify (\s -> s { Game.commandMode = False }) -- Exit command mode without selecting
-          _ -> return () -- No-op for other keys
+          Just c -> processInventorySelection c
+          _ | esc -> exitCommandMode
+          _ -> id
         else case key of
-          KChar c   -> modify (\s -> s { Game.commandBuffer = Game.commandBuffer s ++ [c] })     -- Add to command buffer
-          KBS       -> modify (\s -> s { Game.commandBuffer = initSafe (Game.commandBuffer s) }) -- Backspace
-          KEnter    -> do
-            cmd <- gets Game.commandBuffer
-            executeCommand cmd
-            modify (\s -> s { Game.commandMode = False, Game.commandBuffer = "" }) -- Exit command mode after execution
-          KEsc      -> modify (\s -> s { Game.commandMode = False, Game.commandBuffer = "" }) -- Exit command mode without executing
-          _         -> return () -- No-op for other keys
+          Just '\n' -> markCommandForExecution
+          Just '\b' -> removeLastCommandChar
+          Just c   -> appendToCommandBuffer c
+          Nothing | esc -> exitCommandModeAndClearBuffer
+          Nothing -> id
+  where
+    exitAimingMode s = s { Game.aimingState = Nothing, Game.commandMode = False }
+    exitCommandMode s = s { Game.commandMode = False }
+    exitCommandModeAndClearBuffer s = s { Game.commandMode = False, Game.commandBuffer = "" }
+    appendToCommandBuffer c s = s { Game.commandBuffer = Game.commandBuffer s ++ [c] }
+    removeLastCommandChar s = s { Game.commandBuffer = initSafe (Game.commandBuffer s) }
+    addMessage msg s = s { Game.message = msg : Game.message s }
+    markCommandForExecution s = s { Game.commandMode = False, Game.commandToExecute = True }
+
+    processInventorySelection c s =
+      let inventory = Game.inventory (Game.player s)
+          eqpdWeapon = Game.equippedWeapon (Game.player s)
+          eqpdArmor = Game.equippedArmor (Game.player s)
+      in case lookup c (keyedInventory inventory eqpdWeapon eqpdArmor) of
+        Just item -> case Game.inventoryMode s of
+          Just Game.UseMode  -> exitCommandMode $ useItem item s
+          Just Game.DropMode -> exitCommandMode $ dropItem item s
+          Nothing -> addMessage "Use/Drop error" s
+        Nothing -> addMessage "Invalid selection." s
 
 -- Execute commands
 executeCommand :: String -> EventM () Game.GameState ()
@@ -339,12 +358,12 @@ executeCommand ":heal" = do -- Cheat
     state <- get
     let plyr = Game.player state
         playerCurrentMaxHealth = Game.xpHealth (Game.xpLevels state !! (Game.playerXPLevel plyr - 1))
-    modify (\s -> s { Game.player = plyr { Game.health = playerCurrentMaxHealth }, Game.gameOver = False } )
+    modify (\s -> s { Game.player = plyr { Game.health = playerCurrentMaxHealth }, Game.gameOver = False, Game.commandToExecute = False } )
 executeCommand ":super" = do -- Cheat a lot
     state <- get
     let plyr = Game.player state
-    modify (\s -> s { Game.player = plyr { Game.health = 1000, Game.attack = 100, Game.resistance = 100 }, Game.gameOver = False } )
-executeCommand cmd  = modify (\s -> s { Game.message = ("Unknown command: " ++ cmd) : Game.message s })
+    modify (\s -> s { Game.player = plyr { Game.health = 1000, Game.attack = 100, Game.resistance = 100 }, Game.gameOver = False, Game.commandToExecute = False } )
+executeCommand cmd  = modify (\s -> s { Game.message = ("Unknown command: " ++ cmd) : Game.message s, Game.commandToExecute = False })
 
 -- Safe init for empty lists
 initSafe :: [a] -> [a]

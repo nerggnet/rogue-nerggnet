@@ -63,6 +63,7 @@ initGame (Left config) =
         , message = ["Welcome to Rogue nerggnet!"]
         , commandBuffer = ""
         , commandMode = False
+        , commandToExecute = False
         , inventoryMode = Nothing
         , showLegend = False
         , keyPressCount = 0

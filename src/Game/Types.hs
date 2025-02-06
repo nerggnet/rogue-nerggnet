@@ -234,6 +234,7 @@ data GameState = GameState
   , message           :: [String]
   , commandBuffer     :: String
   , commandMode       :: Bool
+  , commandToExecute  :: Bool
   , inventoryMode     :: Maybe InventoryMode
   , showLegend        :: Bool
   , keyPressCount     :: Int
