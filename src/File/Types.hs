@@ -73,6 +73,7 @@ instance ToJSON JSONItem
 data JSONDoorEntity = JSONDoorEntity
   { doorPosition :: (Int, Int)
   , doorLocked   :: Bool
+  , doorKeyName  :: String
   } deriving (Show, Generic)
 
 instance FromJSON JSONDoorEntity

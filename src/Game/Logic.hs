@@ -131,38 +131,36 @@ promptDropItem state =
                   , Game.commandMode = True
                   , Game.inventoryMode = Just Game.DropMode }
 
+-- Helper to reduce item uses or remove it if depleted
+reduceUses :: Game.Item -> [Game.Item] -> [Game.Item]
+reduceUses itm inventory =
+  filter (\item -> Game.iUses item /= Just 0) $
+  map (updateUses itm) inventory
+
 -- Handle the usage of an item from the inventory
 useItem :: Game.Item -> Game.GameState -> Game.GameState
 useItem itm state =
   let plyr = Game.player state
       doorToUnlock = find (isAdjacent (Game.position plyr) . Game.dePosition)
-                          (Game.doors (Game.levels state !! Game.currentLevel state))
+                          (filter (\d -> Game.deLocked d) (Game.doors (Game.levels state !! Game.currentLevel state)))
       recalculateEffectiveStats p = p
         { Game.attack = Game.baseAttack p + maybe 0 Game.iEffectValue (Game.equippedWeapon p)
         , Game.resistance = Game.baseResistance p + maybe 0 Game.iEffectValue (Game.equippedArmor p) }
-
-      -- Helper to reduce item uses or remove it if depleted
-      reduceUses inventory =
-        filter (\item -> Game.iUses item /= Just 0) $
-        map (updateUses itm) inventory
 
       updatedState = case Game.iCategory itm of
         Game.Healing ->
           let playerCurrentMaxHealth = Game.xpHealth (Game.xpLevels state !! (Game.playerXPLevel plyr - 1))
               healedHealth = min playerCurrentMaxHealth (Game.health plyr + Game.iEffectValue itm)
            in state { Game.player = plyr { Game.health = healedHealth
-                                        , Game.inventory = reduceUses (Game.inventory plyr) }
+                                        , Game.inventory = reduceUses itm (Game.inventory plyr) }
                     , Game.message = ("You used " ++ Game.iName itm ++ " and recovered "
                                      ++ show (Game.iEffectValue itm) ++ " HP.") : Game.message state }
         Game.Key ->
           case doorToUnlock of
-            Just door ->
-              let updatedDoors = map (\d -> if d == door then d { Game.deLocked = False } else d)
-                                      (Game.doors (Game.levels state !! Game.currentLevel state))
-                  updatedWorld = (Game.levels state !! Game.currentLevel state) { Game.doors = updatedDoors }
-               in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-                        , Game.player = plyr { Game.inventory = reduceUses (Game.inventory plyr) }
-                        , Game.message = ("You used " ++ Game.iName itm ++ " to unlock a door!") : Game.message state }
+            Just door | Game.iName itm == Game.deKeyName door ->
+              unlockDoor state plyr door itm
+            Just _ ->
+              state { Game.message = "This key does not fit the lock!" : Game.message state }
             Nothing ->
               state { Game.message = "There is no door nearby to unlock." : Game.message state }
         Game.Weapon ->
@@ -198,6 +196,18 @@ useItem itm state =
 isAdjacent :: V2 Int -> V2 Int -> Bool
 isAdjacent (V2 x1 y1) (V2 x2 y2) =
   abs (x1 - x2) + abs (y1 - y2) == 1
+
+-- Helper function to actually unlock a door using a specific key
+unlockDoor :: Game.GameState -> Game.Player -> Game.DoorEntity -> Game.Item -> Game.GameState
+unlockDoor state plyr door key =
+  let updatedDoors = map (\d -> if d == door then d { Game.deLocked = False } else d)
+                           (Game.doors (Game.levels state !! Game.currentLevel state))
+      updatedWorld = (Game.levels state !! Game.currentLevel state) { Game.doors = updatedDoors }
+      updatedInventory = reduceUses key (Game.inventory plyr) -- Remove or decrement key stack
+      updatedPlayer = plyr { Game.inventory = updatedInventory }
+  in state { Game.player = updatedPlayer
+           , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+           , Game.message = ("You used " ++ Game.iName key ++ " to unlock the door!") : Game.message state }
 
 -- Handle the case where the player wants to drop an item from the inventory
 dropItem :: Game.Item -> Game.GameState -> Game.GameState
@@ -270,7 +280,7 @@ executeRangedAttack state targetMonster rangedItem =
                       then "You gained " ++ show (sum (map Game.mXP defeatedMonsters)) ++ " XP!"
                       else ""
       completeMessages = levelUpMessages ++ [defeatMessage, xpGainMessage, attackMessage]
-      updatedPlayerWithReducedUsesForItem = updatedPlayer { Game.inventory = filter (\item -> Game.iUses item /= Just 0) $ map (updateUses rangedItem) (Game.inventory updatedPlayer) }
+      updatedPlayerWithReducedUsesForItem = updatedPlayer { Game.inventory = reduceUses rangedItem (Game.inventory updatedPlayer) }
   in state { Game.player = updatedPlayerWithReducedUsesForItem
            , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
            , Game.message = completeMessages ++ Game.message state }

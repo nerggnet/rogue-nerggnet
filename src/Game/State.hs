@@ -212,6 +212,7 @@ transformDoorEntity :: FT.JSONDoorEntity -> DoorEntity
 transformDoorEntity jsonDoor = DoorEntity
   { dePosition = uncurry V2 (FT.doorPosition jsonDoor)
   , deLocked   = FT.doorLocked jsonDoor
+  , deKeyName  = FT.doorKeyName jsonDoor
   }
 
 transformToSerializableTrigger :: FT.JSONTrigger -> SerializableTrigger

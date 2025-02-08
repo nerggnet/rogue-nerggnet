@@ -101,6 +101,7 @@ instance FromJSON Item
 data DoorEntity = DoorEntity
   { dePosition :: V2 Int
   , deLocked   :: Bool
+  , deKeyName  :: String
   } deriving (Show, Eq, Generic)
 
 instance ToJSON DoorEntity

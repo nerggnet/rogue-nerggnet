@@ -62,11 +62,11 @@
         { "itemName": "Mithril Shield", "itemPosition": [0, 0], "itemDescription": "A mighty shield.", "itemCategory": "Armor", "itemEffectValue": 20, "itemHidden": false, "itemInactive": true, "itemUses": null }
       ],
       "doors": [
-        { "doorPosition": [7, 4], "doorLocked": true },
-        { "doorPosition": [15, 4], "doorLocked": false },
-        { "doorPosition": [19, 6], "doorLocked": false },
-        { "doorPosition": [7, 10], "doorLocked": false },
-        { "doorPosition": [22, 10], "doorLocked": false }
+        { "doorPosition": [7, 4], "doorLocked": true, "doorKeyName": "Iron Key" },
+        { "doorPosition": [15, 4], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [19, 6], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [7, 10], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [22, 10], "doorLocked": false, "doorKeyName": "Iron Key" }
       ],
       "npcs": [
         { "npcName": "Friendly NPC", "npcPosition": [2, 2], "npcMessage": "Welcome to the dungeon!" }
@@ -333,23 +333,23 @@
         { "itemName": "Magic Scroll", "itemPosition": [20, 15], "itemDescription": "Contains a spell.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
         { "itemName": "Amulet", "itemPosition": [12, 25], "itemDescription": "Grants protection.", "itemCategory": "Armor", "itemEffectValue": 5, "itemHidden": false, "itemInactive": false, "itemUses": null },
         { "itemName": "Iron Key", "itemPosition": [17, 3], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 1 },
-        { "itemName": "Iron Key", "itemPosition": [30, 24], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 1 },
+        { "itemName": "Iron Key", "itemPosition": [30, 24], "itemDescription": "A set of sturdy keys", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 3 },
         { "itemName": "Iron Key", "itemPosition": [4, 11], "itemDescription": "Sturdy key", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 1 },
         { "itemName": "Greater Health Potion", "itemPosition": [43, 23], "itemDescription": "Restores 100 HP.", "itemCategory": "Healing", "itemEffectValue": 100, "itemHidden": false, "itemInactive": false, "itemUses": null },
         { "itemName": "Steel Armor", "itemPosition": [24, 16], "itemDescription": "Grants strong protection.", "itemCategory": "Armor", "itemEffectValue": 20, "itemHidden": false, "itemInactive": false, "itemUses": null },
         { "itemName": "Elven Bow", "itemPosition": [25, 11], "itemDescription": "A finely crafted bow.", "itemCategory": "Range", "itemEffectValue": 15, "itemHidden": false, "itemInactive": false, "itemUses": 15 },
         { "itemName": "Scroll of Fireball", "itemPosition": [36, 3], "itemDescription": "Casts a powerful fireball spell.", "itemCategory": "Special", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": null },
-        { "itemName": "Key chain", "itemPosition": [47, 13], "itemDescription": "A ring of keys.", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 4 }
+        { "itemName": "Iron Key", "itemPosition": [47, 13], "itemDescription": "A ring of keys.", "itemCategory": "Key", "itemEffectValue": 0, "itemHidden": false, "itemInactive": false, "itemUses": 4 }
       ],
       "doors": [
-        { "doorPosition": [7, 4], "doorLocked": false },
-        { "doorPosition": [15, 4], "doorLocked": false },
-        { "doorPosition": [26, 10], "doorLocked": true },
-        { "doorPosition": [26, 20], "doorLocked": false },
-        { "doorPosition": [31, 5], "doorLocked": true },
-        { "doorPosition": [32, 10], "doorLocked": false },
-        { "doorPosition": [36, 10], "doorLocked": false },
-        { "doorPosition": [39, 19], "doorLocked": true }
+        { "doorPosition": [7, 4], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [15, 4], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [26, 10], "doorLocked": true, "doorKeyName": "Iron Key" },
+        { "doorPosition": [26, 20], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [31, 5], "doorLocked": true, "doorKeyName": "Iron Key" },
+        { "doorPosition": [32, 10], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [36, 10], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [39, 19], "doorLocked": true, "doorKeyName": "Iron Key" }
       ],
       "npcs": [],
       "triggers": [
@@ -453,14 +453,14 @@
         { "itemName": "Gauntlets of Titan Strength", "itemPosition": [11, 25], "itemDescription": "Grants immense physical power.", "itemCategory": "Armor", "itemEffectValue": 18, "itemHidden": false, "itemInactive": false, "itemUses": null }
       ],
       "doors": [
-        { "doorPosition": [7, 4], "doorLocked": false },
-        { "doorPosition": [15, 4], "doorLocked": false },
-        { "doorPosition": [18, 5], "doorLocked": false },
-        { "doorPosition": [9, 9], "doorLocked": true },
-        { "doorPosition": [7, 10], "doorLocked": false },
-        { "doorPosition": [22, 10], "doorLocked": false },
-        { "doorPosition": [38, 10], "doorLocked": false },
-        { "doorPosition": [8, 19], "doorLocked": true }
+        { "doorPosition": [7, 4], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [15, 4], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [18, 5], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [9, 9], "doorLocked": true, "doorKeyName": "Iron Key" },
+        { "doorPosition": [7, 10], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [22, 10], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [38, 10], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [8, 19], "doorLocked": true, "doorKeyName": "Iron Key" }
       ],
       "npcs": [
         { "npcName": "Monster trainer", "npcPosition": [43, 18], "npcMessage": "I have trained these monsters well, beware!" },
@@ -561,12 +561,12 @@
         { "itemName": "Orb of Power", "itemPosition": [10, 10], "itemDescription": "Grants immense power.", "itemCategory": "Weapon", "itemEffectValue": 40, "itemHidden": false, "itemInactive": false, "itemUses": null }
       ],
       "doors": [
-        { "doorPosition": [7, 4], "doorLocked": false },
-        { "doorPosition": [18, 4], "doorLocked": false },
-        { "doorPosition": [7, 10], "doorLocked": false },
-        { "doorPosition": [22, 10], "doorLocked": false },
-        { "doorPosition": [38, 10], "doorLocked": false },
-        { "doorPosition": [25, 12], "doorLocked": false }
+        { "doorPosition": [7, 4], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [18, 4], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [7, 10], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [22, 10], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [38, 10], "doorLocked": false, "doorKeyName": "Iron Key" },
+        { "doorPosition": [25, 12], "doorLocked": false, "doorKeyName": "Iron Key" }
       ],
       "npcs": [],
       "triggers": []
@@ -615,8 +615,8 @@
         { "itemName": "Mystic Wand", "itemPosition": [39, 16], "itemDescription": "A wand of immense power.", "itemCategory": "Weapon", "itemEffectValue": 20, "itemHidden": false, "itemInactive": false, "itemUses": null }
       ],
       "doors": [
-        { "doorPosition": [25, 4], "doorLocked": true },
-        { "doorPosition": [36, 10], "doorLocked": false }
+        { "doorPosition": [25, 4], "doorLocked": true, "doorKeyName": "Iron Key" },
+        { "doorPosition": [36, 10], "doorLocked": false, "doorKeyName": "Iron Key" }
       ],
       "npcs": [
         { "npcName": "Old Wizard", "npcPosition": [30, 10], "npcMessage": "Beware of the Fire Elemental!" }
