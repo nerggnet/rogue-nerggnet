@@ -1,5 +1,5 @@
 -- src/UI/Draw.hs
-module UI.Draw (drawUI, keyedInventory) where
+module UI.Draw (drawUI) where
 
 import Brick
 import qualified Brick.Widgets.Center as C
@@ -7,6 +7,7 @@ import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import Game.Types
 import Game.State (maxInventorySize)
+import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
 
@@ -173,17 +174,6 @@ drawInventory plyr =
                        Just uses -> " (" ++ show uses ++ ")"
                        Nothing   -> ""
       in str [key, ')', ' '] <+> str (iName itm ++ usesText ++ equippedMarker)
-
--- Generate a list of (key, item) pairs with equipped items on top
-keyedInventory :: [Item] -> Maybe Item -> Maybe Item -> [(Char, Item)]
-keyedInventory inv eqpdWeapon eqpdArmor =
-  let equippedItems = concatMap maybeToList [eqpdWeapon, eqpdArmor]
-      unequippedItems = filter (`notElem` equippedItems) inv
-      prioritizedItems = equippedItems ++ unequippedItems
-  in zip ['a'..] prioritizedItems
-  where
-    maybeToList Nothing = []
-    maybeToList (Just x) = [x]
 
 -- Draw messages/log
 drawMessages :: [String] -> Widget ()

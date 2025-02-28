@@ -2,8 +2,7 @@
 module Game.Logic where
 
 import Game.State (defaultMonsterRadius, defaultFogRadius, maxInventorySize, updateVisibility, replaceLevel, manhattanDistance)
-import Game.GridUtils (updateTile)
-import UI.Draw
+import Game.GridUtils (updateTile, keyedInventory)
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
