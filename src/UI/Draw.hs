@@ -6,10 +6,9 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import Game.Types
-import Game.State (maxInventorySize)
+import Game.State (maxInventorySize, visibleMonsters)
 import Game.GridUtils (keyedInventory)
-import Linear.V2 (V2(..), _x, _y)
-import Control.Lens ((^.))
+import Linear.V2 (V2(..))
 
 -- Draw the UI
 drawUI :: GameState -> [Widget ()]
@@ -72,17 +71,15 @@ drawTileWithFog world plyr x y tile amngState
       withAttr (attrName "item") $ str "!"
   | any ((== V2 x y) . npcPosition) (npcs world) =
       withAttr (attrName "npc") $ str "N"
+  | V2 x y `elem` corpses world =
+      withAttr (attrName "corpse") $ str "†"
   | otherwise =
       drawTile tile
   where
     activeMonsters = filter (not . mInactive) (monsters world)
+    -- Shared with the ranged-targeting logic so the letters always agree.
     monsterPositionsWithLetters =
-      let visibleMonsters = filter (\m ->
-            let pos = mPosition m
-                px = pos ^. _x
-                py = pos ^. _y
-            in visibility world !! py !! px) activeMonsters
-      in zip (map mPosition visibleMonsters) ['a'..]
+      [(mPosition m, c) | (c, m) <- visibleMonsters world]
 
 -- Helper to render a hidden tile (e.g., in fog or discovered but not visible)
 drawTileHidden :: Tile -> Widget ()
@@ -92,7 +89,6 @@ drawTileHidden Door      = str "."  -- Doors appear as regular floor when hidden
 drawTileHidden UpStair   = str "."  -- Up stairs appear as regular floor when hidden
 drawTileHidden DownStair = str "."  -- Down stairs appear as regular floor when hidden
 drawTileHidden Start     = str "."  -- Starting position
-drawTileHidden Death     = str "."  -- Starting position
 
 -- Draw a single tile
 drawTile :: Tile -> Widget ()
@@ -102,7 +98,6 @@ drawTile Door      = withAttr (attrName "door") $ str "+"
 drawTile UpStair   = withAttr (attrName "upStair") $ str "<"
 drawTile DownStair = withAttr (attrName "downStair") $ str ">"
 drawTile Start     = str "."
-drawTile Death     = str "†"
 
 -- Draw the victory screen as a popup
 drawVictoryScreen :: Widget ()

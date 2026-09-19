@@ -30,6 +30,11 @@ withTempSave act = do
 freshGame :: IO GameState
 freshGame = initGame <$> loadNewGame
 
+-- Put a corpse on the current level, as combat would.
+withCorpse :: GameState -> GameState
+withCorpse state =
+  state {levels = map (\w -> w {corpses = [V2 3 1]}) (levels state)}
+
 isPosAndItems :: TriggerCondition -> Bool
 isPosAndItems (AtPositionWithItems _ _) = True
 isPosAndItems _ = False
@@ -116,6 +121,12 @@ spec = do
           let discoveredCount = length . filter id . concat . discovered
           map discoveredCount (levels after')
             `shouldBe` map discoveredCount (levels before')
+
+        it "preserves corpses" $ do
+          before' <- freshGame
+          let fought = withCorpse before'
+          after' <- roundTrip fought
+          corpses (currentWorldOf after') `shouldBe` [V2 3 1]
 
         it "re-applies tile overrides left by shiftTile" $ do
           before' <- freshGame

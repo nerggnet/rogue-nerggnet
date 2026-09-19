@@ -111,8 +111,9 @@ Moving into a monster attacks it. Moving into an NPC talks to it.
 * **Range** — enters aiming mode. Visible monsters are relabelled `a`, `b`,
   `c`… on the map; press a letter to fire, or `Esc` to cancel.
 
-Items with a `itemUses` count are consumed one use at a time and stack in the
-inventory when you pick up another of the same kind.
+Items with an `itemUses` count are consumed one use at a time and stack in the
+inventory when you pick up another of the same kind. Weapons, armor and
+special items have no use count and are never consumed.
 
 ## Map legend
 
@@ -126,7 +127,7 @@ inventory when you pick up another of the same kind.
 | `.` | Floor |
 | `+` | Door (yellow; locked doors block movement until unlocked) |
 | `<` / `>` | Stairs up / down |
-| `†` | A monster died here |
+| `†` | A monster died here (the tile underneath is unchanged) |
 
 Unexplored tiles are blank. Tiles you have seen before but cannot currently see
 are drawn dimmed and without their contents.
@@ -138,6 +139,8 @@ are drawn dimmed and without their contents.
 * **Monsters** — chase you when within 4 tiles. An adjacent monster attacks
   every other turn. Damage to you is `monster attack − your resistance`.
 * **Combat** — attacking a monster also provokes an immediate counterattack.
+  Where a monster falls is marked with `†`, which does not disturb the tile
+  underneath.
 * **XP levels** — defined in `world.json`. Crossing a threshold raises your
   base attack and resistance and restores you to the new maximum health.
 * **Inventory** — limited to 15 slots.
@@ -229,7 +232,7 @@ line of sight until opened with the matching key or by an `unlockDoor` action.
 | `itemEffectValue` | Attack/resistance bonus, healing amount, or ranged damage bonus |
 | `itemHidden` | Not drawn on the map, but still pickable with `g` |
 | `itemInactive` | Not in the world yet — revealed by a `spawnItem` or `addToInventory` action |
-| `itemUses` | Charges; `null` means the item is never consumed |
+| `itemUses` | Charges, spent one at a time. Required for `Healing`, `Key` and `Range`; `null` (never consumed) is only for equipment |
 
 #### `npcs`
 

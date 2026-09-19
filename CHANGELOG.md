@@ -35,6 +35,27 @@ All notable changes to this project are documented in this file.
   only an accident in `initGame` kept the first level's win condition working.
 - A save file that cannot be read no longer crashes the game on startup;
   `loadSavedGame` reports the problem and the game starts a new dungeon.
+- Killing a monster no longer destroys the tile it was standing on. The `†`
+  marker is kept in a separate list of corpse positions rather than written
+  over the map, so a monster that dies on a staircase or a door no longer
+  breaks it. Corpses also survive a save and reload, which they did not
+  before. The `Death` tile type is gone.
+- The map and the ranged-targeting logic now share one list of visible
+  monsters, so the letter shown on the map always selects the monster you
+  expect. The map filtered out inactive spawn templates and the targeting
+  code did not, which could shift every letter by one. The lookup is also
+  bounds-checked, so a monster outside the map no longer crashes the game.
+- Consumable items can no longer be used forever. `itemUses` is spent through
+  a `Maybe`, so an item without one was never removed; `Healing`, `Key` and
+  `Range` items must now declare a use count and loading fails with a message
+  naming the item if one does not.
+
+### Content
+
+- `world.json`: Greater Health Potion, Healing Potion, Silver Key, Scroll of
+  Fireball and Scroll of Lightning now declare one use each, and the Elven
+  Longbow is a `Weapon` rather than a `Range` item, so it is equipped for its
+  +20 attack instead of being fired.
 
 ## 1
 

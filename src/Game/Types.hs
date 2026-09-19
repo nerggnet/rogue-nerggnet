@@ -5,7 +5,7 @@
 module Game.Types where
 
 import GHC.Generics (Generic)
-import Data.Aeson (ToJSON(toJSON), FromJSON(parseJSON), object, withObject, (.:), (.=))
+import Data.Aeson (ToJSON(toJSON), FromJSON(parseJSON), object, withObject, (.:), (.:?), (.!=), (.=))
 import qualified Data.Aeson.Key as Key
 import Linear.V2 (V2)
 
@@ -13,7 +13,7 @@ import Linear.V2 (V2)
 instance ToJSON a => ToJSON (V2 a)
 instance FromJSON a => FromJSON (V2 a)
 
-data Tile = Wall | Floor | Door | UpStair | DownStair | Death | Start deriving (Eq, Show, Generic)
+data Tile = Wall | Floor | Door | UpStair | DownStair | Start deriving (Eq, Show, Generic)
 
 instance ToJSON Tile
 instance FromJSON Tile
@@ -159,6 +159,7 @@ data World = World
   , discovered :: [[Bool]]
   , discoveredCoords   :: [(Int, Int)]
   , tileOverrides      :: [(V2 Int, Tile)]
+  , corpses            :: [V2 Int]  -- Where monsters have been defeated
   } deriving (Generic)
 
 instance ToJSON World where
@@ -175,6 +176,7 @@ instance ToJSON World where
       , Key.fromString "visibility" .= visibility world
       , Key.fromString "discoveredCoords" .= discoveredCoords world
       , Key.fromString "tileOverrides" .= tileOverrides world
+      , Key.fromString "corpses" .= corpses world
       ]
 
 -- Convert the discovered grid to a list of coordinates
@@ -195,6 +197,7 @@ instance FromJSON World where
     drs <- v .: Key.fromString "doors"
     vsblt <- v .: Key.fromString "visibility"
     tileOvrrds <- v .: Key.fromString "tileOverrides"
+    crpses <- v .:? Key.fromString "corpses" .!= []
     return World
       { mapGrid = grid
       , mapRows = gridRows
@@ -208,6 +211,7 @@ instance FromJSON World where
       , discovered = dscvrd
       , discoveredCoords = dscvrdCoords
       , tileOverrides = tileOvrrds
+      , corpses = crpses
       }
 
 -- Convert a list of discovered coordinates back to a 2D grid

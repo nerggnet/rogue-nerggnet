@@ -1,7 +1,7 @@
 -- src/Game/Logic.hs
 module Game.Logic where
 
-import Game.State (defaultMonsterRadius, defaultFogRadius, maxInventorySize, updateVisibility, replaceLevel, manhattanDistance, evalTriggerCondition)
+import Game.State (defaultMonsterRadius, defaultFogRadius, maxInventorySize, updateVisibility, replaceLevel, manhattanDistance, evalTriggerCondition, visibleMonsters)
 import Game.GridUtils (updateTile, keyedInventory)
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
@@ -191,6 +191,12 @@ useItem itm state =
                                : Game.message state }
    in updatedState { Game.inventoryMode = Nothing }
 
+-- Record where a monster fell, without duplicating a position
+addCorpse :: V2 Int -> [V2 Int] -> [V2 Int]
+addCorpse pos poss
+  | pos `elem` poss = poss
+  | otherwise       = pos : poss
+
 -- Helper function: Check adjacency
 isAdjacent :: V2 Int -> V2 Int -> Bool
 isAdjacent (V2 x1 y1) (V2 x2 y2) =
@@ -231,13 +237,7 @@ dropItem item state =
 -- Range attack handling (getVisibleMonsters, monsterList, executeRangedAttack, calculateRangedDamage)
 getVisibleMonsters :: Game.GameState -> [(Char, Game.Monster)]
 getVisibleMonsters state =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      visibleMonsters = filter (\m ->
-        let pos = Game.mPosition m
-            x = pos ^. _x
-            y = pos ^. _y
-        in Game.visibility currentWorld !! y !! x) (Game.monsters currentWorld)
-  in zip ['a'..] visibleMonsters
+  visibleMonsters (Game.levels state !! Game.currentLevel state)
 
 monsterList :: [(Char, Game.Monster)] -> String
 monsterList monsters =
@@ -257,13 +257,11 @@ executeRangedAttack state targetMonster rangedItem =
       (defeatedMonsters, remainingMonsters) = partition ((<= 0) . Game.mHealth) updatedMonsters
 
       -- Mark the position where the monster was defeated
-      updatedMapGrid =
+      updatedCorpses =
         if Game.mHealth targetMonster - damage <= 0
-        then
-          let V2 mx my = Game.mPosition targetMonster
-          in updateTile (Game.mapGrid currentWorld) (mx, my) (Game.Death)
-        else Game.mapGrid currentWorld
-      updatedWorld = currentWorld { Game.monsters = remainingMonsters, Game.mapGrid = updatedMapGrid }
+        then addCorpse (Game.mPosition targetMonster) (Game.corpses currentWorld)
+        else Game.corpses currentWorld
+      updatedWorld = currentWorld { Game.monsters = remainingMonsters, Game.corpses = updatedCorpses }
 
       defeatMessage = if not (null defeatedMonsters)
                       then "You defeated " ++ Game.mName targetMonster ++ "!"
@@ -401,13 +399,11 @@ combat state mnstr playerGoesFirst =
                  (Game.monsters currentWorld)
 
       -- Mark the position where the monster was defeated
-      updatedMapGrid =
+      updatedCorpses =
         if Game.mHealth mnstr - playerDamage <= 0
-        then
-          let V2 mx my = Game.mPosition mnstr
-          in updateTile (Game.mapGrid currentWorld) (mx, my) (Game.Death)
-        else Game.mapGrid currentWorld
-      updatedWorld = currentWorld { Game.monsters = updatedMonsters, Game.mapGrid = updatedMapGrid }
+        then addCorpse (Game.mPosition mnstr) (Game.corpses currentWorld)
+        else Game.corpses currentWorld
+      updatedWorld = currentWorld { Game.monsters = updatedMonsters, Game.corpses = updatedCorpses }
 
       isDead = newHealth == 0
       defeatMessage = if Game.mHealth mnstr - playerDamage <= 0

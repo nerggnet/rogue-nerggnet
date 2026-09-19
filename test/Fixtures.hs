@@ -62,6 +62,7 @@ mkWorld rows =
     , discovered         = initializeGrid False nRows nCols
     , discoveredCoords   = []
     , tileOverrides      = []
+    , corpses            = []
     }
   where
     nRows = length rows

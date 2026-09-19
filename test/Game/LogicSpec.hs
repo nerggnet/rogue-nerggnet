@@ -3,7 +3,7 @@ module Game.LogicSpec (spec) where
 
 import Data.List (isInfixOf, nub)
 import Game.Logic
-import Game.State (maxInventorySize)
+import Game.State (maxInventorySize, visibleMonsters)
 import Game.Types
 import Linear.V2 (V2 (..))
 import Test.Hspec
@@ -96,20 +96,29 @@ spec = do
       let feeble = mkMonster "Kitten" (V2 5 3) 100 0
       health (player (combat (withGoblin feeble) feeble True)) `shouldBe` 20
 
+    it "spends a charge of the ranged item and records a corpse" $ do
+      let bow = (mkItem "Bow" Range 20 (V2 0 0)) {iUses = Just 2}
+          rat = mkMonster "Rat" (V2 5 3) 3 1
+          s = executeRangedAttack
+                (withPlayer (\p -> p {inventory = [bow]}) (withGoblin rat)) rat bow
+      map iUses (inventory (player s)) `shouldBe` [Just 1]
+      corpses (currentWorldOf s) `shouldBe` [V2 5 3]
+
     it "removes a defeated monster and awards its XP" $ do
       let rat = mkMonster "Rat" (V2 5 3) 3 1
           s = combat (withGoblin rat) rat True
       monsters (currentWorldOf s) `shouldBe` []
       xp (player s) `shouldBe` 10
 
-    it "leaves a Death tile where the monster fell" $ do
+    it "records a corpse where the monster fell" $ do
       let rat = mkMonster "Rat" (V2 5 3) 3 1
           s = combat (withGoblin rat) rat True
-      tileAt (V2 5 3) (currentWorldOf s) `shouldBe` Death
+      corpses (currentWorldOf s) `shouldBe` [V2 5 3]
 
-    -- Known issue: the Death marker overwrites the terrain, so a monster that
-    -- dies on a staircase destroys it.
-    it "overwrites a staircase when a monster dies on it" $ do
+    it "records no corpse while the monster survives" $
+      corpses (currentWorldOf (combat (withGoblin goblin) goblin True)) `shouldBe` []
+
+    it "leaves a staircase usable when a monster dies on it" $ do
       let stairsMap =
             [ "#####"
             , "#..>#"
@@ -118,9 +127,15 @@ spec = do
           rat = mkMonster "Rat" (V2 3 1) 3 1
           s0 = withWorld (\w -> w {monsters = [rat]}) (mkState (mkWorld stairsMap) (V2 2 1))
           s = combat s0 rat True
-      tileAt (V2 3 1) (currentWorldOf s) `shouldBe` Death
-      latest (goDown (withPlayer (\p -> p {position = V2 3 1}) s))
-        `shouldSatisfy` ("No stairs" `isInfixOf`)
+          onStairs = withPlayer (\p -> p {position = V2 3 1}) s
+      tileAt (V2 3 1) (currentWorldOf s) `shouldBe` DownStair
+      corpses (currentWorldOf s) `shouldBe` [V2 3 1]
+      latest (goDown onStairs) `shouldSatisfy` ("bottom level" `isInfixOf`)
+
+    it "does not record the same corpse tile twice" $ do
+      let rat n = mkMonster n (V2 5 3) 3 1
+          s = combat (combat (withGoblin (rat "Rat")) (rat "Rat") True) (rat "Mouse") True
+      corpses (currentWorldOf s) `shouldBe` [V2 5 3]
 
     it "sets gameOver when the player's health reaches zero" $ do
       let brute = mkMonster "Brute" (V2 5 3) 100 30
@@ -223,9 +238,9 @@ spec = do
           s = useItem potion (withPlayer (\p -> p {health = 5, inventory = [potion]}) baseState)
       map iUses (inventory (player s)) `shouldBe` [Just 1]
 
-    -- Known issue: reduceUses maps over a Maybe, so an item with no use count
-    -- is never spent. world.json has healing potions and a key like this.
-    it "never spends an item whose use count is null" $ do
+    -- An item with no use count is never spent. That is right for equipment,
+    -- and Game.State.validateItemUses stops a consumable being loaded this way.
+    it "never spends an item that declares no use count" $ do
       let potion = mkItem "Endless Potion" Healing 3 (V2 0 0)
           s = useItem potion (withPlayer (\p -> p {health = 5, inventory = [potion]}) baseState)
       health (player s) `shouldBe` 8
@@ -444,12 +459,17 @@ spec = do
     it "labels visible monsters from 'a' upwards" $
       map fst (getVisibleMonsters (seen baseState)) `shouldBe` "a"
 
-    -- Known issue: UI.Draw filters inactive monsters out before assigning
-    -- letters and this does not, so the two can disagree about what 'a' means.
-    it "also labels inactive spawn templates" $ do
+    -- The map draws its letters from the same list, so 'a' means the same
+    -- monster in both places.
+    it "ignores inactive spawn templates" $ do
       let template = (mkMonster "Dragon" (V2 2 3) 50 9) {mInactive = True}
           s = withWorld (\w -> w {monsters = template : monsters w}) (seen baseState)
-      map (mName . snd) (getVisibleMonsters s) `shouldBe` ["Dragon", "Goblin"]
+      map (mName . snd) (getVisibleMonsters s) `shouldBe` ["Goblin"]
+
+    it "agrees with the level's own visible-monster list" $ do
+      let template = (mkMonster "Dragon" (V2 2 3) 50 9) {mInactive = True}
+          s = withWorld (\w -> w {monsters = template : monsters w}) (seen baseState)
+      getVisibleMonsters s `shouldBe` visibleMonsters (currentWorldOf s)
 
   describe "calculateRangedDamage" $
     it "adds the item bonus and subtracts a tenth of the target's health" $

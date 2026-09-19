@@ -2,11 +2,12 @@
 module Game.State where
 
 import Game.Types
-import Game.GridUtils (updateTile)
+import Game.GridUtils (updateTile, gridLookup)
 import qualified File.Types as FT
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
 import Data.List (intercalate)
+import Data.Maybe (fromMaybe, isNothing)
 
 -- Default values for monster, fog radius, and inventory size
 defaultMonsterRadius :: Int
@@ -137,6 +138,7 @@ transformFileWorld fileWorld =
         , discovered = initializeGrid False rows cols
         , discoveredCoords = []
         , tileOverrides = []
+        , corpses = []
         }
 
 -- Apply overrides to the base grid
@@ -180,23 +182,40 @@ transformXPLevels fxps = map (\fxp -> XPLevel
 
 -- Transform a File.Types.JSONItem to Game.Types.Item
 transformItem :: FT.JSONItem -> Item
-transformItem fi = Item
-  { iName = FT.itemName fi
-  , iDescription = FT.itemDescription fi
-  , iPosition = uncurry V2 (FT.itemPosition fi)
-  , iCategory = case FT.itemCategory fi of
-                  "Armor" -> Armor
-                  "Weapon" -> Weapon
-                  "Range" -> Range
-                  "Healing" -> Healing
-                  "Special" -> Special
-                  "Key" -> Key
-                  _ -> error "Unknown category"
-  , iEffectValue = FT.itemEffectValue fi
-  , iHidden = FT.itemHidden fi
-  , iInactive = FT.itemInactive fi
-  , iUses = FT.itemUses fi
-  }
+transformItem fi =
+  let category = parseItemCategory (FT.itemName fi) (FT.itemCategory fi)
+   in Item
+        { iName = FT.itemName fi
+        , iDescription = FT.itemDescription fi
+        , iPosition = uncurry V2 (FT.itemPosition fi)
+        , iCategory = category
+        , iEffectValue = FT.itemEffectValue fi
+        , iHidden = FT.itemHidden fi
+        , iInactive = FT.itemInactive fi
+        , iUses = validateItemUses category (FT.itemName fi) (FT.itemUses fi)
+        }
+
+parseItemCategory :: String -> String -> ItemCategory
+parseItemCategory _ "Armor"   = Armor
+parseItemCategory _ "Weapon"  = Weapon
+parseItemCategory _ "Range"   = Range
+parseItemCategory _ "Healing" = Healing
+parseItemCategory _ "Special" = Special
+parseItemCategory _ "Key"     = Key
+parseItemCategory itemName other =
+  error $ "Unknown item category \"" ++ other ++ "\" for item \"" ++ itemName ++ "\""
+
+-- Categories whose items are spent as they are used
+consumableCategories :: [ItemCategory]
+consumableCategories = [Healing, Key, Range]
+
+-- An item with no use count is never consumed, which only makes sense for
+-- equipment. A consumable without one would be usable forever.
+validateItemUses :: ItemCategory -> String -> Maybe Int -> Maybe Int
+validateItemUses category itemName uses
+  | category `elem` consumableCategories && isNothing uses =
+      error $ show category ++ " item \"" ++ itemName ++ "\" must declare \"itemUses\""
+  | otherwise = uses
 
 -- Transform a File.Types.JSONDoorEntity to Game.Types.DoorEntity
 transformDoorEntity :: FT.JSONDoorEntity -> DoorEntity
@@ -308,6 +327,18 @@ validateTriggers trggrs triggerItems triggerNpcs = map validateTrigger trggrs
             error $ "Trigger refers to an unknown NPC: " ++ nName
       _ -> trigger
 
+-- Is a position currently lit for the player? Out of bounds counts as unseen.
+isVisibleAt :: World -> V2 Int -> Bool
+isVisibleAt world pos = fromMaybe False (gridLookup (visibility world) pos)
+
+-- Active monsters the player can see, labelled from 'a' for ranged targeting.
+-- The map and the targeting logic share this so that their letters agree.
+visibleMonsters :: World -> [(Char, Monster)]
+visibleMonsters world =
+  zip ['a'..] (filter onScreen (filter (not . mInactive) (monsters world)))
+  where
+    onScreen = isVisibleAt world . mPosition
+
 -- Helper function to now if all monsters on a level have been defeated
 allMonstersDefeated :: GameState -> Bool
 allMonstersDefeated state =
@@ -330,7 +361,6 @@ tileToChar Door      = '+'
 tileToChar UpStair   = '<'
 tileToChar DownStair = '>'
 tileToChar Start     = 'S'
-tileToChar Death     = '†'
 
 -- Find the starting position (e.g., the first Floor tile)
 findStartingPosition :: World -> V2 Int

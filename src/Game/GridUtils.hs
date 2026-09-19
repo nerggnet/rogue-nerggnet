@@ -1,7 +1,8 @@
 -- src/Game/GridUtils.hs
-module Game.GridUtils (updateTile, keyedInventory) where
+module Game.GridUtils (updateTile, gridLookup, keyedInventory) where
 
 import Game.Types (Tile, Item)
+import Linear.V2 (V2(..))
 
 -- Update a single tile in the grid
 updateTile :: [[Tile]] -> (Int, Int) -> Tile -> [[Tile]]
@@ -9,6 +10,16 @@ updateTile grid (x, y) newTile =
   let oldRow = grid !! y
       newRow = take x oldRow ++ [newTile] ++ drop (x + 1) oldRow
    in take y grid ++ [newRow] ++ drop (y + 1) grid
+
+-- Look up a cell in a row-major grid, returning Nothing when out of bounds
+gridLookup :: [[a]] -> V2 Int -> Maybe a
+gridLookup grid (V2 x y)
+  | x < 0 || y < 0 = Nothing
+  | otherwise = case drop y grid of
+      (row:_) -> case drop x row of
+        (cell:_) -> Just cell
+        []       -> Nothing
+      [] -> Nothing
 
 -- Generate a list of (key, item) pairs with equipped items on top
 keyedInventory :: [Item] -> Maybe Item -> Maybe Item -> [(Char, Item)]

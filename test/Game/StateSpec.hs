@@ -3,6 +3,7 @@ module Game.StateSpec (spec) where
 
 import Control.Exception (evaluate)
 import Data.Aeson (decode, encode)
+import Game.GridUtils (gridLookup)
 import Game.State
 import Game.Types
 import Linear.V2 (V2 (..))
@@ -26,9 +27,6 @@ spec = do
     it "round-trips every tile that has a map character" $
       map (charToTile . tileToChar) [Wall, Floor, Door, UpStair, DownStair, Start]
         `shouldBe` [Wall, Floor, Door, UpStair, DownStair, Start]
-
-    it "cannot round-trip Death, which is not a map character" $
-      charToTile (tileToChar Death) `shouldBe` Floor
 
     it "treats an unrecognised character as floor" $
       property $ \c -> c `notElem` "#.+<>S" ==> charToTile c === Floor
@@ -113,6 +111,97 @@ spec = do
       let unlocked = world {doors = [mkDoor (V2 6 3) False "Iron Key"]}
       visibleAt (V2 8 3) (updateVisibility (mkPlayer (V2 4 3)) 5 unlocked)
         `shouldBe` True
+
+  describe "gridLookup" $ do
+    let grid = [[(1 :: Int), 2, 3], [4, 5, 6]] -- 3 wide, 2 tall
+
+    it "reads a cell by (x, y)" $ do
+      gridLookup grid (V2 2 1) `shouldBe` Just 6
+      gridLookup grid (V2 0 0) `shouldBe` Just 1
+
+    it "returns Nothing past the right or bottom edge" $ do
+      gridLookup grid (V2 3 0) `shouldBe` Nothing
+      gridLookup grid (V2 0 2) `shouldBe` Nothing
+
+    it "returns Nothing for negative coordinates" $ do
+      gridLookup grid (V2 (-1) 0) `shouldBe` Nothing
+      gridLookup grid (V2 0 (-1)) `shouldBe` Nothing
+
+    it "returns Nothing for an empty grid" $
+      gridLookup ([] :: [[Int]]) (V2 0 0) `shouldBe` Nothing
+
+  describe "visibleMonsters" $ do
+    -- The map and the ranged-targeting logic both read this list, so the
+    -- letters they show can no longer disagree.
+    let lit w = w {visibility = replicate 7 (replicate 9 True)}
+        withMonsters ms = lit ((mkWorld openMap) {monsters = ms})
+
+    it "labels visible monsters from 'a' upwards" $
+      map fst (visibleMonsters (withMonsters
+        [mkMonster "Goblin" (V2 2 3) 10 2, mkMonster "Rat" (V2 5 3) 5 1]))
+        `shouldBe` "ab"
+
+    it "ignores inactive spawn templates" $
+      map (mName . snd) (visibleMonsters (withMonsters
+        [ (mkMonster "Dragon" (V2 2 3) 50 9) {mInactive = True}
+        , mkMonster "Goblin" (V2 5 3) 10 2
+        ]))
+        `shouldBe` ["Goblin"]
+
+    it "ignores monsters standing in the dark" $
+      map (mName . snd) (visibleMonsters
+        ((mkWorld openMap) {monsters = [mkMonster "Goblin" (V2 5 3) 10 2]}))
+        `shouldBe` []
+
+    it "does not crash on a monster outside the map" $
+      visibleMonsters (withMonsters [mkMonster "Ghost" (V2 100 100) 1 1])
+        `shouldBe` []
+
+  describe "isVisibleAt" $ do
+    let lit = (mkWorld openMap) {visibility = replicate 7 (replicate 9 True)}
+
+    it "is True for a lit tile" $ isVisibleAt lit (V2 4 3) `shouldBe` True
+    it "is False outside the map" $ isVisibleAt lit (V2 100 100) `shouldBe` False
+    it "is False for a negative position" $ isVisibleAt lit (V2 (-1) 0) `shouldBe` False
+
+  describe "transformItem" $ do
+    let jsonItem n cat uses =
+          FT.JSONItem
+            { FT.itemName = n
+            , FT.itemPosition = (1, 2)
+            , FT.itemDescription = ""
+            , FT.itemCategory = cat
+            , FT.itemEffectValue = 5
+            , FT.itemHidden = False
+            , FT.itemInactive = False
+            , FT.itemUses = uses
+            }
+
+    it "reads a well-formed item" $ do
+      let i = transformItem (jsonItem "Health Potion" "Healing" (Just 3))
+      iCategory i `shouldBe` Healing
+      iUses i `shouldBe` Just 3
+      iPosition i `shouldBe` V2 1 2
+
+    it "allows equipment to omit a use count" $
+      map (\cat -> iUses (transformItem (jsonItem "Thing" cat Nothing)))
+        ["Weapon", "Armor", "Special"]
+        `shouldBe` [Nothing, Nothing, Nothing]
+
+    it "rejects a consumable that omits its use count" $
+      mapM_
+        (\cat -> evaluate (iUses (transformItem (jsonItem "Thing" cat Nothing)))
+                   `shouldThrow` anyErrorCall)
+        ["Healing", "Key", "Range"]
+
+    it "names the offending item in the error" $
+      evaluate (iUses (transformItem (jsonItem "Greater Health Potion" "Healing" Nothing)))
+        `shouldThrow` errorCall
+          "Healing item \"Greater Health Potion\" must declare \"itemUses\""
+
+    it "rejects an unknown category" $
+      evaluate (iCategory (transformItem (jsonItem "Thing" "Sandwich" Nothing)))
+        `shouldThrow` anyErrorCall
 
   describe "findStartingPosition" $ do
     it "finds the S tile" $
