@@ -55,6 +55,20 @@ All notable changes to this project are documented in this file.
   `Range` items must now declare a use count and loading fails with a message
   naming the item if one does not.
 
+### Internal
+
+- `Game.State` gained `currentWorld`, `setCurrentWorld` and `withCurrentWorld`.
+  `levels state !! currentLevel state` appeared 25 times and was paired with
+  `replaceLevel state (currentLevel state) …` at 17 more; both are gone.
+- Every module now imports `Game.Types` unqualified and `File.Types` as `FT`,
+  instead of `Game.Logic`, `File.MapIO` and `UI.MainUI` writing `Game.` in
+  front of roughly every other identifier. `OverloadedRecordDot` is on, so
+  nested reads are `state.player.health` rather than `health (player state)`.
+- `processTriggers` applies its bookkeeping to the state the trigger actions
+  produced rather than rebasing on the state from before them. Nothing
+  currently writes to another level from a trigger, so this changes no
+  behaviour, but the old form would have silently discarded it.
+
 ### Performance
 
 - Drawing a tile no longer rescans the level. `UI.Draw` builds one `MapView`

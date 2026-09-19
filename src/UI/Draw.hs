@@ -11,7 +11,7 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import Game.Types
-import Game.State (maxInventorySize, visibleMonsters)
+import Game.State (maxInventorySize, visibleMonsters, currentWorld)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
 import Data.List (zip4)
@@ -27,7 +27,7 @@ drawUI state =
   [ vBox
       [ drawTitleBar
       , hBox
-          [ padRight (Pad 2) $ drawMap currentWorld (player state) (aimingState state)
+          [ padRight (Pad 2) $ drawMap world (player state) (aimingState state)
           , padLeft (Pad 2) $
               vBox
                 [ padTop (Pad 1) $ drawStatsBox (player state)
@@ -40,9 +40,9 @@ drawUI state =
   ]
 
   where
-    currentWorld = levels state !! currentLevel state
-    playerPos = position (player state)
-    itemsOnPlayerTile = [iName item | item <- items currentWorld, iPosition item == playerPos, not (iInactive item)]
+    world = currentWorld state
+    playerPos = state.player.position
+    itemsOnPlayerTile = [iName item | item <- items world, iPosition item == playerPos, not (iInactive item)]
     currentTileMessage =
       if null itemsOnPlayerTile then ""
         else "You see: " ++ unwords itemsOnPlayerTile

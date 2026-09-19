@@ -181,10 +181,6 @@ baseJSONTrigger =
     , FT.recurring       = False
     }
 
--- | The level the player is currently standing on.
-currentWorldOf :: GameState -> World
-currentWorldOf state = levels state !! currentLevel state
-
 -- | Modify the current level of a single-level state.
 withWorld :: (World -> World) -> GameState -> GameState
 withWorld f state = state {levels = map f (levels state)}

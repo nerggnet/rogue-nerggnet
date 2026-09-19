@@ -1,27 +1,31 @@
 -- src/Game/Logic.hs
 module Game.Logic where
 
-import Game.State (defaultMonsterRadius, defaultFogRadius, maxInventorySize, updateVisibility, replaceLevel, manhattanDistance, evalTriggerCondition, visibleMonsters)
+import Game.State
+  ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
+  , updateVisibility, manhattanDistance, evalTriggerCondition, visibleMonsters
+  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel
+  )
 import Game.GridUtils (updateTile, keyedInventory)
-import qualified Game.Types as Game
+import Game.Types
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
 import Data.List (find, partition)
 
-handleMovementInternal :: Maybe Char -> Game.GameState -> Game.GameState
+handleMovementInternal :: Maybe Char -> GameState -> GameState
 handleMovementInternal key state =
-  case Game.aimingState state of
+  case aimingState state of
     Just _ -> (handleCommandInputInternal key False state) state -- Delegate to aiming logic
     Nothing ->
-      let isGameOverOrWon = Game.gameOver state || Game.gameWon state
+      let isGameOverOrWon = gameOver state || gameWon state
           newState = case key of
-            Just '?' -> state { Game.showLegend = not (Game.showLegend state) }
-            Just ':' -> state { Game.commandMode = True, Game.commandBuffer = ":" }
+            Just '?' -> state { showLegend = not (showLegend state) }
+            Just ':' -> state { commandMode = True, commandBuffer = ":" }
             _ | isGameOverOrWon -> state -- Prevent movement if game is won/over (except '?' and ':')
-            Just c | c == 'w' || c == 'k' -> movePlayer Game.North state
-            Just c | c == 's' || c == 'j' -> movePlayer Game.South state
-            Just c | c == 'a' || c == 'h' -> movePlayer Game.West state
-            Just c | c == 'd' || c == 'l' -> movePlayer Game.East state
+            Just c | c == 'w' || c == 'k' -> movePlayer North state
+            Just c | c == 's' || c == 'j' -> movePlayer South state
+            Just c | c == 'a' || c == 'h' -> movePlayer West state
+            Just c | c == 'd' || c == 'l' -> movePlayer East state
             Just '<' -> goUp state
             Just '>' -> goDown state
             Just 'g' -> pickUpItem state
@@ -30,166 +34,165 @@ handleMovementInternal key state =
             _ -> state
       in if isGameOverOrWon then newState else processTurn newState
 
-processTurn :: Game.GameState -> Game.GameState
+processTurn :: GameState -> GameState
 processTurn state =
   let state' = moveMonsters state
       state'' = monstersAttack state'
       state''' = processTriggers state''
-      kyprssCnt = Game.keyPressCount state'''
+      kyprssCnt = keyPressCount state'''
       state'''' = if kyprssCnt == 0 then moveNPCs state''' else state'''
-  in state'''' { Game.message = take 10 (Game.message state'''') }
+  in state'''' { message = take 10 (message state'''') }
 
 -- Go up stairs
-goUp :: Game.GameState -> Game.GameState
+goUp :: GameState -> GameState
 goUp state =
-  let playerPos = Game.position (Game.player state)
-      currentWorld = Game.levels state !! Game.currentLevel state
-      tile = (Game.mapGrid currentWorld) !! (playerPos ^. _y) !! (playerPos ^. _x)
+  let playerPos = state.player.position
+      world = currentWorld state
+      tile = (mapGrid world) !! (playerPos ^. _y) !! (playerPos ^. _x)
   in case tile of
-       Game.UpStair ->
-         if Game.currentLevel state > 0
+       UpStair ->
+         if currentLevel state > 0
          then
-           let newLevel = Game.currentLevel state - 1
-               updatedWorld = updateVisibility (Game.player state) defaultFogRadius (Game.levels state !! newLevel)
-            in state { Game.currentLevel = newLevel
-                     , Game.levels = replaceLevel state newLevel updatedWorld
-                     , Game.message = "You ascend the stairs." : Game.message state }
-         else state { Game.message = "You are already on the top level." : Game.message state }
-       _ -> state { Game.message = "No stairs to go up here!" : Game.message state }
+           let newLevel = currentLevel state - 1
+               updatedWorld = updateVisibility (player state) defaultFogRadius (levels state !! newLevel)
+            in state { currentLevel = newLevel
+                     , levels = replaceLevel state newLevel updatedWorld
+                     , message = "You ascend the stairs." : message state }
+         else state { message = "You are already on the top level." : message state }
+       _ -> state { message = "No stairs to go up here!" : message state }
 
 -- Go down stairs
-goDown :: Game.GameState -> Game.GameState
+goDown :: GameState -> GameState
 goDown state =
-  let playerPos = Game.position (Game.player state)
-      currentWorld = Game.levels state !! Game.currentLevel state
-      tile = (Game.mapGrid currentWorld) !! (playerPos ^. _y) !! (playerPos ^. _x)
+  let playerPos = state.player.position
+      world = currentWorld state
+      tile = (mapGrid world) !! (playerPos ^. _y) !! (playerPos ^. _x)
   in case tile of
-       Game.DownStair ->
-         if Game.currentLevel state < length (Game.levels state) - 1
+       DownStair ->
+         if currentLevel state < length (levels state) - 1
          then
-           let newLevel = Game.currentLevel state + 1
-               updatedWorld = updateVisibility (Game.player state) defaultFogRadius (Game.levels state !! newLevel)
-            in state { Game.currentLevel = newLevel
-                     , Game.levels = replaceLevel state newLevel updatedWorld
-                     , Game.message = "You descend the stairs." : Game.message state }
-         else state { Game.message = "You are already on the bottom level." : Game.message state }
-       _ -> state { Game.message = "No stairs to go down here!" : Game.message state }
+           let newLevel = currentLevel state + 1
+               updatedWorld = updateVisibility (player state) defaultFogRadius (levels state !! newLevel)
+            in state { currentLevel = newLevel
+                     , levels = replaceLevel state newLevel updatedWorld
+                     , message = "You descend the stairs." : message state }
+         else state { message = "You are already on the bottom level." : message state }
+       _ -> state { message = "No stairs to go down here!" : message state }
 
-pickUpItem :: Game.GameState -> Game.GameState
+pickUpItem :: GameState -> GameState
 pickUpItem state =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      playerPos = Game.position (Game.player state)
-      inventorySize = length (Game.inventory (Game.player state))
+  let world = currentWorld state
+      playerPos = state.player.position
+      inventorySize = length (state.player.inventory)
       (itemsOnTile, remainingItems) =
-          partition (\item -> Game.iPosition item == playerPos && not (Game.iInactive item)) (Game.items currentWorld)
+          partition (\item -> iPosition item == playerPos && not (iInactive item)) (items world)
   in case itemsOnTile of
-       [] -> state { Game.message = "There is nothing to pick up here." : Game.message state }
+       [] -> state { message = "There is nothing to pick up here." : message state }
        (item:_) ->
          let existingStackableItem = find
-               (\invItem -> Game.iName invItem == Game.iName item
-                        && Game.iCategory invItem == Game.iCategory item
-                        && Game.iEffectValue invItem == Game.iEffectValue item
-                        && Game.iUses invItem /= Nothing)
-               (Game.inventory (Game.player state))
+               (\invItem -> iName invItem == iName item
+                        && iCategory invItem == iCategory item
+                        && iEffectValue invItem == iEffectValue item
+                        && iUses invItem /= Nothing)
+               (state.player.inventory)
 
-             (invFull, invMsgs, updatedInventory) = case (existingStackableItem, Game.iUses item) of
+             (invFull, invMsgs, updatedInventory) = case (existingStackableItem, iUses item) of
                (Just invItem, Just uses) ->
-                 (False, ["You picked up: " ++ Game.iName item], map (\i -> if i == invItem
-                            then i { Game.iUses = fmap (+ uses) (Game.iUses i) }
+                 (False, ["You picked up: " ++ iName item], map (\i -> if i == invItem
+                            then i { iUses = fmap (+ uses) (iUses i) }
                             else i)
-                     (Game.inventory (Game.player state)))
+                     (state.player.inventory))
                _ -> if inventorySize >= maxInventorySize
-                    then (True, ["Your inventory is full! Drop an item before picking up more."], Game.inventory (Game.player state))
-                    else (False, ["You picked up: " ++ Game.iName item], item : Game.inventory (Game.player state))  -- Add as a new item if not stackable
+                    then (True, ["Your inventory is full! Drop an item before picking up more."], state.player.inventory)
+                    else (False, ["You picked up: " ++ iName item], item : state.player.inventory)  -- Add as a new item if not stackable
 
-             updatedPlayer = (Game.player state) { Game.inventory = updatedInventory }
-             updatedWorld = if invFull then currentWorld else currentWorld { Game.items = remainingItems }
-         in state
-              { Game.player = updatedPlayer
-              , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-              , Game.message =  invMsgs ++ Game.message state
+             updatedPlayer = (player state) { inventory = updatedInventory }
+             updatedWorld = if invFull then world else world { items = remainingItems }
+         in setCurrentWorld updatedWorld $ state
+              { player = updatedPlayer
+              , message = invMsgs ++ message state
               }
 
 -- Player has requested to use an item, prompt which item to use
-promptUseItem :: Game.GameState -> Game.GameState
+promptUseItem :: GameState -> GameState
 promptUseItem state =
-  let inv = Game.inventory (Game.player state)
+  let inv = state.player.inventory
   in if null inv
-       then state { Game.message = "Your inventory is empty." : Game.message state }
-       else state { Game.message = "Press a key to use an item." : Game.message state
-                  , Game.commandMode = True
-                  , Game.inventoryMode = Just Game.UseMode }
+       then state { message = "Your inventory is empty." : message state }
+       else state { message = "Press a key to use an item." : message state
+                  , commandMode = True
+                  , inventoryMode = Just UseMode }
 
 -- Player has requested to drop an item, prompt which item to drop
-promptDropItem :: Game.GameState -> Game.GameState
+promptDropItem :: GameState -> GameState
 promptDropItem state =
-  let inv = Game.inventory (Game.player state)
+  let inv = state.player.inventory
   in if null inv
-       then state { Game.message = "Your inventory is empty." : Game.message state }
-       else state { Game.message = "Press a key to drop an item." : Game.message state
-                  , Game.commandMode = True
-                  , Game.inventoryMode = Just Game.DropMode }
+       then state { message = "Your inventory is empty." : message state }
+       else state { message = "Press a key to drop an item." : message state
+                  , commandMode = True
+                  , inventoryMode = Just DropMode }
 
 -- Helper to reduce item uses or remove it if depleted
-reduceUses :: Game.Item -> [Game.Item] -> [Game.Item]
-reduceUses itm inventory =
-  filter (\item -> Game.iUses item /= Just 0) $
-  map (updateUses itm) inventory
+reduceUses :: Item -> [Item] -> [Item]
+reduceUses itm inv =
+  filter (\item -> iUses item /= Just 0) $
+  map (updateUses itm) inv
 
 -- Handle the usage of an item from the inventory
-useItem :: Game.Item -> Game.GameState -> Game.GameState
+useItem :: Item -> GameState -> GameState
 useItem itm state =
-  let plyr = Game.player state
-      doorToUnlock = find (isAdjacent (Game.position plyr) . Game.dePosition)
-                          (filter (\d -> Game.deLocked d) (Game.doors (Game.levels state !! Game.currentLevel state)))
+  let plyr = player state
+      doorToUnlock = find (isAdjacent (position plyr) . dePosition)
+                          (filter (\d -> deLocked d) (doors (currentWorld state)))
       recalculateEffectiveStats p = p
-        { Game.attack = Game.baseAttack p + maybe 0 Game.iEffectValue (Game.equippedWeapon p)
-        , Game.resistance = Game.baseResistance p + maybe 0 Game.iEffectValue (Game.equippedArmor p) }
+        { attack = baseAttack p + maybe 0 iEffectValue (equippedWeapon p)
+        , resistance = baseResistance p + maybe 0 iEffectValue (equippedArmor p) }
 
-      updatedState = case Game.iCategory itm of
-        Game.Healing ->
-          let playerCurrentMaxHealth = Game.xpHealth (Game.xpLevels state !! (Game.playerXPLevel plyr - 1))
-              healedHealth = min playerCurrentMaxHealth (Game.health plyr + Game.iEffectValue itm)
-           in state { Game.player = plyr { Game.health = healedHealth
-                                        , Game.inventory = reduceUses itm (Game.inventory plyr) }
-                    , Game.message = ("You used " ++ Game.iName itm ++ " and recovered "
-                                     ++ show (Game.iEffectValue itm) ++ " HP.") : Game.message state }
-        Game.Key ->
+      updatedState = case iCategory itm of
+        Healing ->
+          let playerCurrentMaxHealth = xpHealth (xpLevels state !! (playerXPLevel plyr - 1))
+              healedHealth = min playerCurrentMaxHealth (health plyr + iEffectValue itm)
+           in state { player = plyr { health = healedHealth
+                                        , inventory = reduceUses itm (inventory plyr) }
+                    , message = ("You used " ++ iName itm ++ " and recovered "
+                                     ++ show (iEffectValue itm) ++ " HP.") : message state }
+        Key ->
           case doorToUnlock of
-            Just door | Game.iName itm == Game.deKeyName door ->
+            Just door | iName itm == deKeyName door ->
               unlockDoor state plyr door itm
             Just _ ->
-              state { Game.message = "This key does not fit the lock!" : Game.message state }
+              state { message = "This key does not fit the lock!" : message state }
             Nothing ->
-              state { Game.message = "There is no door nearby to unlock." : Game.message state }
-        Game.Weapon ->
-          let newPlayer = if Just itm == Game.equippedWeapon plyr
-                          then plyr { Game.equippedWeapon = Nothing }
-                          else plyr { Game.equippedWeapon = Just itm }
+              state { message = "There is no door nearby to unlock." : message state }
+        Weapon ->
+          let newPlayer = if Just itm == equippedWeapon plyr
+                          then plyr { equippedWeapon = Nothing }
+                          else plyr { equippedWeapon = Just itm }
               newPlayerWithNewAttack = recalculateEffectiveStats newPlayer
-              message = if Just itm == Game.equippedWeapon plyr
-                        then "You unequipped " ++ Game.iName itm ++ "."
-                        else "You equipped " ++ Game.iName itm ++ "."
-           in state { Game.player = newPlayerWithNewAttack
-                    , Game.message = message : Game.message state }
-        Game.Range ->
-          state { Game.aimingState = Just (Game.AimingState itm)
-                , Game.commandMode = True
-                , Game.message = ("You prepare to use " ++ Game.iName itm ++ ". Press a key to aim.") : Game.message state }
-        Game.Armor  ->
-          let newPlayer = if Just itm == Game.equippedArmor plyr
-                          then plyr { Game.equippedArmor = Nothing }
-                          else plyr { Game.equippedArmor = Just itm }
+              msg = if Just itm == equippedWeapon plyr
+                    then "You unequipped " ++ iName itm ++ "."
+                    else "You equipped " ++ iName itm ++ "."
+           in state { player = newPlayerWithNewAttack
+                    , message = msg : message state }
+        Range ->
+          state { aimingState = Just (AimingState itm)
+                , commandMode = True
+                , message = ("You prepare to use " ++ iName itm ++ ". Press a key to aim.") : message state }
+        Armor  ->
+          let newPlayer = if Just itm == equippedArmor plyr
+                          then plyr { equippedArmor = Nothing }
+                          else plyr { equippedArmor = Just itm }
               newPlayerWithNewResistance = recalculateEffectiveStats newPlayer
-              message = if Just itm == Game.equippedArmor plyr
-                        then "You unequipped " ++ Game.iName itm ++ "."
-                        else "You equipped " ++ Game.iName itm ++ "."
-           in state { Game.player = newPlayerWithNewResistance
-                    , Game.message = message : Game.message state }
-        Game.Special ->
-          state { Game.message = ("You used " ++ Game.iName itm ++ ". Its effect is mysterious.")
-                               : Game.message state }
-   in updatedState { Game.inventoryMode = Nothing }
+              msg = if Just itm == equippedArmor plyr
+                    then "You unequipped " ++ iName itm ++ "."
+                    else "You equipped " ++ iName itm ++ "."
+           in state { player = newPlayerWithNewResistance
+                    , message = msg : message state }
+        Special ->
+          state { message = ("You used " ++ iName itm ++ ". Its effect is mysterious.")
+                               : message state }
+   in updatedState { inventoryMode = Nothing }
 
 -- Find the active monster standing on a tile.
 --
@@ -198,9 +201,9 @@ useItem itm state =
 -- hits the right one; matching on the value would silently miss once any of
 -- its fields had changed. Inactive spawn templates are not targets, even
 -- though one can share a tile with a live monster.
-activeMonsterAt :: V2 Int -> Game.World -> Maybe Game.Monster
+activeMonsterAt :: V2 Int -> World -> Maybe Monster
 activeMonsterAt pos world =
-  find (\m -> not (Game.mInactive m) && Game.mPosition m == pos) (Game.monsters world)
+  find (\m -> not (mInactive m) && mPosition m == pos) (monsters world)
 
 -- Record where a monster fell, without duplicating a position
 addCorpse :: V2 Int -> [V2 Int] -> [V2 Int]
@@ -214,110 +217,110 @@ isAdjacent (V2 x1 y1) (V2 x2 y2) =
   abs (x1 - x2) + abs (y1 - y2) == 1
 
 -- Helper function to actually unlock a door using a specific key
-unlockDoor :: Game.GameState -> Game.Player -> Game.DoorEntity -> Game.Item -> Game.GameState
+unlockDoor :: GameState -> Player -> DoorEntity -> Item -> GameState
 unlockDoor state plyr door key =
-  let updatedDoors = map (\d -> if d == door then d { Game.deLocked = False } else d)
-                           (Game.doors (Game.levels state !! Game.currentLevel state))
-      updatedWorld = (Game.levels state !! Game.currentLevel state) { Game.doors = updatedDoors }
-      updatedInventory = reduceUses key (Game.inventory plyr) -- Remove or decrement key stack
-      updatedPlayer = plyr { Game.inventory = updatedInventory }
-  in state { Game.player = updatedPlayer
-           , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-           , Game.message = ("You used " ++ Game.iName key ++ " to unlock the door!") : Game.message state }
+  let updatedDoors = map (\d -> if d == door then d { deLocked = False } else d)
+                           (doors (currentWorld state))
+      updatedWorld = (currentWorld state) { doors = updatedDoors }
+      updatedInventory = reduceUses key (inventory plyr) -- Remove or decrement key stack
+      updatedPlayer = plyr { inventory = updatedInventory }
+  in setCurrentWorld updatedWorld $ state
+       { player = updatedPlayer
+       , message = ("You used " ++ iName key ++ " to unlock the door!") : message state }
 
 -- Handle the case where the player wants to drop an item from the inventory
-dropItem :: Game.Item -> Game.GameState -> Game.GameState
+dropItem :: Item -> GameState -> GameState
 dropItem item state =
-  let plyr = Game.player state
-      currentWorld = Game.levels state !! Game.currentLevel state
-      playerPos = Game.position plyr
-      itemsOnTile = filter (\i -> Game.iPosition i == playerPos && not (Game.iInactive i)) (Game.items currentWorld)
+  let plyr = player state
+      world = currentWorld state
+      playerPos = position plyr
+      itemsOnTile = filter (\i -> iPosition i == playerPos && not (iInactive i)) (items world)
 
   in if not (null itemsOnTile)
-     then state { Game.message = "You cannot drop an item here, the space is occupied!" : Game.message state }
+     then state { message = "You cannot drop an item here, the space is occupied!" : message state }
      else
-       let updatedInventory = filter (/= item) (Game.inventory plyr)
-           droppedItem = item { Game.iPosition = playerPos, Game.iInactive = False }
-           updatedWorld = currentWorld { Game.items = droppedItem : Game.items currentWorld }
-       in state { Game.player = plyr { Game.inventory = updatedInventory }
-                , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-                , Game.message = ("You dropped: " ++ Game.iName item) : Game.message state
-                , Game.inventoryMode = Nothing
-                }
+       let updatedInventory = filter (/= item) (inventory plyr)
+           droppedItem = item { iPosition = playerPos, iInactive = False }
+           updatedWorld = world { items = droppedItem : items world }
+       in setCurrentWorld updatedWorld $ state
+            { player = plyr { inventory = updatedInventory }
+            , message = ("You dropped: " ++ iName item) : message state
+            , inventoryMode = Nothing
+            }
 
 -- Range attack handling (getVisibleMonsters, monsterList, executeRangedAttack, calculateRangedDamage)
-getVisibleMonsters :: Game.GameState -> [(Char, Game.Monster)]
+getVisibleMonsters :: GameState -> [(Char, Monster)]
 getVisibleMonsters state =
-  visibleMonsters (Game.levels state !! Game.currentLevel state)
+  visibleMonsters (currentWorld state)
 
-monsterList :: [(Char, Game.Monster)] -> String
-monsterList monsters =
-  unwords $ map (\(c, m) -> [c] ++ ": " ++ Game.mName m) monsters
+monsterList :: [(Char, Monster)] -> String
+monsterList labelled =
+  unwords $ map (\(c, m) -> [c] ++ ": " ++ mName m) labelled
 
 -- Helper to update item uses
-updateUses :: Game.Item -> Game.Item -> Game.Item
+updateUses :: Item -> Item -> Item
 updateUses usedItem item
-  | item == usedItem = item { Game.iUses = fmap (\n -> n - 1) (Game.iUses item) }
+  | item == usedItem = item { iUses = fmap (\n -> n - 1) (iUses item) }
   | otherwise = item
 
-executeRangedAttack :: Game.GameState -> Game.Monster -> Game.Item -> Game.GameState
+executeRangedAttack :: GameState -> Monster -> Item -> GameState
 executeRangedAttack state targetMonster rangedItem =
-  case activeMonsterAt (Game.mPosition targetMonster) currentWorld of
+  case activeMonsterAt (mPosition targetMonster) world of
     Nothing -> state -- No live monster on that tile any more
     Just target ->
-      let damage = calculateRangedDamage (Game.player state) target rangedItem
-          monsterDefeated = Game.mHealth target - damage <= 0
+      let damage = calculateRangedDamage (player state) target rangedItem
+          monsterDefeated = mHealth target - damage <= 0
 
-          isTarget m = not (Game.mInactive m) && Game.mPosition m == Game.mPosition target
+          isTarget m = not (mInactive m) && mPosition m == mPosition target
           updatedMonsters =
             if monsterDefeated
-            then filter (not . isTarget) (Game.monsters currentWorld)
-            else map (\m -> if isTarget m then m { Game.mHealth = Game.mHealth m - damage } else m)
-                     (Game.monsters currentWorld)
+            then filter (not . isTarget) (monsters world)
+            else map (\m -> if isTarget m then m { mHealth = mHealth m - damage } else m)
+                     (monsters world)
 
           -- Mark the position where the monster was defeated
           updatedCorpses =
             if monsterDefeated
-            then addCorpse (Game.mPosition target) (Game.corpses currentWorld)
-            else Game.corpses currentWorld
-          updatedWorld = currentWorld { Game.monsters = updatedMonsters, Game.corpses = updatedCorpses }
+            then addCorpse (mPosition target) (corpses world)
+            else corpses world
+          updatedWorld = world { monsters = updatedMonsters, corpses = updatedCorpses }
 
-          defeatMessage = if monsterDefeated then "You defeated " ++ Game.mName target ++ "!" else ""
-          xpGainMessage = if monsterDefeated then "You gained " ++ show (Game.mXP target) ++ " XP!" else ""
-          attackMessage = "You hit " ++ Game.mName target ++ " for " ++ show damage ++ " damage!"
+          defeatMessage = if monsterDefeated then "You defeated " ++ mName target ++ "!" else ""
+          xpGainMessage = if monsterDefeated then "You gained " ++ show (mXP target) ++ " XP!" else ""
+          attackMessage = "You hit " ++ mName target ++ " for " ++ show damage ++ " damage!"
           (updatedPlayer, levelUpMessages) =
             if monsterDefeated
-            then levelUp ((Game.player state) { Game.xp = Game.xp (Game.player state) + Game.mXP target })
-                         (Game.xpLevels state)
-            else (Game.player state, [])
+            then levelUp ((player state) { xp = state.player.xp + mXP target })
+                         (xpLevels state)
+            else (player state, [])
           completeMessages = levelUpMessages ++ [defeatMessage, xpGainMessage, attackMessage]
           updatedPlayerWithReducedUsesForItem =
-            updatedPlayer { Game.inventory = reduceUses rangedItem (Game.inventory updatedPlayer) }
-       in state { Game.player = updatedPlayerWithReducedUsesForItem
-                , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-                , Game.message = completeMessages ++ Game.message state }
+            updatedPlayer { inventory = reduceUses rangedItem (inventory updatedPlayer) }
+       in setCurrentWorld updatedWorld $ state
+            { player = updatedPlayerWithReducedUsesForItem
+            , message = completeMessages ++ message state }
   where
-    currentWorld = Game.levels state !! Game.currentLevel state
+    world = currentWorld state
 
-calculateRangedDamage :: Game.Player -> Game.Monster -> Game.Item -> Int
-calculateRangedDamage player monster rangedItem =
-  let baseDamage = Game.attack player
-      rangedBonus = Game.iEffectValue rangedItem
-      monsterResistance = max 0 (Game.mHealth monster `div` 10) -- Example: Monster's resistance based on health
+calculateRangedDamage :: Player -> Monster -> Item -> Int
+calculateRangedDamage plyr mnstr rangedItem =
+  let baseDamage = attack plyr
+      rangedBonus = iEffectValue rangedItem
+      monsterResistance = max 0 (mHealth mnstr `div` 10) -- Example: Monster's resistance based on health
       totalDamage = max 0 (baseDamage + rangedBonus - monsterResistance)
   in totalDamage
 
-handleCommandInputInternal :: Maybe Char -> Bool -> Game.GameState -> (Game.GameState -> Game.GameState)
+handleCommandInputInternal :: Maybe Char -> Bool -> GameState -> (GameState -> GameState)
 handleCommandInputInternal key esc state =
-  case Game.aimingState state of
-    Just (Game.AimingState rangedItem) ->
+  case aimingState state of
+    Just (AimingState rangedItem) ->
       case key of
         Just c | Just monster <- lookup c (getVisibleMonsters state) ->
           \s -> exitAimingMode (executeRangedAttack s monster rangedItem)
         _ | esc -> exitAimingMode
         _ -> addMessage "Invalid selection. Press ESC to cancel."
     Nothing ->
-      if null (Game.commandBuffer state)
+      if null (commandBuffer state)
         then case key of
           Just c -> processInventorySelection c
           _ | esc -> exitCommandMode
@@ -329,22 +332,22 @@ handleCommandInputInternal key esc state =
           Nothing | esc -> exitCommandModeAndClearBuffer
           Nothing -> id
   where
-    exitAimingMode s = s { Game.aimingState = Nothing, Game.commandMode = False }
-    exitCommandMode s = s { Game.commandMode = False }
-    exitCommandModeAndClearBuffer s = s { Game.commandMode = False, Game.commandBuffer = "" }
-    appendToCommandBuffer c s = s { Game.commandBuffer = Game.commandBuffer s ++ [c] }
-    removeLastCommandChar s = s { Game.commandBuffer = initSafe (Game.commandBuffer s) }
-    addMessage msg s = s { Game.message = msg : Game.message s }
-    markCommandForExecution s = s { Game.commandMode = False, Game.commandToExecute = True }
+    exitAimingMode s = s { aimingState = Nothing, commandMode = False }
+    exitCommandMode s = s { commandMode = False }
+    exitCommandModeAndClearBuffer s = s { commandMode = False, commandBuffer = "" }
+    appendToCommandBuffer c s = s { commandBuffer = commandBuffer s ++ [c] }
+    removeLastCommandChar s = s { commandBuffer = initSafe (commandBuffer s) }
+    addMessage msg s = s { message = msg : message s }
+    markCommandForExecution s = s { commandMode = False, commandToExecute = True }
 
     processInventorySelection c s =
-      let inventory = Game.inventory (Game.player s)
-          eqpdWeapon = Game.equippedWeapon (Game.player s)
-          eqpdArmor = Game.equippedArmor (Game.player s)
-      in case lookup c (keyedInventory inventory eqpdWeapon eqpdArmor) of
-        Just item -> case Game.inventoryMode s of
-          Just Game.UseMode  -> exitCommandMode $ useItem item s
-          Just Game.DropMode -> exitCommandMode $ dropItem item s
+      let inv = s.player.inventory
+          eqpdWeapon = s.player.equippedWeapon
+          eqpdArmor = s.player.equippedArmor
+      in case lookup c (keyedInventory inv eqpdWeapon eqpdArmor) of
+        Just item -> case inventoryMode s of
+          Just UseMode  -> exitCommandMode $ useItem item s
+          Just DropMode -> exitCommandMode $ dropItem item s
           Nothing -> addMessage "Use/Drop error" s
         Nothing -> addMessage "Invalid selection." s
 
@@ -354,176 +357,176 @@ initSafe [] = []
 initSafe xs = init xs
 
 -- Move the player in a direction
-movePlayer :: Game.Direction -> Game.GameState -> Game.GameState
+movePlayer :: Direction -> GameState -> GameState
 movePlayer dir state =
-  let playerPos = Game.position (Game.player state)
-      currentWorld = Game.levels state !! Game.currentLevel state
-      worldMap = Game.mapGrid currentWorld
+  let playerPos = state.player.position
+      world = currentWorld state
+      worldMap = mapGrid world
       newPos = case dir of
-        Game.North -> playerPos + V2 0 (-1)
-        Game.South -> playerPos + V2 0 1
-        Game.West  -> playerPos + V2 (-1) 0
-        Game.East  -> playerPos + V2 1 0
+        North -> playerPos + V2 0 (-1)
+        South -> playerPos + V2 0 1
+        West  -> playerPos + V2 (-1) 0
+        East  -> playerPos + V2 1 0
         _          -> playerPos
 
       -- Helper to find an active monster at a given position
-      monsterAt pos = activeMonsterAt pos currentWorld
+      monsterAt pos = activeMonsterAt pos world
 
       -- Helper to find a door at a given position
-      doorAt pos = find (\d -> Game.dePosition d == pos) (Game.doors currentWorld)
+      doorAt pos = find (\d -> dePosition d == pos) (doors world)
 
       -- Check if the new position is occupied by an NPC
-      npcAt pos = find (\npc -> Game.npcPosition npc == pos) (Game.npcs currentWorld)
+      npcAt pos = find (\npc -> npcPosition npc == pos) (npcs world)
 
       -- Helper to check if the player can move to a position
       canMove pos =
         let V2 x y = pos
-        in y >= 0 && y < Game.mapRows currentWorld &&
-           x >= 0 && x < Game.mapCols currentWorld &&
-           (worldMap !! y !! x) /= Game.Wall
+        in y >= 0 && y < mapRows world &&
+           x >= 0 && x < mapCols world &&
+           (worldMap !! y !! x) /= Wall
 
       -- Helper to handle movement
       internalHandleMovement nPos =
-        let updatedWorld = updateVisibility (Game.player state) defaultFogRadius currentWorld
-        in state { Game.player = (Game.player state) { Game.position = nPos }
-                 , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+        let updatedWorld = updateVisibility (player state) defaultFogRadius world
+        in setCurrentWorld updatedWorld $
+             state { player = (player state) { position = nPos } }
   in case (doorAt newPos, monsterAt newPos, npcAt newPos) of
-       (Just door, _, _) | Game.deLocked door -> -- Locked door case
-         state { Game.message = ("The door in in front of you is locked and is blocking your way.") : Game.message state }
+       (Just door, _, _) | deLocked door -> -- Locked door case
+         state { message = ("The door in in front of you is locked and is blocking your way.") : message state }
        (_, Nothing, Nothing) | canMove newPos -> -- No monster or NPC
          internalHandleMovement newPos
        (_, Just monster, _) -> -- Monster
          combat state monster True
        (_, _, Just npc) -> -- NPC
-         state { Game.message = (Game.npcName npc ++ " says: " ++ Game.npcMessage npc) : Game.message state
-               , Game.lastInteractedNpc = Just (Game.npcName npc)
+         state { message = (npcName npc ++ " says: " ++ npcMessage npc) : message state
+               , lastInteractedNpc = Just (npcName npc)
                }
        _ -> state -- Invalid move
 
 -- Player hits a monster and the monster returns the favor
-combat :: Game.GameState -> Game.Monster -> Bool -> Game.GameState
+combat :: GameState -> Monster -> Bool -> GameState
 combat state mnstr playerGoesFirst =
-  case activeMonsterAt (Game.mPosition mnstr) currentWorld of
+  case activeMonsterAt (mPosition mnstr) world of
     Nothing -> state -- No live monster on that tile any more
     Just target ->
-      let plyr = Game.player state
-          playerDamage = Game.attack plyr
-          monsterDamage = max 0 (Game.mAttack target - Game.resistance plyr)
-          newHealth = max 0 (Game.health plyr - monsterDamage)
-          updatedPlayer = plyr { Game.health = newHealth }
-          monsterDefeated = Game.mHealth target - playerDamage <= 0
+      let plyr = player state
+          playerDamage = attack plyr
+          monsterDamage = max 0 (mAttack target - resistance plyr)
+          newHealth = max 0 (health plyr - monsterDamage)
+          updatedPlayer = plyr { health = newHealth }
+          monsterDefeated = mHealth target - playerDamage <= 0
 
-          isTarget m = not (Game.mInactive m) && Game.mPosition m == Game.mPosition target
+          isTarget m = not (mInactive m) && mPosition m == mPosition target
           updatedMonsters =
             if monsterDefeated
-            then filter (not . isTarget) (Game.monsters currentWorld)
-            else map (\m -> if isTarget m then m { Game.mHealth = Game.mHealth m - playerDamage } else m)
-                     (Game.monsters currentWorld)
+            then filter (not . isTarget) (monsters world)
+            else map (\m -> if isTarget m then m { mHealth = mHealth m - playerDamage } else m)
+                     (monsters world)
 
           -- Mark the position where the monster was defeated
           updatedCorpses =
             if monsterDefeated
-            then addCorpse (Game.mPosition target) (Game.corpses currentWorld)
-            else Game.corpses currentWorld
-          updatedWorld = currentWorld { Game.monsters = updatedMonsters, Game.corpses = updatedCorpses }
+            then addCorpse (mPosition target) (corpses world)
+            else corpses world
+          updatedWorld = world { monsters = updatedMonsters, corpses = updatedCorpses }
 
           isDead = newHealth == 0
           defeatMessage = if monsterDefeated
-                          then "You defeated the " ++ Game.mName target ++ " and gained " ++ show (Game.mXP target) ++ " XP!"
+                          then "You defeated the " ++ mName target ++ " and gained " ++ show (mXP target) ++ " XP!"
                           else ""
           attackMessage = if playerGoesFirst
-                          then "You attacked " ++ Game.mName target ++ " for " ++ show playerDamage ++ " damage!"
-                          else "The " ++ Game.mName target ++ " attacked you for " ++ show monsterDamage ++ " damage!"
+                          then "You attacked " ++ mName target ++ " for " ++ show playerDamage ++ " damage!"
+                          else "The " ++ mName target ++ " attacked you for " ++ show monsterDamage ++ " damage!"
           counterattackMessage = if playerGoesFirst
-                                 then "The " ++ Game.mName target ++ " counterattacked you for " ++ show monsterDamage ++ " damage!"
-                                 else "You counterattacked " ++ Game.mName target ++ " for " ++ show playerDamage ++ " damage!"
+                                 then "The " ++ mName target ++ " counterattacked you for " ++ show monsterDamage ++ " damage!"
+                                 else "You counterattacked " ++ mName target ++ " for " ++ show playerDamage ++ " damage!"
           deadMessage = if isDead then "You have died! Game Over." else ""
           combatMessages = [deadMessage, defeatMessage, counterattackMessage, attackMessage]
           updatedPlayerWithXP = if monsterDefeated
-                                then updatedPlayer { Game.xp = Game.xp updatedPlayer + Game.mXP target }
+                                then updatedPlayer { xp = xp updatedPlayer + mXP target }
                                 else updatedPlayer
           (updatedPlayerWithXPAndPossibleNewLevel, levelUpMessages) =
               if isDead
               then (updatedPlayerWithXP, [])
-              else levelUp updatedPlayerWithXP (Game.xpLevels state)
-          completeMessage = levelUpMessages ++ combatMessages ++ Game.message state
-       in state { Game.player = updatedPlayerWithXPAndPossibleNewLevel
-                , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-                , Game.message = completeMessage
-                , Game.gameOver = isDead }
+              else levelUp updatedPlayerWithXP (xpLevels state)
+          completeMessage = levelUpMessages ++ combatMessages ++ message state
+       in setCurrentWorld updatedWorld $ state
+            { player = updatedPlayerWithXPAndPossibleNewLevel
+            , message = completeMessage
+            , gameOver = isDead }
   where
-    currentWorld = Game.levels state !! Game.currentLevel state
+    world = currentWorld state
 
-levelUp :: Game.Player -> [Game.XPLevel] -> (Game.Player, [String])
-levelUp player xpLevels =
-  let currentXP = Game.xp player
-      currentXPLevel = Game.playerXPLevel player
-      nextXPLevel = find (\lvl -> currentXP >= Game.xpThreshold lvl && Game.xpLevel lvl > currentXPLevel) xpLevels
-      calculateEffectiveStats plyr = plyr
-        { Game.attack = Game.baseAttack plyr + maybe 0 Game.iEffectValue (Game.equippedWeapon plyr)
-        , Game.resistance = Game.baseResistance plyr + maybe 0 Game.iEffectValue (Game.equippedArmor plyr)
+levelUp :: Player -> [XPLevel] -> (Player, [String])
+levelUp plyr lvls =
+  let currentXP = xp plyr
+      currentXPLevel = playerXPLevel plyr
+      nextXPLevel = find (\lvl -> currentXP >= xpThreshold lvl && xpLevel lvl > currentXPLevel) lvls
+      calculateEffectiveStats p = p
+        { attack = baseAttack p + maybe 0 iEffectValue (equippedWeapon p)
+        , resistance = baseResistance p + maybe 0 iEffectValue (equippedArmor p)
         }
   in case nextXPLevel of
        Just lvl ->
-         let updatedPlayer = player
-               { Game.playerXPLevel = Game.xpLevel lvl
-               , Game.health = Game.xpHealth lvl
-               , Game.baseAttack = Game.xpAttack lvl
-               , Game.baseResistance = Game.xpResistance lvl
+         let updatedPlayer = plyr
+               { playerXPLevel = xpLevel lvl
+               , health = xpHealth lvl
+               , baseAttack = xpAttack lvl
+               , baseResistance = xpResistance lvl
                }
              recalculatedPlayer = calculateEffectiveStats updatedPlayer
          in (recalculatedPlayer,
-             [ "You leveled up to level " ++ show (Game.xpLevel lvl) ++ "!"
-             , "Health increased to " ++ show (Game.xpHealth lvl) ++ "."
-             , "Base attack increased to " ++ show (Game.xpAttack lvl) ++ "."
-             , "Base resistance increased to " ++ show (Game.xpResistance lvl) ++ "."
+             [ "You leveled up to level " ++ show (xpLevel lvl) ++ "!"
+             , "Health increased to " ++ show (xpHealth lvl) ++ "."
+             , "Base attack increased to " ++ show (xpAttack lvl) ++ "."
+             , "Base resistance increased to " ++ show (xpResistance lvl) ++ "."
              ])
-       Nothing -> (player, [])
+       Nothing -> (plyr, [])
 
 -- Monsters in tiles adjacent to the player should attack
-monstersAttack :: Game.GameState -> Game.GameState
+monstersAttack :: GameState -> GameState
 monstersAttack state =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      playerPos = Game.position (Game.player state)
-      (_, activeMonsters) = partition Game.mInactive (Game.monsters currentWorld)
+  let world = currentWorld state
+      playerPos = state.player.position
+      (_, activeMonsters) = partition mInactive (monsters world)
       monstersAdjacentToPlayer = filter (\m ->
-          let mPos = Game.mPosition m
+          let mPos = mPosition m
            in isAdjacent mPos playerPos) activeMonsters
     in foldl' monsterAttackOrWait state monstersAdjacentToPlayer
 
 -- Helper for handling either monster going into combat or monster waiting
-monsterAttackOrWait :: Game.GameState -> Game.Monster -> Game.GameState
+monsterAttackOrWait :: GameState -> Monster -> GameState
 monsterAttackOrWait state mnstr =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      mnstrUpdated = mnstr { Game.mAttackWait = not (Game.mAttackWait mnstr) }
-      updatedMonsters = replace mnstr mnstrUpdated (Game.monsters currentWorld)
-      updatedWorld = currentWorld { Game.monsters = updatedMonsters }
-      updatedState = state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
-   in if Game.mAttackWait mnstr
+  let world = currentWorld state
+      mnstrUpdated = mnstr { mAttackWait = not (mAttackWait mnstr) }
+      updatedMonsters = replace mnstr mnstrUpdated (monsters world)
+      updatedWorld = world { monsters = updatedMonsters }
+      updatedState = setCurrentWorld updatedWorld state
+   in if mAttackWait mnstr
       then updatedState
       else combat updatedState mnstrUpdated False
 
 -- Move monsters in the current level
-moveMonsters :: Game.GameState -> Game.GameState
+moveMonsters :: GameState -> GameState
 moveMonsters state =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      playerPos = Game.position (Game.player state)
-      (inactiveMonsters, activeMonsters) = partition Game.mInactive (Game.monsters currentWorld)
-      monsterPositions = map Game.mPosition activeMonsters
-      npcPositions = map Game.npcPosition (Game.npcs currentWorld)
+  let world = currentWorld state
+      playerPos = state.player.position
+      (inactiveMonsters, activeMonsters) = partition mInactive (monsters world)
+      monsterPositions = map mPosition activeMonsters
+      npcPositions = map npcPosition (npcs world)
       initialOccupiedPositions = playerPos : npcPositions ++ monsterPositions
       (updatedMonsters, _) =
         foldl
-          (\(monsters, occupied) monster ->
-             let orgMonsterPos = Game.mPosition monster
-                 newMonster = moveMonsterWithOccupied currentWorld playerPos occupied monster
-                 newOccupied = replace orgMonsterPos (Game.mPosition newMonster) occupied
-             in (monsters ++ [newMonster], newOccupied))
+          (\(moved, occupied) monster ->
+             let orgMonsterPos = mPosition monster
+                 newMonster = moveMonsterWithOccupied world playerPos occupied monster
+                 newOccupied = replace orgMonsterPos (mPosition newMonster) occupied
+             in (moved ++ [newMonster], newOccupied))
           ([], initialOccupiedPositions)
           activeMonsters
 
-      updatedWorld = currentWorld { Game.monsters = updatedMonsters ++ inactiveMonsters }
-  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+      updatedWorld = world { monsters = updatedMonsters ++ inactiveMonsters }
+  in setCurrentWorld updatedWorld state
 
 -- Helper function to replace an item in a list
 replace :: Eq a => a -> a -> [a] -> [a]
@@ -532,9 +535,9 @@ replace old new (x:xs)
   | old == x  = new:xs
   | otherwise = x:replace old new xs
 
-moveMonsterWithOccupied :: Game.World -> V2 Int -> [V2 Int] -> Game.Monster -> Game.Monster
+moveMonsterWithOccupied :: World -> V2 Int -> [V2 Int] -> Monster -> Monster
 moveMonsterWithOccupied world playerPos occupiedPositions monster =
-  let monsterPos = Game.mPosition monster
+  let monsterPos = mPosition monster
       distance = manhattanDistance playerPos monsterPos
       potentialMoves =
         filter (\pos -> isValidMove world playerPos pos && pos `notElem` occupiedPositions)
@@ -550,24 +553,24 @@ moveMonsterWithOccupied world playerPos occupiedPositions monster =
        case potentialMoves of
          (newPos:_) ->
              let newAttackWaiting = isAdjacent newPos playerPos
-              in monster { Game.mPosition = newPos, Game.mAttackWait = newAttackWaiting } -- Move to the first valid position
+              in monster { mPosition = newPos, mAttackWait = newAttackWaiting } -- Move to the first valid position
          _ -> monster -- Stay in place if no valid moves
 
-moveNPCs :: Game.GameState -> Game.GameState
+moveNPCs :: GameState -> GameState
 moveNPCs state =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      playerPos = Game.position (Game.player state)
-      occupiedPositions = playerPos : map Game.mPosition (Game.monsters currentWorld)
-                              ++ map Game.npcPosition (Game.npcs currentWorld)
-      updatedNPCs = map (moveNPCWithOccupied currentWorld occupiedPositions playerPos) (Game.npcs currentWorld)
-      updatedWorld = currentWorld { Game.npcs = updatedNPCs }
-  in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+  let world = currentWorld state
+      playerPos = state.player.position
+      occupiedPositions = playerPos : map mPosition (monsters world)
+                              ++ map npcPosition (npcs world)
+      updatedNPCs = map (moveNPCWithOccupied world occupiedPositions playerPos) (npcs world)
+      updatedWorld = world { npcs = updatedNPCs }
+  in setCurrentWorld updatedWorld state
 
-moveNPCWithOccupied :: Game.World -> [V2 Int] -> V2 Int -> Game.NPC -> Game.NPC
+moveNPCWithOccupied :: World -> [V2 Int] -> V2 Int -> NPC -> NPC
 moveNPCWithOccupied world occupiedPositions playerPos npc =
-  let npcPos = Game.npcPosition npc
-      directions = [(0, 1, Game.South), (1, 0, Game.East), (0, -1, Game.North), (-1, 0, Game.West)] -- Possible directions
-      currentDirection = Game.npcPreferredDirection npc
+  let npcPos = npcPosition npc
+      directions = [(0, 1, South), (1, 0, East), (0, -1, North), (-1, 0, West)] -- Possible directions
+      currentDirection = npcPreferredDirection npc
       preferredMove =
         case currentDirection of
           Just dir -> find (\(_, _, d) -> d == dir) directions
@@ -580,23 +583,23 @@ moveNPCWithOccupied world occupiedPositions playerPos npc =
                            (m:_) -> Just m
       selectedMove = if preferredMove `elem` (map Just allValidMoves) then preferredMove else newPreferredMove
   in case selectedMove of
-       Just (dx, dy, newDir) -> npc { Game.npcPosition = npcPos + V2 dx dy, Game.npcPreferredDirection = Just newDir }
+       Just (dx, dy, newDir) -> npc { npcPosition = npcPos + V2 dx dy, npcPreferredDirection = Just newDir }
        Nothing -> npc -- No valid moves, stay in place
 
 -- Check if a position is valid for monster movement
-isValidMove :: Game.World -> V2 Int -> V2 Int -> Bool
+isValidMove :: World -> V2 Int -> V2 Int -> Bool
 isValidMove world playerPos pos =
   let V2 x y = pos
-      grid = Game.mapGrid world
-      doorAt = find (\d -> Game.dePosition d == pos) (Game.doors world)
-      activeMonsters = filter (not . Game.mInactive) (Game.monsters world) -- Only active monsters block movement
-  in y >= 0 && y < Game.mapRows world &&
-     x >= 0 && x < Game.mapCols world &&
-     (grid !! y !! x) /= Game.Wall && -- Not a wall
+      grid = mapGrid world
+      doorAt = find (\d -> dePosition d == pos) (doors world)
+      activeMonsters = filter (not . mInactive) (monsters world) -- Only active monsters block movement
+  in y >= 0 && y < mapRows world &&
+     x >= 0 && x < mapCols world &&
+     (grid !! y !! x) /= Wall && -- Not a wall
      pos /= playerPos &&              -- Not the player's position
-     not (any (\m -> Game.mPosition m == pos) activeMonsters) && -- Check active monsters
+     not (any (\m -> mPosition m == pos) activeMonsters) && -- Check active monsters
      case doorAt of
-       Just door -> not (Game.deLocked door) -- Locked doors block movement
+       Just door -> not (deLocked door) -- Locked doors block movement
        Nothing   -> True -- No door, movement is allowed
 
 -- Prioritize movement directions towards the player
@@ -610,84 +613,81 @@ prioritizeTowardsPlayer (V2 px py) (V2 mx my) =
      then horizontalFirst ++ [(signum dx, signum dy), (-signum dx, 0), (0, -signum dy)]
      else verticalFirst ++ [(signum dx, signum dy), (0, -signum dy), (-signum dx, 0)]
 
-processTriggers :: Game.GameState -> Game.GameState
+processTriggers :: GameState -> GameState
 processTriggers state =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      (activated, remaining) = partition (\t -> evalTriggerCondition (Game.triggerCondition t) state) (Game.triggers currentWorld)
-      recurringTriggers = filter Game.triggerRecurring activated
+  let world = currentWorld state
+      (activated, remaining) = partition (\t -> evalTriggerCondition (triggerCondition t) state) (triggers world)
+      recurringTriggers = filter triggerRecurring activated
       newState = foldl' executeTrigger state activated
-      updatedCurrentWorld = (Game.levels newState !! Game.currentLevel newState) { Game.triggers = remaining ++ recurringTriggers }
-  in newState { Game.levels = replaceLevel state (Game.currentLevel state) updatedCurrentWorld }
+  in withCurrentWorld (\w -> w { triggers = remaining ++ recurringTriggers }) newState
 
-executeTrigger :: Game.GameState -> Game.Trigger -> Game.GameState
-executeTrigger state trigger = foldl' executeAction state (Game.triggerActions trigger)
+executeTrigger :: GameState -> Trigger -> GameState
+executeTrigger state trigger = foldl' executeAction state (triggerActions trigger)
 
-executeAction :: Game.GameState -> Game.Action -> Game.GameState
-executeAction state (Game.SpawnItem name pos) =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      updatedItems = map (\item -> if Game.iName item == name && Game.iPosition item == pos
-                                   then item { Game.iInactive = False }
-                                   else item) (Game.items currentWorld)
-      updatedWorld = currentWorld { Game.items = updatedItems }
-   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+executeAction :: GameState -> Action -> GameState
+executeAction state (SpawnItem name pos) =
+  let world = currentWorld state
+      updatedItems = map (\item -> if iName item == name && iPosition item == pos
+                                   then item { iInactive = False }
+                                   else item) (items world)
+      updatedWorld = world { items = updatedItems }
+   in setCurrentWorld updatedWorld state
 
-executeAction state (Game.SpawnMonster name pos) =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      (inactiveMonsters, activeMonsters) = partition Game.mInactive (Game.monsters currentWorld)
-      maybeTemplate = find (\m -> Game.mName m == name) inactiveMonsters
+executeAction state (SpawnMonster name pos) =
+  let world = currentWorld state
+      (inactiveMonsters, activeMonsters) = partition mInactive (monsters world)
+      maybeTemplate = find (\m -> mName m == name) inactiveMonsters
   in case maybeTemplate of
        Just template ->
-         let newMonster = template { Game.mPosition = pos, Game.mInactive = False }
-             updatedWorld = currentWorld { Game.monsters = newMonster : (activeMonsters ++ inactiveMonsters) }
-         in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+         let newMonster = template { mPosition = pos, mInactive = False }
+             updatedWorld = world { monsters = newMonster : (activeMonsters ++ inactiveMonsters) }
+         in setCurrentWorld updatedWorld state
        Nothing ->
-         state { Game.message = ("No inactive monster template found for " ++ name) : Game.message state }
+         state { message = ("No inactive monster template found for " ++ name) : message state }
 
-executeAction state (Game.UnlockDoor pos) =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      updatedDoors = map (\d -> if Game.dePosition d == pos then d { Game.deLocked = False } else d) (Game.doors currentWorld)
-      updatedWorld = currentWorld { Game.doors = updatedDoors }
-   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+executeAction state (UnlockDoor pos) =
+  let world = currentWorld state
+      updatedDoors = map (\d -> if dePosition d == pos then d { deLocked = False } else d) (doors world)
+      updatedWorld = world { doors = updatedDoors }
+   in setCurrentWorld updatedWorld state
 
-executeAction state (Game.DisplayMessage msg) =
-  state { Game.message = msg : Game.message state }
+executeAction state (DisplayMessage msg) =
+  state { message = msg : message state }
 
-executeAction state (Game.ShiftTile pos newTile) =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      updatedOverrides = (pos, newTile) : filter ((/= pos) . fst) (Game.tileOverrides currentWorld)
-      updatedMap = updateTile (Game.mapGrid currentWorld) (pos ^. _x, pos ^. _y) newTile
-      updatedWorld = currentWorld { Game.mapGrid = updatedMap, Game.tileOverrides = updatedOverrides }
-   in state { Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+executeAction state (ShiftTile pos newTile) =
+  let world = currentWorld state
+      updatedOverrides = (pos, newTile) : filter ((/= pos) . fst) (tileOverrides world)
+      updatedMap = updateTile (mapGrid world) (pos ^. _x, pos ^. _y) newTile
+      updatedWorld = world { mapGrid = updatedMap, tileOverrides = updatedOverrides }
+   in setCurrentWorld updatedWorld state
 
-executeAction state (Game.TransportPlayer pos) =
-  let currentWorld = Game.levels state !! Game.currentLevel state
-      updatedPlayer = (Game.player state) { Game.position = pos }
-      updatedWorld = updateVisibility updatedPlayer defaultFogRadius currentWorld
-   in state
-       { Game.player = updatedPlayer
-       , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld }
+executeAction state (TransportPlayer pos) =
+  let world = currentWorld state
+      updatedPlayer = (player state) { position = pos }
+      updatedWorld = updateVisibility updatedPlayer defaultFogRadius world
+   in setCurrentWorld updatedWorld $ state { player = updatedPlayer }
 
-executeAction state (Game.ConsumeItem itemName) =
-  let plyr = Game.player state
-      updatedInventory = filter (\item -> Game.iName item /= itemName) (Game.inventory plyr)
-      updatedPlayer = plyr { Game.inventory = updatedInventory }
-  in state { Game.player = updatedPlayer
-           , Game.message = ("Consumed item: " ++ itemName) : Game.message state }
+executeAction state (ConsumeItem itemName) =
+  let plyr = player state
+      updatedInventory = filter (\item -> iName item /= itemName) (inventory plyr)
+      updatedPlayer = plyr { inventory = updatedInventory }
+  in state { player = updatedPlayer
+           , message = ("Consumed item: " ++ itemName) : message state }
 
-executeAction state (Game.AddToInventory itemName) =
-  let currentWorld = Game.levels state !! Game.currentLevel state
+executeAction state (AddToInventory itemName) =
+  let world = currentWorld state
       (matchingItems, remainingItems) =
-         partition (\item -> Game.iName item == itemName && Game.iInactive item) (Game.items currentWorld)
+         partition (\item -> iName item == itemName && iInactive item) (items world)
    in case matchingItems of
-        [] -> state { Game.message = ("Item not found: " ++ itemName) : Game.message state }
+        [] -> state { message = ("Item not found: " ++ itemName) : message state }
         (item:_) ->
-           let updatedPlayer = (Game.player state) { Game.inventory = item : Game.inventory (Game.player state) }
-               updatedWorld = currentWorld { Game.items = remainingItems }
-            in state { Game.player = updatedPlayer
-                     , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-                     , Game.message = ("Added " ++ itemName ++ " to your inventory.") : Game.message state }
+           let updatedPlayer = (player state) { inventory = item : state.player.inventory }
+               updatedWorld = world { items = remainingItems }
+            in setCurrentWorld updatedWorld $ state
+                 { player = updatedPlayer
+                 , message = ("Added " ++ itemName ++ " to your inventory.") : message state }
 
-executeAction state Game.SetGameWon =
-  state { Game.gameWon = True, Game.message = "Congratulations! You have won the game!" : Game.message state }
+executeAction state SetGameWon =
+  state { gameWon = True, message = "Congratulations! You have won the game!" : message state }
 
 --executeAction _ _ = error "Undefined trigger action"

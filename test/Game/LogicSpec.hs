@@ -3,7 +3,7 @@ module Game.LogicSpec (spec) where
 
 import Data.List (isInfixOf, nub)
 import Game.Logic
-import Game.State (maxInventorySize, visibleMonsters)
+import Game.State (currentWorld, maxInventorySize, visibleMonsters)
 import Game.Types
 import Linear.V2 (V2 (..))
 import Test.Hspec
@@ -75,18 +75,18 @@ spec = do
       let goblin = mkMonster "Goblin" (V2 5 3) 100 3
           s = movePlayer East (withWorld (\w -> w {monsters = [goblin]}) baseState)
       position (player s) `shouldBe` V2 4 3
-      map mHealth (monsters (currentWorldOf s)) `shouldBe` [95]
+      map mHealth (monsters (currentWorld s)) `shouldBe` [95]
 
     it "updates the visible area after moving" $ do
       let s = movePlayer East baseState
-      visibleAt (V2 4 3) (currentWorldOf s) `shouldBe` True
+      visibleAt (V2 4 3) (currentWorld s) `shouldBe` True
 
   describe "combat" $ do
     let goblin = mkMonster "Goblin" (V2 5 3) 100 3
         withGoblin m = withWorld (\w -> w {monsters = [m]}) baseState
 
     it "damages the monster by the player's effective attack" $
-      map mHealth (monsters (currentWorldOf (combat (withGoblin goblin) goblin True)))
+      map mHealth (monsters (currentWorld (combat (withGoblin goblin) goblin True)))
         `shouldBe` [95]
 
     it "lets the monster counterattack for its attack minus resistance" $
@@ -103,8 +103,8 @@ spec = do
                 (withPlayer (\p -> p {inventory = [bow]}) (withGoblin goblin)) stale bow
       -- 5 attack + 1 bonus - (100 `div` 10) resistance = 0 damage, and the
       -- goblin survives; using the stale copy it would have been defeated.
-      map mHealth (monsters (currentWorldOf s)) `shouldBe` [100]
-      corpses (currentWorldOf s) `shouldBe` []
+      map mHealth (monsters (currentWorld s)) `shouldBe` [100]
+      corpses (currentWorld s) `shouldBe` []
 
     it "does nothing when the ranged target is already gone" $ do
       let bow = (mkItem "Bow" Range 20 (V2 0 0)) {iUses = Just 2}
@@ -119,7 +119,7 @@ spec = do
           s0 = withPlayer (\p -> p {inventory = [bow]})
                  (withWorld (\w -> w {monsters = [rat, ghost]}) baseState)
           s = executeRangedAttack s0 rat bow
-      map mName (monsters (currentWorldOf s)) `shouldBe` ["Ghost"]
+      map mName (monsters (currentWorld s)) `shouldBe` ["Ghost"]
       xp (player s) `shouldBe` 10
 
     it "spends a charge of the ranged item and records a corpse" $ do
@@ -128,21 +128,21 @@ spec = do
           s = executeRangedAttack
                 (withPlayer (\p -> p {inventory = [bow]}) (withGoblin rat)) rat bow
       map iUses (inventory (player s)) `shouldBe` [Just 1]
-      corpses (currentWorldOf s) `shouldBe` [V2 5 3]
+      corpses (currentWorld s) `shouldBe` [V2 5 3]
 
     it "removes a defeated monster and awards its XP" $ do
       let rat = mkMonster "Rat" (V2 5 3) 3 1
           s = combat (withGoblin rat) rat True
-      monsters (currentWorldOf s) `shouldBe` []
+      monsters (currentWorld s) `shouldBe` []
       xp (player s) `shouldBe` 10
 
     it "records a corpse where the monster fell" $ do
       let rat = mkMonster "Rat" (V2 5 3) 3 1
           s = combat (withGoblin rat) rat True
-      corpses (currentWorldOf s) `shouldBe` [V2 5 3]
+      corpses (currentWorld s) `shouldBe` [V2 5 3]
 
     it "records no corpse while the monster survives" $
-      corpses (currentWorldOf (combat (withGoblin goblin) goblin True)) `shouldBe` []
+      corpses (currentWorld (combat (withGoblin goblin) goblin True)) `shouldBe` []
 
     it "leaves a staircase usable when a monster dies on it" $ do
       let stairsMap =
@@ -154,14 +154,14 @@ spec = do
           s0 = withWorld (\w -> w {monsters = [rat]}) (mkState (mkWorld stairsMap) (V2 2 1))
           s = combat s0 rat True
           onStairs = withPlayer (\p -> p {position = V2 3 1}) s
-      tileAt (V2 3 1) (currentWorldOf s) `shouldBe` DownStair
-      corpses (currentWorldOf s) `shouldBe` [V2 3 1]
+      tileAt (V2 3 1) (currentWorld s) `shouldBe` DownStair
+      corpses (currentWorld s) `shouldBe` [V2 3 1]
       latest (goDown onStairs) `shouldSatisfy` ("bottom level" `isInfixOf`)
 
     it "does not record the same corpse tile twice" $ do
       let rat n = mkMonster n (V2 5 3) 3 1
           s = combat (combat (withGoblin (rat "Rat")) (rat "Rat") True) (rat "Mouse") True
-      corpses (currentWorldOf s) `shouldBe` [V2 5 3]
+      corpses (currentWorld s) `shouldBe` [V2 5 3]
 
     it "sets gameOver when the player's health reaches zero" $ do
       let brute = mkMonster "Brute" (V2 5 3) 100 30
@@ -174,13 +174,13 @@ spec = do
     it "hits the monster on the tile even when handed a stale copy" $ do
       let hurt = goblin {mHealth = 40} -- no longer matches the world's copy
           s = combat (withGoblin goblin) hurt True
-      map mHealth (monsters (currentWorldOf s)) `shouldBe` [95]
+      map mHealth (monsters (currentWorld s)) `shouldBe` [95]
 
     it "keeps landing hits when the same stale copy is reused" $ do
       let rat = mkMonster "Rat" (V2 5 3) 12 1
           s = iterate (\st -> combat st rat True) (withGoblin rat) !! 3
-      monsters (currentWorldOf s) `shouldBe` []
-      corpses (currentWorldOf s) `shouldBe` [V2 5 3]
+      monsters (currentWorld s) `shouldBe` []
+      corpses (currentWorld s) `shouldBe` [V2 5 3]
 
     it "does nothing when the monster is already gone" $ do
       let s = combat baseState goblin True
@@ -196,7 +196,7 @@ spec = do
       let template = goblin {mInactive = True}
           s = combat (withGoblin template) template True
       health (player s) `shouldBe` 20
-      map mHealth (monsters (currentWorldOf s)) `shouldBe` [100]
+      map mHealth (monsters (currentWorld s)) `shouldBe` [100]
 
   describe "levelUp" $ do
     it "does nothing below the next threshold" $ do
@@ -228,7 +228,7 @@ spec = do
     it "moves the item on the player's tile into the inventory" $ do
       let s = pickUpItem (withFloorItem sword)
       inventory (player s) `shouldBe` [sword]
-      items (currentWorldOf s) `shouldBe` []
+      items (currentWorld s) `shouldBe` []
 
     it "reports an empty tile" $ do
       let s = pickUpItem baseState
@@ -245,7 +245,7 @@ spec = do
                 . withPlayer (\p -> p {inventory = [potion 2 (V2 0 0)]})
                 $ withFloorItem (potion 3 (V2 4 3))
       map iUses (inventory (player s)) `shouldBe` [Just 5]
-      items (currentWorldOf s) `shouldBe` []
+      items (currentWorld s) `shouldBe` []
 
     it "refuses to pick up when the inventory is full" $ do
       let junk i = mkItem ("Junk " ++ show i) Special 0 (V2 0 0)
@@ -253,7 +253,7 @@ spec = do
                 . withPlayer (\p -> p {inventory = map junk [1 .. maxInventorySize]})
                 $ withFloorItem sword
       length (inventory (player s)) `shouldBe` maxInventorySize
-      items (currentWorldOf s) `shouldBe` [sword]
+      items (currentWorld s) `shouldBe` [sword]
       latest s `shouldSatisfy` ("full" `isInfixOf`)
 
   describe "dropItem" $ do
@@ -263,7 +263,7 @@ spec = do
     it "puts the item back on the player's tile" $ do
       let s = dropItem sword carrying
       inventory (player s) `shouldBe` []
-      map iPosition (items (currentWorldOf s)) `shouldBe` [V2 4 3]
+      map iPosition (items (currentWorld s)) `shouldBe` [V2 4 3]
 
     it "refuses when the tile already holds an item" $ do
       let occupied = withWorld (\w -> w {items = [mkItem "Shield" Armor 2 (V2 4 3)]}) carrying
@@ -324,7 +324,7 @@ spec = do
           s = useItem key
                 . withPlayer (\p -> p {inventory = [key]})
                 $ withWorld (\w -> w {doors = [mkDoor (V2 5 3) True "Iron Key"]}) baseState
-      map deLocked (doors (currentWorldOf s)) `shouldBe` [False]
+      map deLocked (doors (currentWorld s)) `shouldBe` [False]
       inventory (player s) `shouldBe` []
 
     it "rejects a key that does not fit the lock" $ do
@@ -332,7 +332,7 @@ spec = do
           s = useItem key
                 . withPlayer (\p -> p {inventory = [key]})
                 $ withWorld (\w -> w {doors = [mkDoor (V2 5 3) True "Iron Key"]}) baseState
-      map deLocked (doors (currentWorldOf s)) `shouldBe` [True]
+      map deLocked (doors (currentWorld s)) `shouldBe` [True]
       latest s `shouldSatisfy` ("does not fit" `isInfixOf`)
 
     it "reports when there is no door to unlock" $ do
@@ -373,15 +373,15 @@ spec = do
             (mkState (mkWorld openMap) playerPos)
 
     it "steps towards the player when within range" $
-      map mPosition (monsters (currentWorldOf (moveMonsters (withMonsterAt (V2 7 3) (V2 4 3)))))
+      map mPosition (monsters (currentWorld (moveMonsters (withMonsterAt (V2 7 3) (V2 4 3)))))
         `shouldBe` [V2 6 3]
 
     it "stays put when the player is out of range" $
-      map mPosition (monsters (currentWorldOf (moveMonsters (withMonsterAt (V2 7 5) (V2 1 1)))))
+      map mPosition (monsters (currentWorld (moveMonsters (withMonsterAt (V2 7 5) (V2 1 1)))))
         `shouldBe` [V2 7 5]
 
     it "stays put when already adjacent to the player" $
-      map mPosition (monsters (currentWorldOf (moveMonsters (withMonsterAt (V2 5 3) (V2 4 3)))))
+      map mPosition (monsters (currentWorld (moveMonsters (withMonsterAt (V2 5 3) (V2 4 3)))))
         `shouldBe` [V2 5 3]
 
     it "does not move two monsters onto the same tile" $ do
@@ -390,14 +390,14 @@ spec = do
                     (\w -> w {monsters = [mkMonster "A" (V2 6 3) 10 2, mkMonster "B" (V2 7 3) 10 2]})
                     baseState
                 )
-          positions = map mPosition (monsters (currentWorldOf s))
+          positions = map mPosition (monsters (currentWorld s))
       length positions `shouldBe` 2
       length (nub positions) `shouldBe` 2
 
     it "leaves inactive spawn templates where they are" $ do
       let template = (mkMonster "Goblin" (V2 7 3) 10 2) {mInactive = True}
           s = moveMonsters (withWorld (\w -> w {monsters = [template]}) baseState)
-      map mPosition (monsters (currentWorldOf s)) `shouldBe` [V2 7 3]
+      map mPosition (monsters (currentWorld s)) `shouldBe` [V2 7 3]
 
   describe "monstersAttack" $ do
     let goblin = mkMonster "Goblin" (V2 5 3) 100 5
@@ -406,7 +406,7 @@ spec = do
     it "makes an adjacent monster wait one turn before its first attack" $ do
       let s1 = monstersAttack s0
       health (player s1) `shouldBe` 20
-      map mAttackWait (monsters (currentWorldOf s1)) `shouldBe` [False]
+      map mAttackWait (monsters (currentWorld s1)) `shouldBe` [False]
 
     it "attacks on the following turn" $ do
       let s2 = monstersAttack (monstersAttack s0)
@@ -421,13 +421,13 @@ spec = do
       let hidden = (mkItem "Dark Sword" Weapon 9 (V2 6 3)) {iInactive = True}
           s = executeAction (withWorld (\w -> w {items = [hidden]}) baseState)
                             (SpawnItem "Dark Sword" (V2 6 3))
-      map iInactive (items (currentWorldOf s)) `shouldBe` [False]
+      map iInactive (items (currentWorld s)) `shouldBe` [False]
 
     it "SpawnMonster brings an inactive template to life at a position" $ do
       let template = (mkMonster "Dragon" (V2 0 0) 50 9) {mInactive = True}
           s = executeAction (withWorld (\w -> w {monsters = [template]}) baseState)
                             (SpawnMonster "Dragon" (V2 6 3))
-          live = filter (not . mInactive) (monsters (currentWorldOf s))
+          live = filter (not . mInactive) (monsters (currentWorld s))
       map mPosition live `shouldBe` [V2 6 3]
 
     it "SpawnMonster reports a missing template" $
@@ -437,17 +437,17 @@ spec = do
     it "UnlockDoor unlocks the door at a position" $ do
       let s = executeAction (withWorld (\w -> w {doors = [mkDoor (V2 5 3) True "Iron Key"]}) baseState)
                             (UnlockDoor (V2 5 3))
-      map deLocked (doors (currentWorldOf s)) `shouldBe` [False]
+      map deLocked (doors (currentWorld s)) `shouldBe` [False]
 
     it "ShiftTile changes the tile and records an override" $ do
       let s = executeAction baseState (ShiftTile (V2 0 0) Floor)
-      tileAt (V2 0 0) (currentWorldOf s) `shouldBe` Floor
-      tileOverrides (currentWorldOf s) `shouldBe` [(V2 0 0, Floor)]
+      tileAt (V2 0 0) (currentWorld s) `shouldBe` Floor
+      tileOverrides (currentWorld s) `shouldBe` [(V2 0 0, Floor)]
 
     it "TransportPlayer moves the player and refreshes what they can see" $ do
       let s = executeAction baseState (TransportPlayer (V2 1 1))
       position (player s) `shouldBe` V2 1 1
-      visibleAt (V2 1 1) (currentWorldOf s) `shouldBe` True
+      visibleAt (V2 1 1) (currentWorld s) `shouldBe` True
 
     it "ConsumeItem removes the item from the inventory" $ do
       let coin = mkItem "Gold Coin" Special 0 (V2 0 0)
@@ -460,7 +460,7 @@ spec = do
           s = executeAction (withWorld (\w -> w {items = [reward]}) baseState)
                             (AddToInventory "Mithril Shield")
       map iName (inventory (player s)) `shouldBe` ["Mithril Shield"]
-      items (currentWorldOf s) `shouldBe` []
+      items (currentWorld s) `shouldBe` []
 
     it "SetGameWon wins the game" $
       gameWon (executeAction baseState SetGameWon) `shouldBe` True
@@ -474,19 +474,19 @@ spec = do
       let s = processTriggers
                 (withWorld (\w -> w {triggers = [mkTrigger atStart [SetGameWon] False]}) baseState)
       gameWon s `shouldBe` True
-      triggers (currentWorldOf s) `shouldBe` []
+      triggers (currentWorld s) `shouldBe` []
 
     it "keeps a recurring trigger for the next turn" $ do
       let t = mkTrigger atStart [SetGameWon] True
           s = processTriggers (withWorld (\w -> w {triggers = [t]}) baseState)
       gameWon s `shouldBe` True
-      triggers (currentWorldOf s) `shouldBe` [t]
+      triggers (currentWorld s) `shouldBe` [t]
 
     it "leaves a trigger whose condition does not hold" $ do
       let t = mkTrigger elsewhere [SetGameWon] False
           s = processTriggers (withWorld (\w -> w {triggers = [t]}) baseState)
       gameWon s `shouldBe` False
-      triggers (currentWorldOf s) `shouldBe` [t]
+      triggers (currentWorld s) `shouldBe` [t]
 
     it "fires a trigger that needs both a position and items" $ do
       let t = mkTrigger (AtPositionWithItems (V2 4 3) ["Gold Coin"]) [SetGameWon] False
@@ -518,7 +518,7 @@ spec = do
     it "agrees with the level's own visible-monster list" $ do
       let template = (mkMonster "Dragon" (V2 2 3) 50 9) {mInactive = True}
           s = withWorld (\w -> w {monsters = template : monsters w}) (seen baseState)
-      getVisibleMonsters s `shouldBe` visibleMonsters (currentWorldOf s)
+      getVisibleMonsters s `shouldBe` visibleMonsters (currentWorld s)
 
   describe "calculateRangedDamage" $
     it "adds the item bonus and subtracts a tenth of the target's health" $

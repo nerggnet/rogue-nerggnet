@@ -8,14 +8,14 @@ import Control.Exception (evaluate, finally)
 import Control.Monad (when)
 import File.MapIO (loadNewGame, loadSavedGame, saveGame)
 import Game.Logic (executeAction)
-import Game.State (initGame)
+import Game.State (currentWorld, initGame)
 import Game.Types
 import Linear.V2 (V2 (..))
 import System.Directory (doesFileExist, getTemporaryDirectory, removeFile)
 import System.FilePath ((</>))
 import Test.Hspec
 
-import Fixtures (currentWorldOf)
+import Fixtures ()
 
 -- | Run an action with a scratch save file, removing it afterwards.
 withTempSave :: (FilePath -> IO a) -> IO a
@@ -63,7 +63,7 @@ spec = do
 
       it "starts the player on the S tile of the first level" $ do
         state <- freshGame
-        let world = currentWorldOf state
+        let world = currentWorld state
             V2 x y = position (player state)
         (mapGrid world !! y !! x) `shouldBe` Start
 
@@ -73,7 +73,7 @@ spec = do
 
       it "builds the win condition on the first level" $ do
         state <- freshGame
-        map triggerCondition (triggers (currentWorldOf state))
+        map triggerCondition (triggers (currentWorld state))
           `shouldSatisfy` any isPosAndItems
 
       it "gives the player the stats of the first XP level" $ do
@@ -126,12 +126,12 @@ spec = do
           before' <- freshGame
           let fought = withCorpse before'
           after' <- roundTrip fought
-          corpses (currentWorldOf after') `shouldBe` [V2 3 1]
+          corpses (currentWorld after') `shouldBe` [V2 3 1]
 
         it "re-applies tile overrides left by shiftTile" $ do
           before' <- freshGame
           let shifted = executeAction before' (ShiftTile (V2 0 1) Floor)
           after' <- roundTrip shifted
-          let world = currentWorldOf after'
+          let world = currentWorld after'
           (mapGrid world !! 1 !! 0) `shouldBe` Floor
           tileOverrides world `shouldBe` [(V2 0 1, Floor)]

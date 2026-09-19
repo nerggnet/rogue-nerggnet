@@ -117,6 +117,19 @@ replaceLevel :: GameState -> Int -> World -> [World]
 replaceLevel state levelIndex newWorld =
   take levelIndex (levels state) ++ [newWorld] ++ drop (levelIndex + 1) (levels state)
 
+-- The level the player is standing on
+currentWorld :: GameState -> World
+currentWorld state = levels state !! currentLevel state
+
+-- Apply a change to the level the player is standing on
+withCurrentWorld :: (World -> World) -> GameState -> GameState
+withCurrentWorld f state =
+  state { levels = replaceLevel state (currentLevel state) (f (currentWorld state)) }
+
+-- Swap in a new version of the level the player is standing on
+setCurrentWorld :: World -> GameState -> GameState
+setCurrentWorld world = withCurrentWorld (const world)
+
 -- Transform a File.Types.MapLevel to Game.Types.World
 transformFileWorld :: FT.MapLevel -> World
 transformFileWorld fileWorld =
@@ -341,8 +354,7 @@ visibleMonsters world =
 
 -- Helper function to now if all monsters on a level have been defeated
 allMonstersDefeated :: GameState -> Bool
-allMonstersDefeated state =
-  null (filter (not . mInactive) (monsters (levels state !! currentLevel state)))
+allMonstersDefeated state = not (any (not . mInactive) (monsters (currentWorld state)))
 
 -- Convert a character to a Tile (and back again)
 charToTile :: Char -> Tile
