@@ -45,6 +45,11 @@ All notable changes to this project are documented in this file.
   expect. The map filtered out inactive spawn templates and the targeting
   code did not, which could shift every letter by one. The lookup is also
   bounds-checked, so a monster outside the map no longer crashes the game.
+- Combat now resolves its target from the world by position instead of
+  matching the passed-in monster by value. A caller holding a copy whose
+  health or flags had already changed silently hit nothing, while the player
+  still took the counterattack. Ranged attacks are fixed the same way, and
+  no longer sweep up any other monster that happens to be at zero health.
 - Consumable items can no longer be used forever. `itemUses` is spent through
   a `Maybe`, so an item without one was never removed; `Healing`, `Key` and
   `Range` items must now declare a use count and loading fails with a message

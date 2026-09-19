@@ -96,6 +96,32 @@ spec = do
       let feeble = mkMonster "Kitten" (V2 5 3) 100 0
       health (player (combat (withGoblin feeble) feeble True)) `shouldBe` 20
 
+    it "fires at the monster on the tile even when handed a stale copy" $ do
+      let bow = (mkItem "Bow" Range 1 (V2 0 0)) {iUses = Just 2}
+          stale = goblin {mHealth = 1}
+          s = executeRangedAttack
+                (withPlayer (\p -> p {inventory = [bow]}) (withGoblin goblin)) stale bow
+      -- 5 attack + 1 bonus - (100 `div` 10) resistance = 0 damage, and the
+      -- goblin survives; using the stale copy it would have been defeated.
+      map mHealth (monsters (currentWorldOf s)) `shouldBe` [100]
+      corpses (currentWorldOf s) `shouldBe` []
+
+    it "does nothing when the ranged target is already gone" $ do
+      let bow = (mkItem "Bow" Range 20 (V2 0 0)) {iUses = Just 2}
+          s = executeRangedAttack (withPlayer (\p -> p {inventory = [bow]}) baseState) goblin bow
+      map iUses (inventory (player s)) `shouldBe` [Just 2]
+      message s `shouldBe` []
+
+    it "does not defeat bystanders that happen to be at zero health" $ do
+      let rat = mkMonster "Rat" (V2 5 3) 3 1
+          ghost = mkMonster "Ghost" (V2 2 3) 0 1
+          bow = (mkItem "Bow" Range 20 (V2 0 0)) {iUses = Just 2}
+          s0 = withPlayer (\p -> p {inventory = [bow]})
+                 (withWorld (\w -> w {monsters = [rat, ghost]}) baseState)
+          s = executeRangedAttack s0 rat bow
+      map mName (monsters (currentWorldOf s)) `shouldBe` ["Ghost"]
+      xp (player s) `shouldBe` 10
+
     it "spends a charge of the ranged item and records a corpse" $ do
       let bow = (mkItem "Bow" Range 20 (V2 0 0)) {iUses = Just 2}
           rat = mkMonster "Rat" (V2 5 3) 3 1
@@ -142,6 +168,29 @@ spec = do
           s = combat (withPlayer (\p -> p {health = 5}) (withGoblin brute)) brute True
       health (player s) `shouldBe` 0
       gameOver s `shouldBe` True
+
+    -- The target is resolved from the world by position, so a caller holding
+    -- an out-of-date copy of the monster still hits it.
+    it "hits the monster on the tile even when handed a stale copy" $ do
+      let hurt = goblin {mHealth = 40} -- no longer matches the world's copy
+          s = combat (withGoblin goblin) hurt True
+      map mHealth (monsters (currentWorldOf s)) `shouldBe` [95]
+
+    it "keeps landing hits when the same stale copy is reused" $ do
+      let rat = mkMonster "Rat" (V2 5 3) 12 1
+          s = iterate (\st -> combat st rat True) (withGoblin rat) !! 3
+      monsters (currentWorldOf s) `shouldBe` []
+      corpses (currentWorldOf s) `shouldBe` [V2 5 3]
+
+    it "does nothing when the monster is already gone" $ do
+      let s = combat baseState goblin True
+      health (player s) `shouldBe` 20
+      message s `shouldBe` []
+
+    it "reports the damage the world's monster deals, not the stale copy's" $ do
+      let stale = goblin {mAttack = 99}
+          s = combat (withGoblin goblin) stale True
+      health (player s) `shouldBe` 18 -- 20 - (3 - 1), not the stale 99
 
     it "ignores inactive monsters entirely" $ do
       let template = goblin {mInactive = True}

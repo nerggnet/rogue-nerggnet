@@ -191,6 +191,17 @@ useItem itm state =
                                : Game.message state }
    in updatedState { Game.inventoryMode = Nothing }
 
+-- Find the active monster standing on a tile.
+--
+-- Monsters are one to a tile, so a position identifies a target. Looking the
+-- target up this way means a caller holding a stale copy of the monster still
+-- hits the right one; matching on the value would silently miss once any of
+-- its fields had changed. Inactive spawn templates are not targets, even
+-- though one can share a tile with a live monster.
+activeMonsterAt :: V2 Int -> Game.World -> Maybe Game.Monster
+activeMonsterAt pos world =
+  find (\m -> not (Game.mInactive m) && Game.mPosition m == pos) (Game.monsters world)
+
 -- Record where a monster fell, without duplicating a position
 addCorpse :: V2 Int -> [V2 Int] -> [V2 Int]
 addCorpse pos poss
@@ -251,36 +262,42 @@ updateUses usedItem item
 
 executeRangedAttack :: Game.GameState -> Game.Monster -> Game.Item -> Game.GameState
 executeRangedAttack state targetMonster rangedItem =
-  let damage = calculateRangedDamage (Game.player state) targetMonster rangedItem
-      currentWorld = Game.levels state !! Game.currentLevel state
-      updatedMonsters = map (\m -> if m == targetMonster then m { Game.mHealth = Game.mHealth m - damage } else m) (Game.monsters currentWorld)
-      (defeatedMonsters, remainingMonsters) = partition ((<= 0) . Game.mHealth) updatedMonsters
+  case activeMonsterAt (Game.mPosition targetMonster) currentWorld of
+    Nothing -> state -- No live monster on that tile any more
+    Just target ->
+      let damage = calculateRangedDamage (Game.player state) target rangedItem
+          monsterDefeated = Game.mHealth target - damage <= 0
 
-      -- Mark the position where the monster was defeated
-      updatedCorpses =
-        if Game.mHealth targetMonster - damage <= 0
-        then addCorpse (Game.mPosition targetMonster) (Game.corpses currentWorld)
-        else Game.corpses currentWorld
-      updatedWorld = currentWorld { Game.monsters = remainingMonsters, Game.corpses = updatedCorpses }
+          isTarget m = not (Game.mInactive m) && Game.mPosition m == Game.mPosition target
+          updatedMonsters =
+            if monsterDefeated
+            then filter (not . isTarget) (Game.monsters currentWorld)
+            else map (\m -> if isTarget m then m { Game.mHealth = Game.mHealth m - damage } else m)
+                     (Game.monsters currentWorld)
 
-      defeatMessage = if not (null defeatedMonsters)
-                      then "You defeated " ++ Game.mName targetMonster ++ "!"
-                      else ""
-      attackMessage = "You hit " ++ Game.mName targetMonster ++ " for " ++ show damage ++ " damage!"
-      (updatedPlayer, levelUpMessages) = if not (null defeatedMonsters)
-                                         then
-                                           let totalXP = sum (map Game.mXP defeatedMonsters)
-                                               playerWithXP = (Game.player state) { Game.xp = Game.xp (Game.player state) + totalXP }
-                                           in levelUp playerWithXP (Game.xpLevels state)
-                                         else (Game.player state, [])
-      xpGainMessage = if not (null defeatedMonsters)
-                      then "You gained " ++ show (sum (map Game.mXP defeatedMonsters)) ++ " XP!"
-                      else ""
-      completeMessages = levelUpMessages ++ [defeatMessage, xpGainMessage, attackMessage]
-      updatedPlayerWithReducedUsesForItem = updatedPlayer { Game.inventory = reduceUses rangedItem (Game.inventory updatedPlayer) }
-  in state { Game.player = updatedPlayerWithReducedUsesForItem
-           , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
-           , Game.message = completeMessages ++ Game.message state }
+          -- Mark the position where the monster was defeated
+          updatedCorpses =
+            if monsterDefeated
+            then addCorpse (Game.mPosition target) (Game.corpses currentWorld)
+            else Game.corpses currentWorld
+          updatedWorld = currentWorld { Game.monsters = updatedMonsters, Game.corpses = updatedCorpses }
+
+          defeatMessage = if monsterDefeated then "You defeated " ++ Game.mName target ++ "!" else ""
+          xpGainMessage = if monsterDefeated then "You gained " ++ show (Game.mXP target) ++ " XP!" else ""
+          attackMessage = "You hit " ++ Game.mName target ++ " for " ++ show damage ++ " damage!"
+          (updatedPlayer, levelUpMessages) =
+            if monsterDefeated
+            then levelUp ((Game.player state) { Game.xp = Game.xp (Game.player state) + Game.mXP target })
+                         (Game.xpLevels state)
+            else (Game.player state, [])
+          completeMessages = levelUpMessages ++ [defeatMessage, xpGainMessage, attackMessage]
+          updatedPlayerWithReducedUsesForItem =
+            updatedPlayer { Game.inventory = reduceUses rangedItem (Game.inventory updatedPlayer) }
+       in state { Game.player = updatedPlayerWithReducedUsesForItem
+                , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
+                , Game.message = completeMessages ++ Game.message state }
+  where
+    currentWorld = Game.levels state !! Game.currentLevel state
 
 calculateRangedDamage :: Game.Player -> Game.Monster -> Game.Item -> Int
 calculateRangedDamage player monster rangedItem =
@@ -350,7 +367,7 @@ movePlayer dir state =
         _          -> playerPos
 
       -- Helper to find an active monster at a given position
-      monsterAt pos = find (\m -> Game.mPosition m == pos) (filter (not . Game.mInactive) (Game.monsters currentWorld))
+      monsterAt pos = activeMonsterAt pos currentWorld
 
       -- Helper to find a door at a given position
       doorAt pos = find (\d -> Game.dePosition d == pos) (Game.doors currentWorld)
@@ -386,51 +403,56 @@ movePlayer dir state =
 -- Player hits a monster and the monster returns the favor
 combat :: Game.GameState -> Game.Monster -> Bool -> Game.GameState
 combat state mnstr playerGoesFirst =
-  let player = Game.player state
-      playerDamage = Game.attack player
-      monsterDamage = max 0 (Game.mAttack mnstr - Game.resistance player)
-      newHealth = max 0 (Game.health player - monsterDamage)
-      updatedPlayer = player { Game.health = newHealth }
-      currentWorld = Game.levels state !! Game.currentLevel state
-      updatedMonsters =
-        if Game.mHealth mnstr - playerDamage <= 0
-        then filter (/= mnstr) (Game.monsters currentWorld)
-        else map (\m -> if m == mnstr then m { Game.mHealth = Game.mHealth mnstr - playerDamage } else m)
-                 (Game.monsters currentWorld)
+  case activeMonsterAt (Game.mPosition mnstr) currentWorld of
+    Nothing -> state -- No live monster on that tile any more
+    Just target ->
+      let plyr = Game.player state
+          playerDamage = Game.attack plyr
+          monsterDamage = max 0 (Game.mAttack target - Game.resistance plyr)
+          newHealth = max 0 (Game.health plyr - monsterDamage)
+          updatedPlayer = plyr { Game.health = newHealth }
+          monsterDefeated = Game.mHealth target - playerDamage <= 0
 
-      -- Mark the position where the monster was defeated
-      updatedCorpses =
-        if Game.mHealth mnstr - playerDamage <= 0
-        then addCorpse (Game.mPosition mnstr) (Game.corpses currentWorld)
-        else Game.corpses currentWorld
-      updatedWorld = currentWorld { Game.monsters = updatedMonsters, Game.corpses = updatedCorpses }
+          isTarget m = not (Game.mInactive m) && Game.mPosition m == Game.mPosition target
+          updatedMonsters =
+            if monsterDefeated
+            then filter (not . isTarget) (Game.monsters currentWorld)
+            else map (\m -> if isTarget m then m { Game.mHealth = Game.mHealth m - playerDamage } else m)
+                     (Game.monsters currentWorld)
 
-      isDead = newHealth == 0
-      defeatMessage = if Game.mHealth mnstr - playerDamage <= 0
-                      then "You defeated the " ++ Game.mName mnstr ++ " and gained " ++ show (Game.mXP mnstr) ++ " XP!"
-                      else ""
-      attackMessage = if playerGoesFirst
-                      then "You attacked " ++ Game.mName mnstr ++ " for " ++ show playerDamage ++ " damage!"
-                      else "The " ++ Game.mName mnstr ++ " attacked you for " ++ show monsterDamage ++ " damage!"
-      counterattackMessage = if playerGoesFirst
-                             then "The " ++ Game.mName mnstr ++ " counterattacked you for " ++ show monsterDamage ++ " damage!"
-                             else "You counterattacked " ++ Game.mName mnstr ++ " for " ++ show playerDamage ++ " damage!"
-      deadMessage = if isDead then "You have died! Game Over." else ""
-      combatMessages = deadMessage : defeatMessage : counterattackMessage : attackMessage : []
-      updatedPlayerWithXP = if Game.mHealth mnstr - playerDamage <= 0
-                            then updatedPlayer { Game.xp = Game.xp updatedPlayer + Game.mXP mnstr }
-                            else updatedPlayer
-      (updatedPlayerWithXPAndPossibleNewLevel, levelUpMessages) =
-          if isDead
-          then (updatedPlayerWithXP, [])
-          else levelUp updatedPlayerWithXP (Game.xpLevels state)
-      completeMessage = levelUpMessages ++ combatMessages ++ Game.message state
-  in if Game.mInactive mnstr
-     then state
-     else state { Game.player = updatedPlayerWithXPAndPossibleNewLevel
+          -- Mark the position where the monster was defeated
+          updatedCorpses =
+            if monsterDefeated
+            then addCorpse (Game.mPosition target) (Game.corpses currentWorld)
+            else Game.corpses currentWorld
+          updatedWorld = currentWorld { Game.monsters = updatedMonsters, Game.corpses = updatedCorpses }
+
+          isDead = newHealth == 0
+          defeatMessage = if monsterDefeated
+                          then "You defeated the " ++ Game.mName target ++ " and gained " ++ show (Game.mXP target) ++ " XP!"
+                          else ""
+          attackMessage = if playerGoesFirst
+                          then "You attacked " ++ Game.mName target ++ " for " ++ show playerDamage ++ " damage!"
+                          else "The " ++ Game.mName target ++ " attacked you for " ++ show monsterDamage ++ " damage!"
+          counterattackMessage = if playerGoesFirst
+                                 then "The " ++ Game.mName target ++ " counterattacked you for " ++ show monsterDamage ++ " damage!"
+                                 else "You counterattacked " ++ Game.mName target ++ " for " ++ show playerDamage ++ " damage!"
+          deadMessage = if isDead then "You have died! Game Over." else ""
+          combatMessages = [deadMessage, defeatMessage, counterattackMessage, attackMessage]
+          updatedPlayerWithXP = if monsterDefeated
+                                then updatedPlayer { Game.xp = Game.xp updatedPlayer + Game.mXP target }
+                                else updatedPlayer
+          (updatedPlayerWithXPAndPossibleNewLevel, levelUpMessages) =
+              if isDead
+              then (updatedPlayerWithXP, [])
+              else levelUp updatedPlayerWithXP (Game.xpLevels state)
+          completeMessage = levelUpMessages ++ combatMessages ++ Game.message state
+       in state { Game.player = updatedPlayerWithXPAndPossibleNewLevel
                 , Game.levels = replaceLevel state (Game.currentLevel state) updatedWorld
                 , Game.message = completeMessage
                 , Game.gameOver = isDead }
+  where
+    currentWorld = Game.levels state !! Game.currentLevel state
 
 levelUp :: Game.Player -> [Game.XPLevel] -> (Game.Player, [String])
 levelUp player xpLevels =
