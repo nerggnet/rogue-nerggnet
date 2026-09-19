@@ -1,7 +1,7 @@
 -- src/Game/Logic.hs
 module Game.Logic where
 
-import Game.State (defaultMonsterRadius, defaultFogRadius, maxInventorySize, updateVisibility, replaceLevel, manhattanDistance)
+import Game.State (defaultMonsterRadius, defaultFogRadius, maxInventorySize, updateVisibility, replaceLevel, manhattanDistance, evalTriggerCondition)
 import Game.GridUtils (updateTile, keyedInventory)
 import qualified Game.Types as Game
 import Linear.V2 (V2(..), _x, _y)
@@ -595,7 +595,7 @@ prioritizeTowardsPlayer (V2 px py) (V2 mx my) =
 processTriggers :: Game.GameState -> Game.GameState
 processTriggers state =
   let currentWorld = Game.levels state !! Game.currentLevel state
-      (activated, remaining) = partition (\t -> Game.triggerCondition t state) (Game.triggers currentWorld)
+      (activated, remaining) = partition (\t -> evalTriggerCondition (Game.triggerCondition t) state) (Game.triggers currentWorld)
       recurringTriggers = filter Game.triggerRecurring activated
       newState = foldl' executeTrigger state activated
       updatedCurrentWorld = (Game.levels newState !! Game.currentLevel newState) { Game.triggers = remaining ++ recurringTriggers }

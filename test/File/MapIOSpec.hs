@@ -30,6 +30,10 @@ withTempSave act = do
 freshGame :: IO GameState
 freshGame = initGame <$> loadNewGame
 
+isPosAndItems :: TriggerCondition -> Bool
+isPosAndItems (AtPositionWithItems _ _) = True
+isPosAndItems _ = False
+
 -- | Save a state and read it back the way startGame does.
 roundTrip :: GameState -> IO GameState
 roundTrip state =
@@ -60,9 +64,12 @@ spec = do
 
       it "builds every trigger on every level without erroring" $ do
         state <- freshGame
-        mapM_
-          (\t -> evaluate (length (triggerDescription t)))
-          (concatMap triggers (levels state))
+        mapM_ (evaluate . triggerCondition) (concatMap triggers (levels state))
+
+      it "builds the win condition on the first level" $ do
+        state <- freshGame
+        map triggerCondition (triggers (currentWorldOf state))
+          `shouldSatisfy` any isPosAndItems
 
       it "gives the player the stats of the first XP level" $ do
         state <- freshGame
@@ -98,22 +105,10 @@ spec = do
           map doors (levels after') `shouldBe` map doors (levels before')
           map npcs (levels after') `shouldBe` map npcs (levels before')
 
-        it "rebuilds every trigger without erroring" $ do
+        it "preserves every trigger exactly" $ do
           before' <- freshGame
           after' <- roundTrip before'
-          map (length . triggers) (levels after')
-            `shouldBe` map (length . triggers) (levels before')
-          mapM_
-            (\t -> evaluate (length (triggerDescription t)))
-            (concatMap triggers (levels after'))
-
-        it "keeps trigger conditions working" $ do
-          before' <- freshGame
-          after' <- roundTrip before'
-          -- Every rebuilt condition must at least be callable.
-          mapM_
-            (\t -> evaluate (triggerCondition t after'))
-            (concatMap triggers (levels after'))
+          map triggers (levels after') `shouldBe` map triggers (levels before')
 
         it "preserves discovered tiles" $ do
           before' <- freshGame

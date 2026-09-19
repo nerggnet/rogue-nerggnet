@@ -2,7 +2,7 @@
 module Game.StateSpec (spec) where
 
 import Control.Exception (evaluate)
-import Data.Maybe (isNothing)
+import Data.Aeson (decode, encode)
 import Game.State
 import Game.Types
 import Linear.V2 (V2 (..))
@@ -143,41 +143,42 @@ spec = do
         )
         `shouldBe` True
 
-  describe "trigger serialisation" $ do
-    -- Triggers hold a GameState -> Bool, so they are saved by rendering an
-    -- English description and parsing it back on load. These specs pin down
-    -- which shapes survive that round trip.
-    let roundTrip = toRuntimeTrigger . transformToSerializableTrigger
+  describe "transformJSONTrigger" $ do
+    it "builds a position condition" $
+      triggerCondition
+        (transformJSONTrigger baseJSONTrigger {FT.triggerType = "position", FT.target = Just (5, 6)})
+        `shouldBe` AtPosition (V2 5 6)
 
-    it "round-trips a position trigger" $ do
-      let t = roundTrip baseJSONTrigger {FT.triggerType = "position", FT.target = Just (5, 6)}
-      triggerCondition t (mkState (mkWorld openMap) (V2 5 6)) `shouldBe` True
-      triggerCondition t (mkState (mkWorld openMap) (V2 5 7)) `shouldBe` False
+    it "builds a posAndItems condition" $
+      triggerCondition
+        ( transformJSONTrigger baseJSONTrigger
+            { FT.triggerType = "posAndItems"
+            , FT.target = Just (49, 14)
+            , FT.requiredItems = Just ["Gold Coin", "Magic Ring"]
+            }
+        )
+        `shouldBe` AtPositionWithItems (V2 49 14) ["Gold Coin", "Magic Ring"]
 
-    it "round-trips an itemPickup trigger" $ do
-      let t = roundTrip baseJSONTrigger
-                { FT.triggerType = "itemPickup"
-                , FT.triggerItemName = Just "Gold Coin"
-                }
-          carrying n = withPlayer (\p -> p {inventory = [mkItem n Special 0 (V2 0 0)]}) baseState
-      triggerCondition t (carrying "Gold Coin") `shouldBe` True
-      triggerCondition t (carrying "Silver Coin") `shouldBe` False
+    it "builds an itemPickup condition" $
+      triggerCondition
+        ( transformJSONTrigger baseJSONTrigger
+            {FT.triggerType = "itemPickup", FT.triggerItemName = Just "Gold Coin"}
+        )
+        `shouldBe` HasItem "Gold Coin"
 
-    it "round-trips an npcTalked trigger" $ do
-      let t = roundTrip baseJSONTrigger
-                { FT.triggerType = "npcTalked"
-                , FT.triggerNpcName = Just "Friendly NPC"
-                }
-      triggerCondition t baseState {lastInteractedNpc = Just "Friendly NPC"} `shouldBe` True
-      triggerCondition t baseState {lastInteractedNpc = Just "Someone Else"} `shouldBe` False
-      triggerCondition t baseState `shouldBe` False
+    it "builds an npcTalked condition" $
+      triggerCondition
+        ( transformJSONTrigger baseJSONTrigger
+            {FT.triggerType = "npcTalked", FT.triggerNpcName = Just "Friendly NPC"}
+        )
+        `shouldBe` TalkedToNpc "Friendly NPC"
 
-    it "round-trips an allMonstersDefeated trigger" $ do
-      let t = roundTrip baseJSONTrigger {FT.triggerType = "allMonstersDefeated"}
-      triggerCondition t baseState `shouldBe` True
+    it "builds an allMonstersDefeated condition" $
+      triggerCondition (transformJSONTrigger baseJSONTrigger {FT.triggerType = "allMonstersDefeated"})
+        `shouldBe` AllMonstersDefeated
 
-    it "preserves the actions and the recurring flag" $ do
-      let t = roundTrip baseJSONTrigger
+    it "carries the actions and the recurring flag across" $ do
+      let t = transformJSONTrigger baseJSONTrigger
                 { FT.triggerType = "position"
                 , FT.target = Just (1, 1)
                 , FT.recurring = True
@@ -195,40 +196,132 @@ spec = do
       triggerActions t `shouldBe` [DisplayMessage "Hello"]
       triggerRecurring t `shouldBe` True
 
-    -- Known gap: transformToSerializableTrigger has no "posAndItems" case.
-    -- The only posAndItems trigger in world.json is on the first level, which
-    -- keeps a differently-built trigger list, so this is currently masked.
-    it "cannot yet round-trip a posAndItems trigger" $ do
-      let jt = baseJSONTrigger
-                 { FT.triggerType = "posAndItems"
-                 , FT.target = Just (49, 14)
-                 , FT.requiredItems = Just ["Gold Coin", "Magic Ring"]
-                 }
-      description (transformToSerializableTrigger jt) `shouldBe` "Unknown trigger type"
-      evaluate (triggerCondition (roundTrip jt)) `shouldThrow` anyErrorCall
+    it "rejects an unknown trigger type" $
+      evaluate (triggerCondition (transformJSONTrigger baseJSONTrigger {FT.triggerType = "explode"}))
+        `shouldThrow` anyErrorCall
 
-    -- Known gap: the two description generators disagree for this trigger
-    -- type, and only one of the two spellings can be parsed back.
-    it "has two spellings of the allMonstersDefeated description" $ do
-      let jt = baseJSONTrigger {FT.triggerType = "allMonstersDefeated"}
-      description (transformToSerializableTrigger jt)
-        `shouldBe` "Trigger when all monsters are defeated"
-      triggerDescription (transformJSONTrigger jt)
-        `shouldBe` "Trigger when all monsters on the level are defeated"
-      isNothing (parseTriggerType (triggerDescription (transformJSONTrigger jt)))
+    it "rejects a position trigger with no target" $
+      evaluate (triggerCondition (transformJSONTrigger baseJSONTrigger {FT.triggerType = "position"}))
+        `shouldThrow` anyErrorCall
+
+    it "rejects a posAndItems trigger with no requiredItems" $
+      evaluate
+        ( triggerCondition
+            ( transformJSONTrigger baseJSONTrigger
+                {FT.triggerType = "posAndItems", FT.target = Just (1, 1)}
+            )
+        )
+        `shouldThrow` anyErrorCall
+
+  describe "evalTriggerCondition" $ do
+    let carrying ns =
+          withPlayer (\p -> p {inventory = map (\n -> mkItem n Special 0 (V2 0 0)) ns}) baseState
+
+    it "AtPosition holds only on that tile" $ do
+      evalTriggerCondition (AtPosition (V2 4 3)) baseState `shouldBe` True
+      evalTriggerCondition (AtPosition (V2 4 4)) baseState `shouldBe` False
+
+    it "AtPositionWithItems needs the tile and every item" $ do
+      let cond = AtPositionWithItems (V2 4 3) ["Gold Coin", "Magic Ring"]
+      evalTriggerCondition cond (carrying ["Gold Coin", "Magic Ring"]) `shouldBe` True
+      evalTriggerCondition cond (carrying ["Gold Coin"]) `shouldBe` False
+      evalTriggerCondition cond (carrying ["Magic Ring", "Gold Coin", "Rope"]) `shouldBe` True
+
+    it "AtPositionWithItems does not hold on the wrong tile" $
+      evalTriggerCondition
+        (AtPositionWithItems (V2 1 1) ["Gold Coin"])
+        (carrying ["Gold Coin"])
+        `shouldBe` False
+
+    it "HasItem checks the inventory" $ do
+      evalTriggerCondition (HasItem "Gold Coin") (carrying ["Gold Coin"]) `shouldBe` True
+      evalTriggerCondition (HasItem "Gold Coin") (carrying ["Silver Coin"]) `shouldBe` False
+      evalTriggerCondition (HasItem "Gold Coin") baseState `shouldBe` False
+
+    it "TalkedToNpc checks the last NPC spoken to" $ do
+      evalTriggerCondition (TalkedToNpc "Bob") baseState {lastInteractedNpc = Just "Bob"}
         `shouldBe` True
+      evalTriggerCondition (TalkedToNpc "Bob") baseState {lastInteractedNpc = Just "Ann"}
+        `shouldBe` False
+      evalTriggerCondition (TalkedToNpc "Bob") baseState `shouldBe` False
 
-  describe "validateTriggers" $
-    -- Known gap: the guards test for "itemPickup" / "npcTalked" / "posAndItems",
-    -- but descriptions spell those out as prose, so nothing is ever rejected.
-    it "accepts a trigger that refers to an item the level does not have" $ do
-      let jt = baseJSONTrigger
-                 { FT.triggerType = "itemPickup"
-                 , FT.triggerItemName = Just "No Such Item"
-                 }
-          validated = validateTriggers [transformJSONTrigger jt] [] []
-      map triggerDescription validated
-        `shouldBe` ["Item pickup trigger for Just \"No Such Item\""]
+    it "AllMonstersDefeated ignores inactive templates" $ do
+      let template = (mkMonster "Dragon" (V2 1 1) 5 1) {mInactive = True}
+      evalTriggerCondition AllMonstersDefeated baseState `shouldBe` True
+      evalTriggerCondition AllMonstersDefeated
+        (withWorld (\w -> w {monsters = [template]}) baseState) `shouldBe` True
+      evalTriggerCondition AllMonstersDefeated
+        (withWorld (\w -> w {monsters = [mkMonster "Goblin" (V2 1 1) 5 1]}) baseState)
+        `shouldBe` False
+
+  describe "trigger serialisation" $ do
+    -- Triggers are plain data now, so they survive JSON unchanged instead of
+    -- being rendered to prose and parsed back.
+    let conditions =
+          [ AtPosition (V2 5 6)
+          , AtPositionWithItems (V2 49 14) ["Gold Coin", "Magic Ring"]
+          , HasItem "Gold Coin"
+          , TalkedToNpc "Friendly NPC"
+          , AllMonstersDefeated
+          ]
+
+    it "round-trips every condition through JSON" $
+      mapM_ (\c -> decode (encode c) `shouldBe` Just c) conditions
+
+    it "round-trips a whole trigger through JSON" $ do
+      let t = Trigger
+                { triggerCondition = AtPositionWithItems (V2 1 2) ["Gold Coin"]
+                , triggerActions = [DisplayMessage "Hi", SetGameWon]
+                , triggerRecurring = True
+                }
+      decode (encode t) `shouldBe` Just t
+
+    it "survives item names that used to break the prose format" $ do
+      -- Commas, brackets and quotes are just string contents now.
+      let awkward = AtPositionWithItems (V2 1 2) ["Rope, 50ft", "Boots [worn]", "\"Lucky\" Coin"]
+      decode (encode awkward) `shouldBe` Just awkward
+
+  describe "validateTriggers" $ do
+    let itemNamed n =
+          FT.JSONItem
+            { FT.itemName = n
+            , FT.itemPosition = (0, 0)
+            , FT.itemDescription = ""
+            , FT.itemCategory = "Special"
+            , FT.itemEffectValue = 0
+            , FT.itemHidden = False
+            , FT.itemInactive = False
+            , FT.itemUses = Nothing
+            }
+        npcNamed n = FT.JSONNPC {FT.npcName = n, FT.npcPosition = (0, 0), FT.npcMessage = ""}
+        trigger c = Trigger {triggerCondition = c, triggerActions = [], triggerRecurring = False}
+
+    it "accepts a trigger whose item exists" $
+      map triggerCondition
+        (validateTriggers [trigger (HasItem "Gold Coin")] [itemNamed "Gold Coin"] [])
+        `shouldBe` [HasItem "Gold Coin"]
+
+    it "rejects a trigger that refers to an unknown item" $
+      mapM_ evaluate (validateTriggers [trigger (HasItem "No Such Item")] [] [])
+        `shouldThrow` anyErrorCall
+
+    it "rejects a posAndItems trigger with an unknown required item" $
+      mapM_
+        evaluate
+        ( validateTriggers
+            [trigger (AtPositionWithItems (V2 0 0) ["Gold Coin", "Ghost Item"])]
+            [itemNamed "Gold Coin"]
+            []
+        )
+        `shouldThrow` anyErrorCall
+
+    it "rejects a trigger that refers to an unknown NPC" $
+      mapM_ evaluate (validateTriggers [trigger (TalkedToNpc "Nobody")] [] [npcNamed "Bob"])
+        `shouldThrow` anyErrorCall
+
+    it "does not look at items for an allMonstersDefeated trigger" $
+      map triggerCondition (validateTriggers [trigger AllMonstersDefeated] [] [])
+        `shouldBe` [AllMonstersDefeated]
 
   describe "transformJSONAction" $ do
     let action t = baseAction {FT.actionType = t}

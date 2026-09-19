@@ -107,33 +107,29 @@ data DoorEntity = DoorEntity
 instance ToJSON DoorEntity
 instance FromJSON DoorEntity
 
+-- | What makes a trigger fire.
+--
+-- This is data rather than a @GameState -> Bool@ so that triggers can be
+-- saved and loaded directly. 'Game.State.evalTriggerCondition' interprets it.
+data TriggerCondition
+  = AtPosition (V2 Int)                   -- ^ The player is standing here
+  | AtPositionWithItems (V2 Int) [String] -- ^ ...and is carrying all of these
+  | HasItem String                        -- ^ The item is in the inventory
+  | TalkedToNpc String                    -- ^ The player just talked to this NPC
+  | AllMonstersDefeated                   -- ^ No active monsters are left
+  deriving (Show, Eq, Generic)
+
+instance ToJSON TriggerCondition
+instance FromJSON TriggerCondition
+
 data Trigger = Trigger
-  { triggerCondition   :: GameState -> Bool -- Condition for activation
-  , triggerActions     :: [Action]          -- Actions to execute
-  , triggerDescription :: String            -- For debugging/logging
-  , triggerRecurring   :: Bool              -- Will this trigger fire once or be recurring
-  }
+  { triggerCondition :: TriggerCondition -- Condition for activation
+  , triggerActions   :: [Action]         -- Actions to execute
+  , triggerRecurring :: Bool             -- Will this trigger fire once or be recurring
+  } deriving (Show, Eq, Generic)
 
-data TriggerData
-  = TriggerCoordinates (Int, Int)
-  | TriggerString String
-  | TriggerCoordinatesAndItems ((Int, Int), [String])
-  deriving (Show)
-
-data TriggerType = TriggerType
-  { triggerTypeName :: String
-  , triggerData     :: Maybe TriggerData
-  }
-
-data SerializableTrigger = SerializableTrigger
-  { actions     :: [Action]
-  , description :: String
-  , isRecurring :: Bool
-  }
-  deriving (Show, Generic)
-
-instance ToJSON SerializableTrigger
-instance FromJSON SerializableTrigger
+instance ToJSON Trigger
+instance FromJSON Trigger
 
 data Action
   = SpawnItem String (V2 Int)        -- Item name and position
@@ -159,7 +155,6 @@ data World = World
   , items      :: [Item]
   , doors      :: [DoorEntity]
   , triggers   :: [Trigger]
-  , serializedTriggers :: [SerializableTrigger]
   , visibility :: [[Bool]]
   , discovered :: [[Bool]]
   , discoveredCoords   :: [(Int, Int)]
@@ -176,7 +171,7 @@ instance ToJSON World where
       , Key.fromString "npcs" .= npcs world
       , Key.fromString "items" .= items world
       , Key.fromString "doors" .= doors world
-      , Key.fromString "serializedTriggers" .= serializedTriggers world
+      , Key.fromString "triggers" .= triggers world
       , Key.fromString "visibility" .= visibility world
       , Key.fromString "discoveredCoords" .= discoveredCoords world
       , Key.fromString "tileOverrides" .= tileOverrides world
@@ -188,7 +183,7 @@ gridToCoords grid = [ (x, y) | (y, row) <- zip [0..] grid , (x, cell) <- zip [0.
 
 instance FromJSON World where
   parseJSON = withObject "World" $ \v -> do
-    serialized <- v .: Key.fromString "serializedTriggers"
+    trggrs <- v .: Key.fromString "triggers"
     grid <- v .: Key.fromString "mapGrid"
     gridRows <- v .: Key.fromString "mapRows"
     gridCols <- v .: Key.fromString "mapCols"
@@ -208,8 +203,7 @@ instance FromJSON World where
       , npcs = ns
       , items = itms
       , doors = drs
-      , triggers = [] -- Triggers will be initialized separately
-      , serializedTriggers = serialized
+      , triggers = trggrs
       , visibility = vsblt
       , discovered = dscvrd
       , discoveredCoords = dscvrdCoords

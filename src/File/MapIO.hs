@@ -5,13 +5,11 @@ import File.Types
 import qualified Game.Types as Game
 import Game.State (updateVisibility, defaultFogRadius, charToTile)
 import Game.GridUtils (updateTile)
-import Data.Aeson (eitherDecode, encode, decodeFileStrict)
+import Data.Aeson (eitherDecode, eitherDecodeFileStrict, encode)
 import qualified Data.ByteString.Lazy as B
 import Linear.V2 (_x, _y)
 import Control.Lens ((^.))
-import Data.List (stripPrefix, nub)
-import Data.Function ((&))
-import Data.List.Extra (replace)
+import Data.List (nub)
 
 defaultWorldFile :: FilePath
 defaultWorldFile = "world.json"
@@ -24,14 +22,22 @@ loadNewGame = do
     Left err -> error $ "Failed to load " ++ defaultWorldFile ++ ": " ++ err
     Right config -> Left config
 
+-- A save file that cannot be read is reported rather than fatal, so that the
+-- caller can fall back to starting a new game. Saves written by an older
+-- version of the game fail here.
 loadSavedGame :: FilePath -> IO (Either String Game.GameState)
 loadSavedGame saveFile = do
-  rawState <- decodeFileStrict saveFile
-  rawWorld <- decodeFileStrict defaultWorldFile
-  case (rawState, rawWorld) of
-    (Just state, Just worldConfig) ->
-      return $ Right $ validateGameState $ recomputeVisibility $ restoreMapGrid (levels worldConfig) $ restoreGameState state
-    _ -> error "Failed to load game state or world configuration"
+  rawState <- eitherDecodeFileStrict saveFile
+  rawWorld <- eitherDecodeFileStrict defaultWorldFile
+  return $ case (rawState, rawWorld) of
+    (Left err, _) -> Left $ saveFile ++ ": " ++ err
+    (_, Left err) -> Left $ defaultWorldFile ++ ": " ++ err
+    (Right state, Right worldConfig) ->
+      Right
+        . validateGameState
+        . recomputeVisibility
+        . restoreMapGrid (levels worldConfig)
+        $ restoreGameState state
 
 validateGameState :: Game.GameState -> Game.GameState
 validateGameState state
@@ -47,67 +53,8 @@ loadMapLevels path = do
 
 -- Save the current game state to a file
 saveGame :: FilePath -> Game.GameState -> IO ()
-saveGame savePath state = do
-  let syncedState = syncSerializedTriggers state
-      trimmedState = trimGameStateForSaving syncedState
-      serializedState = encode trimmedState
-  B.writeFile savePath serializedState
-
--- Sync serializedTriggers with the remaining active triggers
-syncSerializedTriggers :: Game.GameState -> Game.GameState
-syncSerializedTriggers state =
-  let updatedLevels = map syncLevel (Game.levels state)
-   in state { Game.levels = updatedLevels }
-
-syncLevel :: Game.World -> Game.World
-syncLevel world =
-  world { Game.serializedTriggers = map toSerializableTrigger (Game.triggers world) }
-
-toSerializableTrigger :: Game.Trigger -> Game.SerializableTrigger
-toSerializableTrigger trigger =
-  Game.SerializableTrigger
-    { Game.actions = Game.triggerActions trigger
-    , Game.description = sanitizeDescription $ Game.triggerDescription trigger
-    , Game.isRecurring = Game.triggerRecurring trigger
-    }
-
-sanitizeDescription :: String -> String
-sanitizeDescription desc =
-  desc
-    -- Specific cleaning functions for known patterns
-    & cleanPositionTrigger
-    & cleanItemPickupTrigger
-    & cleanTalkedToNpcTrigger
-    & cleanPosAndItemsTrigger
-    -- Generic replacements for "Just"
-    & replace "Just (" "("
-    & replace "Just \"" ""
-    & replace "\"" ""
-    & replace "Just [" "["
-  where
-    cleanPositionTrigger str =
-      case stripPrefix "Position trigger at Just " str of
-        Just rest -> "Position trigger at " ++ rest
-        Nothing   -> str
-
-    cleanItemPickupTrigger str =
-      case stripPrefix "Item pickup trigger for Just " str of
-        Just rest -> "Item pickup trigger for " ++ rest
-        Nothing   -> str
-
-    cleanTalkedToNpcTrigger str =
-      case stripPrefix "Talked to NPC Just " str of
-        Just rest -> "Talked to NPC " ++ rest
-        Nothing   -> str
-
-    cleanPosAndItemsTrigger str =
-      case stripPrefix "Position and items trigger at Just " str of
-        Just rest ->
-          let (coordsPart, remaining) = break (== '[') rest
-              coords = takeWhile (/= ' ') coordsPart
-              itemsPart = drop 1 $ takeWhile (/= ']') remaining -- Extract the list of items
-           in "Position and items trigger at " ++ coords ++ " requiring items: [" ++ itemsPart ++ "]"
-        Nothing -> str
+saveGame savePath state =
+  B.writeFile savePath (encode (trimGameStateForSaving state))
 
 -- Before saving, trim unnecessary fields like visibility
 trimWorldForSaving :: Game.World -> Game.World

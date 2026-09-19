@@ -6,11 +6,7 @@ import Game.GridUtils (updateTile)
 import qualified File.Types as FT
 import Linear.V2 (V2(..), _x, _y)
 import Control.Lens ((^.))
-import Data.List (isInfixOf, intercalate)
-import Data.List.Extra (dropPrefix, replace)
-import Data.List.Split (splitOn)
-import Data.Function ((&))
-import Text.Read (readMaybe)
+import Data.List (intercalate)
 
 -- Default values for monster, fog radius, and inventory size
 defaultMonsterRadius :: Int
@@ -24,12 +20,7 @@ maxInventorySize = 15
 
 -- Initialize the game state
 initGame :: Either FT.GameConfig GameState -> GameState
-initGame (Right savedState) =
-  -- Reinitialize triggers using serializedTriggers from the saved game
-  let reinitializedLevels =
-        map (\world -> world { triggers = map toRuntimeTrigger (serializedTriggers world) })
-            (levels savedState)
-  in savedState { levels = reinitializedLevels }
+initGame (Right savedState) = savedState
 
 initGame (Left config) =
   -- Fresh game initialization
@@ -57,7 +48,7 @@ initGame (Left config) =
         }
       initialState = GameState
         { player = initialPlayer
-        , levels = map initializeTriggers allWorlds
+        , levels = allWorlds
         , xpLevels = allXPLevels
         , currentLevel = 0
         , message = ["Welcome to Rogue nerggnet!"]
@@ -140,8 +131,8 @@ transformFileWorld fileWorld =
         , npcs = map transformNPC (FT.npcs fileWorld)
         , items = map transformItem (FT.items fileWorld)
         , doors = map transformDoorEntity (FT.doors fileWorld)
-        , triggers = validateTriggers (map transformJSONTrigger (FT.triggers fileWorld)) (FT.items fileWorld) (FT.npcs fileWorld)
-        , serializedTriggers = map transformToSerializableTrigger (FT.triggers fileWorld)
+        , triggers = validateTriggers (map transformJSONTrigger (FT.triggers fileWorld))
+                                      (FT.items fileWorld) (FT.npcs fileWorld)
         , visibility = initializeGrid False rows cols
         , discovered = initializeGrid False rows cols
         , discoveredCoords = []
@@ -215,196 +206,50 @@ transformDoorEntity jsonDoor = DoorEntity
   , deKeyName  = FT.doorKeyName jsonDoor
   }
 
-transformToSerializableTrigger :: FT.JSONTrigger -> SerializableTrigger
-transformToSerializableTrigger jsonTrigger =
-  let normalizedDescription = case FT.triggerType jsonTrigger of
-        "position" ->
-          case FT.target jsonTrigger of
-            Just (x, y) -> "Position trigger at (" ++ show x ++ "," ++ show y ++ ")"
-            Nothing     -> "Position trigger at (unknown)"
-        "itemPickup" ->
-          case FT.triggerItemName jsonTrigger of
-            Just itemName -> "Item pickup trigger for " ++ itemName
-            Nothing       -> "Item pickup trigger for (unknown item)"
-        "npcTalked" ->
-          case FT.triggerNpcName jsonTrigger of
-            Just nName -> "Talked to NPC " ++ nName
-            Nothing      -> "Talked to NPC (unknown)"
-        "allMonstersDefeated" ->
-          "Trigger when all monsters are defeated"
-        _ ->
-          "Unknown trigger type"
-  in SerializableTrigger
-       { actions = map transformJSONAction (FT.actions jsonTrigger)
-       , description = normalizedDescription
-       , isRecurring = FT.recurring jsonTrigger
-       }
-
-initializeTriggers :: World -> World
-initializeTriggers world =
-  world { triggers = map toRuntimeTrigger (serializedTriggers world) }
-
-toRuntimeTrigger :: SerializableTrigger -> Trigger
-toRuntimeTrigger sTrigger =
- let desc = normalizeDescription (description sTrigger)
-  in case parseTriggerType desc of
-       Just (TriggerType "position" (Just (TriggerCoordinates (x, y)))) ->
-         Trigger
-         { triggerCondition = \state -> position (player state) == V2 x y
-         , triggerActions = actions sTrigger
-         , triggerDescription = desc
-         , triggerRecurring = isRecurring sTrigger
-         }
-       Just (TriggerType "itemPickup" (Just (TriggerString itemName))) ->
-         Trigger
-         { triggerCondition = \state -> any (\item -> iName item == itemName) (inventory (player state))
-         , triggerActions = actions sTrigger
-         , triggerDescription = desc
-         , triggerRecurring = isRecurring sTrigger
-         }
-       Just (TriggerType "npcTalked" (Just (TriggerString nName))) ->
-         Trigger
-         { triggerCondition = \state ->
-             case lastInteractedNpc state of
-               Just interactedNpc -> interactedNpc == nName
-               Nothing -> False
-         , triggerActions = actions sTrigger
-         , triggerDescription = desc
-         , triggerRecurring = isRecurring sTrigger
-         }
-       Just (TriggerType "allMonstersDefeated" Nothing) ->
-         Trigger
-         { triggerCondition = allMonstersDefeated
-         , triggerActions = actions sTrigger
-         , triggerDescription = desc
-         , triggerRecurring = isRecurring sTrigger
-         }
-       Just (TriggerType "posAndItems" (Just (TriggerCoordinatesAndItems (pos, itms)))) ->
-         Trigger
-         { triggerCondition = \state ->
-             position (player state) == V2 (fst pos) (snd pos) &&
-             all (`elem` map iName (inventory (player state))) itms
-         , triggerActions = actions sTrigger
-         , triggerDescription = desc
-         , triggerRecurring = isRecurring sTrigger
-         }
-       _ -> error $ "Unknown or unsupported trigger type: " ++ desc
-
-normalizeDescription :: String -> String
-normalizeDescription desc =
-  desc
-    -- Remove unnecessary "Just" annotations
-    & replace "Just \"" ""
-    & replace "\"" ""
-
-parseTriggerType :: String -> Maybe TriggerType
-parseTriggerType desc =
-    if "Position trigger at " `isInfixOf` desc then
-      case extractCoordinates desc of
-        Just coords -> Just $ TriggerType "position" (Just $ TriggerCoordinates coords)
-        Nothing -> Nothing
-    else if "Item pickup trigger for " `isInfixOf` desc then
-      Just $ TriggerType "itemPickup" (Just $ TriggerString $ drop (length "Item pickup trigger for ") desc)
-    else if "Talked to NPC " `isInfixOf` desc then
-      Just $ TriggerType "npcTalked" (Just $ TriggerString $ drop (length "Talked to NPC ") desc)
-    else if "Trigger when all monsters are defeated" `isInfixOf` desc then
-      Just $ TriggerType "allMonstersDefeated" Nothing
-    else if "Position and items trigger at " `isInfixOf` desc then
-      let coordsPart = takeWhile (/= ' ') $ drop (length "Position and items trigger at ") desc
-          itemsPart = drop (length ("Position and items trigger at " ++ coordsPart ++ " requiring items: ")) desc
-          maybeCoords = readMaybe coordsPart :: Maybe (Int, Int)
-          maybeItems = parseItemList itemsPart
-       in case (maybeCoords, maybeItems) of
-            (Just coords, Just itms) -> Just $ TriggerType "posAndItems" (Just $ TriggerCoordinatesAndItems (coords, itms))
-            _ -> Nothing
-    else
-      Nothing
-
-parseItemList :: String -> Maybe [String]
-parseItemList itemsPart =
-    let cleanedItemsPart = dropWhile (== '[') . takeWhile (/= ']') $ itemsPart
-        itemList = map (addQuotes . trim) $ splitOn "," cleanedItemsPart
-        reformatted = "[" ++ intercalate "," itemList ++ "]"  -- Use commas, not spaces
-    in readMaybe reformatted
-
-addQuotes :: String -> String
-addQuotes str =
-  case (headMay str, lastMay str) of
-    (Just '"', Just '"') -> str         -- Already quoted, leave unchanged
-    _                    -> "\"" ++ str ++ "\""
-  where
-    headMay []    = Nothing
-    headMay (x:_) = Just x
-    lastMay []    = Nothing
-    lastMay xs    = Just (last xs)
-
-trim :: String -> String
-trim = f . f
-  where f = reverse . dropWhile (`elem` " \t\n")
-
-extractCoordinates :: String -> Maybe (Int, Int)
-extractCoordinates desc =
-    case reads (drop (length "Position trigger at ") desc) :: [((Int, Int), String)] of
-      [(coords, "")] -> Just coords
-      _ -> Nothing
-
-extractData :: String -> String -> Maybe String
-extractData prefix desc =
-  let trimmed = drop (length prefix) desc
-  in if null trimmed then Nothing else Just trimmed
-
 -- Transform a File.Types.JSONTrigger to Game.Types.Trigger
 transformJSONTrigger :: FT.JSONTrigger -> Trigger
-transformJSONTrigger jsonTrigger = case FT.triggerType jsonTrigger of
-  "position" -> Trigger
-    { triggerCondition = \state ->
-        case FT.target jsonTrigger of
-          Just (x, y) -> position (player state) == V2 x y
-          Nothing     -> False
-    , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
-    , triggerDescription = "Position trigger at " ++ show (FT.target jsonTrigger)
-    , triggerRecurring = FT.recurring jsonTrigger
-    }
-  "posAndItems" -> Trigger
-    { triggerCondition = \state ->
-        case (FT.target jsonTrigger, FT.requiredItems jsonTrigger) of
-          (Just (x, y), Just reqItems) ->
-            let playerPos = position (player state)
-                inventoryItems = map iName (inventory (player state))
-            in playerPos == V2 x y && all (`elem` inventoryItems) reqItems
-          _ -> False
-    , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
-    , triggerDescription = "Position and items trigger at "
-        ++ show (FT.target jsonTrigger)
-        ++ " requiring items: "
-        ++ show (FT.requiredItems jsonTrigger)
-    , triggerRecurring = FT.recurring jsonTrigger
-    }
-  "itemPickup" -> Trigger
-    { triggerCondition = \state ->
-        case FT.triggerItemName jsonTrigger of
-          Just name -> any (\item -> iName item == name) (inventory (player state))
-          Nothing   -> False
-    , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
-    , triggerDescription = "Item pickup trigger for " ++ show (FT.triggerItemName jsonTrigger)
-    , triggerRecurring = FT.recurring jsonTrigger
-    }
-  "npcTalked" -> Trigger
-    { triggerCondition = \state ->
-        case (lastInteractedNpc state, FT.triggerNpcName jsonTrigger) of
-          (Just interacted, Just expected) -> interacted == expected
-          _ -> False
-    , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
-    , triggerDescription = "Talked to NPC " ++ show (FT.triggerNpcName jsonTrigger)
-    , triggerRecurring = FT.recurring jsonTrigger
-    }
-  "allMonstersDefeated" -> Trigger
-    { triggerCondition = allMonstersDefeated
-    , triggerActions = map transformJSONAction (FT.actions jsonTrigger)
-    , triggerDescription = "Trigger when all monsters on the level are defeated"
-    , triggerRecurring = FT.recurring jsonTrigger
-    }
-  _ -> error $ "Unknown trigger type: " ++ FT.triggerType jsonTrigger
+transformJSONTrigger jsonTrigger = Trigger
+  { triggerCondition = conditionOf jsonTrigger
+  , triggerActions   = map transformJSONAction (FT.actions jsonTrigger)
+  , triggerRecurring = FT.recurring jsonTrigger
+  }
+
+-- Build the firing condition described by a JSON trigger
+conditionOf :: FT.JSONTrigger -> TriggerCondition
+conditionOf jsonTrigger = case FT.triggerType jsonTrigger of
+  "position" ->
+    case FT.target jsonTrigger of
+      Just (x, y) -> AtPosition (V2 x y)
+      Nothing     -> error "A \"position\" trigger needs a \"target\""
+  "posAndItems" ->
+    case (FT.target jsonTrigger, FT.requiredItems jsonTrigger) of
+      (Just (x, y), Just reqItems) -> AtPositionWithItems (V2 x y) reqItems
+      _ -> error "A \"posAndItems\" trigger needs both a \"target\" and \"requiredItems\""
+  "itemPickup" ->
+    case FT.triggerItemName jsonTrigger of
+      Just itemName -> HasItem itemName
+      Nothing       -> error "An \"itemPickup\" trigger needs a \"triggerItemName\""
+  "npcTalked" ->
+    case FT.triggerNpcName jsonTrigger of
+      Just nName -> TalkedToNpc nName
+      Nothing    -> error "An \"npcTalked\" trigger needs a \"triggerNpcName\""
+  "allMonstersDefeated" -> AllMonstersDefeated
+  other -> error $ "Unknown trigger type: " ++ other
+
+-- Interpret a trigger condition against the current game state
+evalTriggerCondition :: TriggerCondition -> GameState -> Bool
+evalTriggerCondition (AtPosition pos) state =
+  position (player state) == pos
+evalTriggerCondition (AtPositionWithItems pos required) state =
+  position (player state) == pos && all carried required
+  where
+    carried n = any ((== n) . iName) (inventory (player state))
+evalTriggerCondition (HasItem itemName) state =
+  any ((== itemName) . iName) (inventory (player state))
+evalTriggerCondition (TalkedToNpc nName) state =
+  lastInteractedNpc state == Just nName
+evalTriggerCondition AllMonstersDefeated state =
+  allMonstersDefeated state
 
 -- Convert JSONTriggerAction to Action
 transformJSONAction :: FT.JSONTriggerAction -> Action
@@ -444,36 +289,24 @@ transformJSONAction jsonAction = case FT.actionType jsonAction of
   "setGameWon" -> SetGameWon
   _ -> error $ "Unknown action type: " ++ FT.actionType jsonAction
 
+-- Reject triggers that refer to items or NPCs the level does not define
 validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> [Trigger]
 validateTriggers trggrs triggerItems triggerNpcs = map validateTrigger trggrs
   where
     itemNames = map FT.itemName triggerItems
-    npcNames = map FT.npcName triggerNpcs
-    validateTrigger trigger@(Trigger { triggerCondition = _, triggerActions = _, triggerDescription = desc })
-      | "posAndItems" `isInfixOf` desc =
-          let reqItems = extractRequiredItems desc
-           in if all (`elem` itemNames) reqItems
-              then trigger
-              else error $ "Trigger refers to unknown items: " ++ desc
-      | "itemPickup" `isInfixOf` desc =
-          if any (\item -> item `isInfixOf` desc) itemNames
-          then trigger
-          else error $ "Trigger refers to an unknown item: " ++ desc
-      | "npcTalked" `isInfixOf` desc =
-          let npc = dropPrefix "Talked to NPC " desc
-           in if npc `elem` npcNames
-              then trigger
-              else error $ "Trigger refers to unknown NPC: " ++ npc
-      | otherwise = trigger
+    npcNames  = map FT.npcName triggerNpcs
 
-    extractRequiredItems :: String -> [String]
-    extractRequiredItems desc =
-      case break (== '[') desc of
-        (_, '[':rest) ->
-          case reads (takeWhile (/= ']') rest) of
-            [(itms, "")] -> itms
-            _             -> []
-        _ -> []
+    validateTrigger trigger = case triggerCondition trigger of
+      HasItem itemName
+        | itemName `notElem` itemNames ->
+            error $ "Trigger refers to an unknown item: " ++ itemName
+      AtPositionWithItems _ required
+        | missing@(_:_) <- filter (`notElem` itemNames) required ->
+            error $ "Trigger refers to unknown items: " ++ intercalate ", " missing
+      TalkedToNpc nName
+        | nName `notElem` npcNames ->
+            error $ "Trigger refers to an unknown NPC: " ++ nName
+      _ -> trigger
 
 -- Helper function to now if all monsters on a level have been defeated
 allMonstersDefeated :: GameState -> Bool

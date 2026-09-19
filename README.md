@@ -67,6 +67,9 @@ entity state, discovered tiles, tile overrides); the map grid itself is
 re-read from `world.json` on load. **Editing `world.json` therefore invalidates
 existing saves** — delete `save.json` after changing the dungeon.
 
+If the save file cannot be read at all, the game reports why and starts a new
+game rather than failing.
+
 ## Controls
 
 | Key | Action |

@@ -402,25 +402,34 @@ spec = do
       gameWon (executeAction baseState SetGameWon) `shouldBe` True
 
   describe "processTriggers" $ do
-    let atStart = (== V2 4 3) . position . player
+    -- The player starts on (4, 3) in the fixture room.
+    let atStart = AtPosition (V2 4 3)
+        elsewhere = AtPosition (V2 1 1)
 
     it "fires a matching trigger and then discards it" $ do
       let s = processTriggers
                 (withWorld (\w -> w {triggers = [mkTrigger atStart [SetGameWon] False]}) baseState)
       gameWon s `shouldBe` True
-      length (triggers (currentWorldOf s)) `shouldBe` 0
+      triggers (currentWorldOf s) `shouldBe` []
 
     it "keeps a recurring trigger for the next turn" $ do
-      let s = processTriggers
-                (withWorld (\w -> w {triggers = [mkTrigger atStart [SetGameWon] True]}) baseState)
+      let t = mkTrigger atStart [SetGameWon] True
+          s = processTriggers (withWorld (\w -> w {triggers = [t]}) baseState)
       gameWon s `shouldBe` True
-      length (triggers (currentWorldOf s)) `shouldBe` 1
+      triggers (currentWorldOf s) `shouldBe` [t]
 
     it "leaves a trigger whose condition does not hold" $ do
-      let s = processTriggers
-                (withWorld (\w -> w {triggers = [mkTrigger (const False) [SetGameWon] False]}) baseState)
+      let t = mkTrigger elsewhere [SetGameWon] False
+          s = processTriggers (withWorld (\w -> w {triggers = [t]}) baseState)
       gameWon s `shouldBe` False
-      length (triggers (currentWorldOf s)) `shouldBe` 1
+      triggers (currentWorldOf s) `shouldBe` [t]
+
+    it "fires a trigger that needs both a position and items" $ do
+      let t = mkTrigger (AtPositionWithItems (V2 4 3) ["Gold Coin"]) [SetGameWon] False
+          without = withWorld (\w -> w {triggers = [t]}) baseState
+          with = withPlayer (\p -> p {inventory = [mkItem "Gold Coin" Special 0 (V2 0 0)]}) without
+      gameWon (processTriggers without) `shouldBe` False
+      gameWon (processTriggers with) `shouldBe` True
 
     it "runs every action of a trigger in order" $ do
       let t = mkTrigger atStart [DisplayMessage "first", DisplayMessage "second"] False

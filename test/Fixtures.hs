@@ -58,7 +58,6 @@ mkWorld rows =
     , items              = []
     , doors              = []
     , triggers           = []
-    , serializedTriggers = []
     , visibility         = initializeGrid False nRows nCols
     , discovered         = initializeGrid False nRows nCols
     , discoveredCoords   = []
@@ -158,13 +157,12 @@ mkDoor :: V2 Int -> Bool -> String -> DoorEntity
 mkDoor pos locked keyName =
   DoorEntity {dePosition = pos, deLocked = locked, deKeyName = keyName}
 
-mkTrigger :: (GameState -> Bool) -> [Action] -> Bool -> Trigger
+mkTrigger :: TriggerCondition -> [Action] -> Bool -> Trigger
 mkTrigger cond as recurring =
   Trigger
-    { triggerCondition   = cond
-    , triggerActions     = as
-    , triggerDescription = "a test trigger"
-    , triggerRecurring   = recurring
+    { triggerCondition = cond
+    , triggerActions   = as
+    , triggerRecurring = recurring
     }
 
 -- | A 'FT.JSONTrigger' with every optional field cleared, to be filled in with
