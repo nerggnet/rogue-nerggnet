@@ -113,7 +113,7 @@ spec = do
         `shouldBe` True
 
   describe "gridLookup" $ do
-    let grid = [[(1 :: Int), 2, 3], [4, 5, 6]] -- 3 wide, 2 tall
+    let grid = [[1 :: Int, 2, 3], [4, 5, 6]] -- 3 wide, 2 tall
 
     it "reads a cell by (x, y)" $ do
       gridLookup grid (V2 2 1) `shouldBe` Just 6

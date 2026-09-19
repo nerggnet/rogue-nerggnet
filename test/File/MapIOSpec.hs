@@ -8,6 +8,7 @@ import Control.Exception (evaluate, finally)
 import Control.Monad (when)
 import File.MapIO (loadNewGame, loadSavedGame, saveGame)
 import Game.Logic (executeAction)
+import Game.GridUtils (gridLookup)
 import Game.State (currentWorld, initGame)
 import Game.Types
 import Linear.V2 (V2 (..))
@@ -118,7 +119,7 @@ spec = do
         it "preserves discovered tiles" $ do
           before' <- freshGame
           after' <- roundTrip before'
-          let discoveredCount = length . filter id . concat . discovered
+          let discoveredCount = length . concatMap (filter id) . discovered
           map discoveredCount (levels after')
             `shouldBe` map discoveredCount (levels before')
 
@@ -133,5 +134,5 @@ spec = do
           let shifted = executeAction before' (ShiftTile (V2 0 1) Floor)
           after' <- roundTrip shifted
           let world = currentWorld after'
-          (mapGrid world !! 1 !! 0) `shouldBe` Floor
+          gridLookup (mapGrid world) (V2 0 1) `shouldBe` Just Floor
           tileOverrides world `shouldBe` [(V2 0 1, Floor)]
