@@ -17,16 +17,16 @@ spec :: Spec
 spec = do
   describe "updateTile" $ do
     it "sets the tile at the given (x, y)" $
-      updateTile floorGrid (2, 1) Wall !! 1 !! 2 `shouldBe` Wall
+      updateTile floorGrid (V2 2 1) Wall !! 1 !! 2 `shouldBe` Wall
 
     it "leaves every other tile untouched" $ do
-      let grid' = updateTile floorGrid (2, 1) Wall
+      let grid' = updateTile floorGrid (V2 2 1) Wall
           others = [(x, y) | y <- [0 .. 2], x <- [0 .. 3], (x, y) /= (2, 1)]
       map (\(x, y) -> grid' !! y !! x) others `shouldSatisfy` all (== Floor)
 
     it "preserves the dimensions of the grid" $
       property $ \(NonNegative x) (NonNegative y) ->
-        let grid' = updateTile floorGrid (x `mod` 4, y `mod` 3) Wall
+        let grid' = updateTile floorGrid (V2 (x `mod` 4) (y `mod` 3)) Wall
          in map length grid' === map length floorGrid
 
   describe "keyedInventory" $ do

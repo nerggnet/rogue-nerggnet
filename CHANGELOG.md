@@ -55,6 +55,29 @@ All notable changes to this project are documented in this file.
   `Range` items must now declare a use count and loading fails with a message
   naming the item if one does not.
 
+### Tooling
+
+- A GitHub Actions workflow builds and tests on Linux and macOS with
+  `-Werror`, checks the package metadata, and runs hlint over the sources.
+- Dependency version bounds, a `maintainer`, a `homepage` and a
+  `source-repository` stanza. `cabal check` is now clean; it previously
+  reported that Hackage would reject the package.
+- `.gitignore` is a Haskell one. It was the Visual Studio template with a
+  few Haskell lines appended, 381 lines for a project with no C# in it.
+
+### Removed
+
+- The `lens` dependency. It was pulled in for six uses of `^. _x` and
+  `^. _y`; `updateTile` and `gridLookup` take a `V2 Int` directly now, and
+  `goUp`/`goDown` read the tile under the player through the bounds-checked
+  `gridLookup` instead of indexing twice with `!!`.
+- The `mtl`, `split` and `extra` dependencies, which nothing imported any
+  more once the trigger-description parsing was deleted.
+- `applyTileOverrides`, which was a duplicate of the copy in `File.MapIO`
+  that is actually used, `monsterList`, which had no callers, and
+  `restoreWorld`, which could only ever return its argument unchanged
+  because the map grid is empty at the point it ran.
+
 ### Internal
 
 - `Game.State` gained `currentWorld`, `setCurrentWorld` and `withCurrentWorld`.

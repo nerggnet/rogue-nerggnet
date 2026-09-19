@@ -1,5 +1,7 @@
 # rogue-nerggnet
 
+[![CI](https://github.com/nerggnet/rogue-nerggnet/actions/workflows/ci.yml/badge.svg)](https://github.com/nerggnet/rogue-nerggnet/actions/workflows/ci.yml)
+
 A small Rogue-like dungeon crawler for the terminal, written in Haskell with
 [Brick](https://hackage.haskell.org/package/brick) and
 [Vty](https://hackage.haskell.org/package/vty).
@@ -54,6 +56,9 @@ cabal test
 The suite also has to run from the repository root, because the save/load
 specs load the real `world.json`. Use `--test-show-details=direct` to see the
 individual examples.
+
+CI builds and tests on Linux and macOS with `-Werror`, and runs
+[hlint](https://github.com/ndmitchell/hlint) over `src/`, `test/` and `app/`.
 
 ## Saving
 

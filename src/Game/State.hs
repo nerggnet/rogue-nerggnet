@@ -2,10 +2,9 @@
 module Game.State where
 
 import Game.Types
-import Game.GridUtils (updateTile, gridLookup)
+import Game.GridUtils (gridLookup)
 import qualified File.Types as FT
-import Linear.V2 (V2(..), _x, _y)
-import Control.Lens ((^.))
+import Linear.V2 (V2(..))
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe, isNothing)
 
@@ -154,11 +153,6 @@ transformFileWorld fileWorld =
         , corpses = []
         }
 
--- Apply overrides to the base grid
-applyTileOverrides :: [[Tile]] -> [(V2 Int, Tile)] -> [[Tile]]
-applyTileOverrides grid overrides =
-  foldl (\g (pos, tile) -> updateTile g (pos ^. _x, pos ^. _y) tile) grid overrides
-
 initializeGrid :: a -> Int -> Int -> [[a]]
 initializeGrid value rows cols = replicate rows (replicate cols value)
 
@@ -170,7 +164,7 @@ transformMonster fm = Monster
   , mAttack = FT.attack fm
   , mName = FT.name fm
   , mXP = FT.xp fm
-  , mInactive = maybe False id (FT.inactive fm)
+  , mInactive = fromMaybe False (FT.inactive fm)
   , mAttackWait = True
   }
 
@@ -185,13 +179,13 @@ transformNPC fnpc = NPC
 
 -- Transform a File.Types.XPLevel to Game.Types.XPLevel
 transformXPLevels :: [FT.XPLevel] -> [XPLevel]
-transformXPLevels fxps = map (\fxp -> XPLevel
+transformXPLevels = map $ \fxp -> XPLevel
   { xpLevel = FT.xpLevel fxp
   , xpThreshold = FT.xpThreshold fxp
   , xpHealth = FT.xpHealth fxp
   , xpAttack = FT.xpAttack fxp
   , xpResistance = FT.xpResistance fxp
-  }) fxps
+  }
 
 -- Transform a File.Types.JSONItem to Game.Types.Item
 transformItem :: FT.JSONItem -> Item
@@ -354,7 +348,7 @@ visibleMonsters world =
 
 -- Helper function to now if all monsters on a level have been defeated
 allMonstersDefeated :: GameState -> Bool
-allMonstersDefeated state = not (any (not . mInactive) (monsters (currentWorld state)))
+allMonstersDefeated state = all mInactive (monsters (currentWorld state))
 
 -- Convert a character to a Tile (and back again)
 charToTile :: Char -> Tile

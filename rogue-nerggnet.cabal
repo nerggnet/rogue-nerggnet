@@ -9,10 +9,17 @@ description:        A terminal Rogue-like dungeon crawler built with Brick and
 license:            MIT
 license-file:       LICENSE
 author:             nerggnet
+maintainer:         nerggnet
 category:           Game
+homepage:           https://github.com/nerggnet/rogue-nerggnet
 build-type:         Simple
 extra-doc-files:    README.md
                     CHANGELOG.md
+tested-with:        GHC == 9.12.2
+
+source-repository head
+    type:     git
+    location: https://github.com/nerggnet/rogue-nerggnet.git
 
 common warnings
     ghc-options: -Wall
@@ -30,19 +37,15 @@ library
                       File.MapIO
                       UI.Draw
                       UI.MainUI
-    build-depends:    base
-                    , aeson
-                    , brick
-                    , bytestring
-                    , containers
-                    , directory
-                    , extra
-                    , lens
-                    , linear
-                    , mtl
-                    , split
-                    , vty
-                    , vty-crossplatform
+    build-depends:    base               >= 4.21  && < 4.23
+                    , aeson              >= 2.2   && < 2.4
+                    , brick              >= 2.8   && < 3
+                    , bytestring         >= 0.11  && < 0.13
+                    , containers         >= 0.6   && < 0.9
+                    , directory          >= 1.3   && < 1.4
+                    , linear             >= 1.22  && < 1.24
+                    , vty                >= 6.0   && < 7
+                    , vty-crossplatform  >= 0.4   && < 0.6
     default-language: Haskell2010
     default-extensions: OverloadedRecordDot
 
@@ -50,7 +53,7 @@ executable rogue-nerggnet
     import:           warnings
     hs-source-dirs:   app
     main-is:          Main.hs
-    build-depends:    base
+    build-depends:    base            >= 4.21 && < 4.23
                     , rogue-nerggnet
     default-language: Haskell2010
     ghc-options:      -threaded
@@ -66,15 +69,15 @@ test-suite spec
                       Game.LogicSpec
                       File.MapIOSpec
                       UI.DrawSpec
-    build-depends:    base
+    build-depends:    base            >= 4.21 && < 4.23
                     , rogue-nerggnet
-                    , aeson
-                    , bytestring
-                    , directory
-                    , filepath
-                    , containers
-                    , hspec
-                    , linear
-                    , QuickCheck
+                    , aeson           >= 2.2  && < 2.4
+                    , containers      >= 0.6  && < 0.9
+                    , directory       >= 1.3  && < 1.4
+                    , filepath        >= 1.4  && < 1.6
+                    , hspec           >= 2.10 && < 2.13
+                    , linear          >= 1.22 && < 1.24
+                    , QuickCheck      >= 2.14 && < 2.19
     default-language: Haskell2010
+    default-extensions: OverloadedRecordDot
     ghc-options:      -threaded

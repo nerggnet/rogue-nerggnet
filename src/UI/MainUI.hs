@@ -2,8 +2,10 @@
 module UI.MainUI (startGame) where
 
 import Brick
-import Graphics.Vty (Event(..), Key(..))
-import Graphics.Vty (rgbColor, withBackColor, withForeColor, defAttr, black, white, yellow, green, red, blue, magenta, cyan)
+import Graphics.Vty
+  ( Event(..), Key(..), rgbColor, withBackColor, withForeColor, defAttr
+  , black, white, yellow, green, red, blue, magenta, cyan
+  )
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 import File.MapIO (loadNewGame, loadSavedGame, saveGame)
@@ -12,6 +14,7 @@ import Game.Logic
 import UI.Draw
 import Game.Types
 import Control.Monad (when)
+import Data.Maybe (isJust)
 import Control.Monad.IO.Class (liftIO)
 import System.Directory (doesFileExist)
 
@@ -30,7 +33,7 @@ app = App
 
 chooseCursor :: GameState -> [CursorLocation n] -> Maybe (CursorLocation n)
 chooseCursor state crsrs
-  | commandMode state || aimingState state /= Nothing = showFirstCursor state crsrs
+  | commandMode state || isJust (aimingState state) = showFirstCursor state crsrs
   | otherwise = neverShowCursor state crsrs
 
 -- Main function to start the game
@@ -57,8 +60,7 @@ runGame :: GameState -> IO GameState
 runGame initialState = do
   let buildVty = mkVty defaultConfig
   vty <- buildVty
-  finalState <- customMain vty buildVty Nothing app initialState
-  return finalState
+  customMain vty buildVty Nothing app initialState
 
 -- Handle events
 handleEvent :: BrickEvent () e -> EventM () GameState ()

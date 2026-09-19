@@ -218,7 +218,7 @@ instance FromJSON World where
 coordsToGrid :: [(Int, Int)] -> Int -> Int -> [[Bool]]
 coordsToGrid coords rows cols = [ [ (x, y) `elem` coords | x <- [0 .. cols - 1] ] | y <- [0 .. rows - 1] ]
 
-data AimingState = AimingState
+newtype AimingState = AimingState
   { aimingItem :: Item -- The ranged item being used
   } deriving (Generic, Eq)
 

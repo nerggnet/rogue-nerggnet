@@ -7,8 +7,6 @@ import Game.State (updateVisibility, defaultFogRadius, charToTile)
 import Game.GridUtils (updateTile)
 import Data.Aeson (eitherDecode, eitherDecodeFileStrict, encode)
 import qualified Data.ByteString.Lazy as B
-import Linear.V2 (_x, _y)
-import Control.Lens ((^.))
 import Data.List (nub)
 
 defaultWorldFile :: FilePath
@@ -36,8 +34,7 @@ loadSavedGame saveFile = do
       Right
         . validateGameState
         . recomputeVisibility
-        . restoreMapGrid (FT.levels worldConfig)
-        $ restoreGameState state
+        $ restoreMapGrid (FT.levels worldConfig) state
 
 validateGameState :: GameState -> GameState
 validateGameState state
@@ -79,20 +76,6 @@ recomputeVisibility state =
           updateVisibility (player state) defaultFogRadius world
       | otherwise = world
 
--- Rebuild the discovered grid on load
-restoreWorld :: World -> World
-restoreWorld world =
-    if length (mapGrid world) > 0
-    then
-       let dscvrdCoords = discoveredCoords world
-           dscvrd = coordsToGrid dscvrdCoords (mapRows world) (mapCols world)
-        in world { discovered = dscvrd }
-    else world
-
-restoreGameState :: GameState -> GameState
-restoreGameState state =
-  state { levels = map restoreWorld (levels state) }
-
 -- Reload the map grid from the original world.json configuration, and apply tile overrides from ShiftTile actions
 restoreMapGrid :: [FT.MapLevel] -> GameState -> GameState
 restoreMapGrid mapLevels state =
@@ -103,5 +86,4 @@ restoreMapGrid mapLevels state =
           overriddenGrid = applyOverrides baseGrid (tileOverrides world)
        in world { mapGrid = overriddenGrid }
 
-    applyOverrides grid overrides =
-      foldl (\g (pos, tile) -> updateTile g (pos ^. _x, pos ^. _y) tile) grid overrides
+    applyOverrides = foldl (\g (pos, tile) -> updateTile g pos tile)

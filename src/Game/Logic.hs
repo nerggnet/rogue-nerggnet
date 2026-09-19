@@ -6,16 +6,17 @@ import Game.State
   , updateVisibility, manhattanDistance, evalTriggerCondition, visibleMonsters
   , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel
   )
-import Game.GridUtils (updateTile, keyedInventory)
+import Game.GridUtils (updateTile, gridLookup, keyedInventory)
 import Game.Types
-import Linear.V2 (V2(..), _x, _y)
-import Control.Lens ((^.))
+import Linear.V2 (V2(..))
 import Data.List (find, partition)
+import Data.Maybe (isJust)
 
 handleMovementInternal :: Maybe Char -> GameState -> GameState
 handleMovementInternal key state =
   case aimingState state of
-    Just _ -> (handleCommandInputInternal key False state) state -- Delegate to aiming logic
+    -- Delegate to the aiming logic, which hands back a state transformer
+    Just _ -> let aim = handleCommandInputInternal key False state in aim state
     Nothing ->
       let isGameOverOrWon = gameOver state || gameWon state
           newState = case key of
@@ -46,38 +47,30 @@ processTurn state =
 -- Go up stairs
 goUp :: GameState -> GameState
 goUp state =
-  let playerPos = state.player.position
-      world = currentWorld state
-      tile = (mapGrid world) !! (playerPos ^. _y) !! (playerPos ^. _x)
-  in case tile of
-       UpStair ->
-         if currentLevel state > 0
-         then
-           let newLevel = currentLevel state - 1
-               updatedWorld = updateVisibility (player state) defaultFogRadius (levels state !! newLevel)
-            in state { currentLevel = newLevel
-                     , levels = replaceLevel state newLevel updatedWorld
-                     , message = "You ascend the stairs." : message state }
-         else state { message = "You are already on the top level." : message state }
-       _ -> state { message = "No stairs to go up here!" : message state }
+  case gridLookup (mapGrid (currentWorld state)) state.player.position of
+    Just UpStair
+      | currentLevel state > 0 ->
+          let newLevel = currentLevel state - 1
+              updatedWorld = updateVisibility (player state) defaultFogRadius (levels state !! newLevel)
+           in state { currentLevel = newLevel
+                    , levels = replaceLevel state newLevel updatedWorld
+                    , message = "You ascend the stairs." : message state }
+      | otherwise -> state { message = "You are already on the top level." : message state }
+    _ -> state { message = "No stairs to go up here!" : message state }
 
 -- Go down stairs
 goDown :: GameState -> GameState
 goDown state =
-  let playerPos = state.player.position
-      world = currentWorld state
-      tile = (mapGrid world) !! (playerPos ^. _y) !! (playerPos ^. _x)
-  in case tile of
-       DownStair ->
-         if currentLevel state < length (levels state) - 1
-         then
-           let newLevel = currentLevel state + 1
-               updatedWorld = updateVisibility (player state) defaultFogRadius (levels state !! newLevel)
-            in state { currentLevel = newLevel
-                     , levels = replaceLevel state newLevel updatedWorld
-                     , message = "You descend the stairs." : message state }
-         else state { message = "You are already on the bottom level." : message state }
-       _ -> state { message = "No stairs to go down here!" : message state }
+  case gridLookup (mapGrid (currentWorld state)) state.player.position of
+    Just DownStair
+      | currentLevel state < length (levels state) - 1 ->
+          let newLevel = currentLevel state + 1
+              updatedWorld = updateVisibility (player state) defaultFogRadius (levels state !! newLevel)
+           in state { currentLevel = newLevel
+                    , levels = replaceLevel state newLevel updatedWorld
+                    , message = "You descend the stairs." : message state }
+      | otherwise -> state { message = "You are already on the bottom level." : message state }
+    _ -> state { message = "No stairs to go down here!" : message state }
 
 pickUpItem :: GameState -> GameState
 pickUpItem state =
@@ -93,7 +86,7 @@ pickUpItem state =
                (\invItem -> iName invItem == iName item
                         && iCategory invItem == iCategory item
                         && iEffectValue invItem == iEffectValue item
-                        && iUses invItem /= Nothing)
+                        && isJust (iUses invItem))
                (state.player.inventory)
 
              (invFull, invMsgs, updatedInventory) = case (existingStackableItem, iUses item) of
@@ -144,7 +137,7 @@ useItem :: Item -> GameState -> GameState
 useItem itm state =
   let plyr = player state
       doorToUnlock = find (isAdjacent (position plyr) . dePosition)
-                          (filter (\d -> deLocked d) (doors (currentWorld state)))
+                          (filter deLocked (doors (currentWorld state)))
       recalculateEffectiveStats p = p
         { attack = baseAttack p + maybe 0 iEffectValue (equippedWeapon p)
         , resistance = baseResistance p + maybe 0 iEffectValue (equippedArmor p) }
@@ -248,14 +241,10 @@ dropItem item state =
             , inventoryMode = Nothing
             }
 
--- Range attack handling (getVisibleMonsters, monsterList, executeRangedAttack, calculateRangedDamage)
+-- Range attack handling (getVisibleMonsters, executeRangedAttack, calculateRangedDamage)
 getVisibleMonsters :: GameState -> [(Char, Monster)]
 getVisibleMonsters state =
   visibleMonsters (currentWorld state)
-
-monsterList :: [(Char, Monster)] -> String
-monsterList labelled =
-  unwords $ map (\(c, m) -> [c] ++ ": " ++ mName m) labelled
 
 -- Helper to update item uses
 updateUses :: Item -> Item -> Item
@@ -392,7 +381,7 @@ movePlayer dir state =
              state { player = (player state) { position = nPos } }
   in case (doorAt newPos, monsterAt newPos, npcAt newPos) of
        (Just door, _, _) | deLocked door -> -- Locked door case
-         state { message = ("The door in in front of you is locked and is blocking your way.") : message state }
+         state { message = "The door in front of you is locked and is blocking your way." : message state }
        (_, Nothing, Nothing) | canMove newPos -> -- No monster or NPC
          internalHandleMovement newPos
        (_, Just monster, _) -> -- Monster
@@ -581,7 +570,7 @@ moveNPCWithOccupied world occupiedPositions playerPos npc =
       newPreferredMove = case allValidMoves of
                            []    -> Nothing
                            (m:_) -> Just m
-      selectedMove = if preferredMove `elem` (map Just allValidMoves) then preferredMove else newPreferredMove
+      selectedMove = if preferredMove `elem` map Just allValidMoves then preferredMove else newPreferredMove
   in case selectedMove of
        Just (dx, dy, newDir) -> npc { npcPosition = npcPos + V2 dx dy, npcPreferredDirection = Just newDir }
        Nothing -> npc -- No valid moves, stay in place
@@ -657,7 +646,7 @@ executeAction state (DisplayMessage msg) =
 executeAction state (ShiftTile pos newTile) =
   let world = currentWorld state
       updatedOverrides = (pos, newTile) : filter ((/= pos) . fst) (tileOverrides world)
-      updatedMap = updateTile (mapGrid world) (pos ^. _x, pos ^. _y) newTile
+      updatedMap = updateTile (mapGrid world) pos newTile
       updatedWorld = world { mapGrid = updatedMap, tileOverrides = updatedOverrides }
    in setCurrentWorld updatedWorld state
 
