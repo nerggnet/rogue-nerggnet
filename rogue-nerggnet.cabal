@@ -64,12 +64,14 @@ test-suite spec
                       Game.StateSpec
                       Game.LogicSpec
                       File.MapIOSpec
+                      UI.DrawSpec
     build-depends:    base
                     , rogue-nerggnet
                     , aeson
                     , bytestring
                     , directory
                     , filepath
+                    , containers
                     , hspec
                     , linear
                     , QuickCheck

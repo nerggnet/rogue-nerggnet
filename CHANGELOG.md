@@ -55,6 +55,15 @@ All notable changes to this project are documented in this file.
   `Range` items must now declare a use count and loading fails with a message
   naming the item if one does not.
 
+### Performance
+
+- Drawing a tile no longer rescans the level. `UI.Draw` builds one `MapView`
+  per frame holding the monster, item, NPC and corpse positions as sets and
+  the targeting letters as a map, and walks the visibility and discovered
+  grids alongside the tiles instead of indexing into them with `!!` for
+  every cell. Rendering the first level measured 188 us per frame before and
+  22 us after, with identical output.
+
 ### Content
 
 - `world.json`: Greater Health Potion, Healing Potion, Silver Key, Scroll of

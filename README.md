@@ -305,6 +305,7 @@ src/UI/MainUI.hs      Brick application, event handling, colours
 src/UI/Draw.hs        Rendering
 test/Spec.hs          Test-suite entry point
 test/Fixtures.hs      Small hand-built worlds and entities for the specs
+test/*/…Spec.hs        One spec module per source module
 ```
 
 All the game code lives in a library stanza so that both the executable and

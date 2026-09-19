@@ -1,5 +1,10 @@
 -- src/UI/Draw.hs
-module UI.Draw (drawUI) where
+module UI.Draw
+  ( drawUI
+    -- Exposed for testing: these are what rendering a tile actually consults.
+  , MapView(..)
+  , mapView
+  ) where
 
 import Brick
 import qualified Brick.Widgets.Center as C
@@ -9,6 +14,10 @@ import Game.Types
 import Game.State (maxInventorySize, visibleMonsters)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
+import Data.List (zip4)
+import Data.Maybe (isJust)
+import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
 
 -- Draw the UI
 drawUI :: GameState -> [Widget ()]
@@ -45,41 +54,67 @@ drawTitleBar :: Widget ()
 drawTitleBar =
       padBottom (Pad 1) $ C.hCenter (str "Rogue nerggnet (press ? for help)")
 
+-- | What a tile needs to know about the rest of the level.
+--
+-- Built once per frame. Drawing a tile used to rescan the monster, item and
+-- NPC lists and index into the visibility grids, which made rendering cost
+-- the size of the map times the number of entities on it.
+data MapView = MapView
+  { viewPlayer   :: V2 Int            -- Where the player is standing
+  , viewAiming   :: Bool              -- Are we picking a ranged target?
+  , viewLetters  :: Map.Map (V2 Int) Char -- Targeting letters for visible monsters
+  , viewMonsters :: Set.Set (V2 Int)  -- Active monsters
+  , viewItems    :: Set.Set (V2 Int)  -- Items that are on the floor and visible
+  , viewNpcs     :: Set.Set (V2 Int)
+  , viewCorpses  :: Set.Set (V2 Int)
+  }
+
+mapView :: World -> Player -> Maybe AimingState -> MapView
+mapView world plyr amngState =
+  MapView
+    { viewPlayer   = position plyr
+    , viewAiming   = isJust amngState
+      -- Shared with the ranged-targeting logic so the letters always agree.
+    , viewLetters  = Map.fromList [(mPosition m, c) | (c, m) <- visibleMonsters world]
+    , viewMonsters = Set.fromList (map mPosition (filter (not . mInactive) (monsters world)))
+    , viewItems    = Set.fromList
+        [iPosition i | i <- items world, not (iHidden i), not (iInactive i)]
+    , viewNpcs     = Set.fromList (map npcPosition (npcs world))
+    , viewCorpses  = Set.fromList (corpses world)
+    }
+
 -- Draw the map
 drawMap :: World -> Player -> Maybe AimingState -> Widget ()
 drawMap wrld plyr amngState =
   B.border $
-    vBox $ zipWith drawRow [0..] (mapGrid wrld)
+    vBox $ zipWith3 drawRow [0..] (mapGrid wrld) (zip (visibility wrld) (discovered wrld))
   where
-    drawRow y row =
-      hBox $ zipWith (\x tile -> drawTileWithFog wrld plyr x y tile amngState) [0..] row
+    view = mapView wrld plyr amngState
+    drawRow y tiles (visRow, seenRow) =
+      hBox [ drawTileWithFog view (V2 x y) tile vis seen
+           | (x, tile, vis, seen) <- zip4 [0..] tiles visRow seenRow ]
 
-drawTileWithFog :: World -> Player -> Int -> Int -> Tile -> Maybe AimingState -> Widget ()
-drawTileWithFog world plyr x y tile amngState
-  | not (visibility world !! y !! x) && not (discovered world !! y !! x) =
+drawTileWithFog :: MapView -> V2 Int -> Tile -> Bool -> Bool -> Widget ()
+drawTileWithFog view pos tile lit seen
+  | not lit && not seen =
       withAttr (attrName "fog") $ str " "
-  | not (visibility world !! y !! x) && discovered world !! y !! x =
+  | not lit =
       withAttr (attrName "discovered") $ drawTileHidden tile
-  | position plyr == V2 x y =
+  | viewPlayer view == pos =
       withAttr (attrName "player") $ str "@"
-  | Just (AimingState _) <- amngState
-  , Just monsterChar <- lookup (V2 x y) monsterPositionsWithLetters =
+  | viewAiming view
+  , Just monsterChar <- Map.lookup pos (viewLetters view) =
       withAttr (attrName "aimingMonster") $ str [monsterChar]
-  | any ((== V2 x y) . mPosition) activeMonsters =
+  | Set.member pos (viewMonsters view) =
       withAttr (attrName "monster") $ str "M"
-  | any (\i -> iPosition i == V2 x y && not (iHidden i) && not (iInactive i)) (items world) =
+  | Set.member pos (viewItems view) =
       withAttr (attrName "item") $ str "!"
-  | any ((== V2 x y) . npcPosition) (npcs world) =
+  | Set.member pos (viewNpcs view) =
       withAttr (attrName "npc") $ str "N"
-  | V2 x y `elem` corpses world =
+  | Set.member pos (viewCorpses view) =
       withAttr (attrName "corpse") $ str "†"
   | otherwise =
       drawTile tile
-  where
-    activeMonsters = filter (not . mInactive) (monsters world)
-    -- Shared with the ranged-targeting logic so the letters always agree.
-    monsterPositionsWithLetters =
-      [(mPosition m, c) | (c, m) <- visibleMonsters world]
 
 -- Helper to render a hidden tile (e.g., in fog or discovered but not visible)
 drawTileHidden :: Tile -> Widget ()
