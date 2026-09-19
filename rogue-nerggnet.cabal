@@ -1,27 +1,77 @@
 cabal-version:      3.0
 name:               rogue-nerggnet
 version:            1
--- synopsis:
--- description:
+synopsis:           A small Rogue-like game in a TUI, using Brick and Haskell
+description:        A terminal Rogue-like dungeon crawler built with Brick and
+                    Vty. Maps, monsters, items, NPCs, locked doors and scripted
+                    triggers are all defined in a JSON world file, so dungeons
+                    can be authored without changing any code.
 license:            MIT
 license-file:       LICENSE
 author:             nerggnet
--- maintainer:
--- copyright:
 category:           Game
 build-type:         Simple
-extra-doc-files:    CHANGELOG.md
--- extra-source-files:
+extra-doc-files:    README.md
+                    CHANGELOG.md
 
 common warnings
     ghc-options: -Wall
 
+-- All game code lives in the library so that both the executable and the
+-- test-suite can import it.
+library
+    import:           warnings
+    hs-source-dirs:   src
+    exposed-modules:  Game.Types
+                      Game.State
+                      Game.Logic
+                      Game.GridUtils
+                      File.Types
+                      File.MapIO
+                      UI.Draw
+                      UI.MainUI
+    build-depends:    base
+                    , aeson
+                    , brick
+                    , bytestring
+                    , containers
+                    , directory
+                    , extra
+                    , lens
+                    , linear
+                    , mtl
+                    , split
+                    , vty
+                    , vty-crossplatform
+    default-language: Haskell2010
+
 executable rogue-nerggnet
     import:           warnings
+    hs-source-dirs:   app
     main-is:          Main.hs
-    other-modules:    Game.Logic, Game.Types, Game.State, Game.GridUtils, UI.MainUI, UI.Draw, File.Types, File.MapIO
-    -- other-extensions:
-    build-depends:    base, containers, brick, vty, vty-crossplatform, mtl, linear, lens, aeson, bytestring, extra, directory, split
-    hs-source-dirs:   app, src
+    build-depends:    base
+                    , rogue-nerggnet
+    default-language: Haskell2010
+    ghc-options:      -threaded
+
+test-suite spec
+    import:           warnings
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Spec.hs
+    other-modules:    Fixtures
+                      Game.GridUtilsSpec
+                      Game.StateSpec
+                      Game.LogicSpec
+                      File.MapIOSpec
+    build-depends:    base
+                    , rogue-nerggnet
+                    , aeson
+                    , bytestring
+                    , directory
+                    , filepath
+                    , hspec
+                    , linear
+                    , QuickCheck
     default-language: Haskell2010
     ghc-options:      -threaded

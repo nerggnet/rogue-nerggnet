@@ -45,6 +45,16 @@ cabal run rogue-nerggnet
 The game reads `world.json` and reads/writes `save.json` **relative to the
 current working directory**, so run it from the repository root.
 
+## Tests
+
+```bash
+cabal test
+```
+
+The suite also has to run from the repository root, because the save/load
+specs load the real `world.json`. Use `--test-show-details=direct` to see the
+individual examples.
+
 ## Saving
 
 * On exit the full game state is written to `save.json`.
@@ -278,16 +288,21 @@ Like triggers, every field must be present; unused ones are `null`.
 ## Project layout
 
 ```
-app/Main.hs         Entry point
-src/Game/Types.hs   Core domain types and their JSON instances
-src/Game/State.hs   World construction from config, visibility, trigger wiring
-src/Game/Logic.hs   Turn processing: movement, combat, items, monster/NPC AI
-src/Game/GridUtils.hs
-src/File/Types.hs   The on-disk `world.json` schema
-src/File/MapIO.hs   Loading and saving
-src/UI/MainUI.hs    Brick application, event handling, colours
-src/UI/Draw.hs      Rendering
+app/Main.hs           Entry point; a thin wrapper around the library
+src/Game/Types.hs     Core domain types and their JSON instances
+src/Game/State.hs     World construction from config, visibility, trigger wiring
+src/Game/Logic.hs     Turn processing: movement, combat, items, monster/NPC AI
+src/Game/GridUtils.hs Grid and inventory helpers
+src/File/Types.hs     The on-disk `world.json` schema
+src/File/MapIO.hs     Loading and saving
+src/UI/MainUI.hs      Brick application, event handling, colours
+src/UI/Draw.hs        Rendering
+test/Spec.hs          Test-suite entry point
+test/Fixtures.hs      Small hand-built worlds and entities for the specs
 ```
+
+All the game code lives in a library stanza so that both the executable and
+the test-suite can import it.
 
 Brick and Vty are confined to the `UI` modules; `Game` and `File` are
 UI-independent.

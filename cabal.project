@@ -1,0 +1,5 @@
+packages: .
+
+-- Include the test-suite in the default build plan, so that `cabal test`
+-- and `cabal build all` pick it up without needing --enable-tests.
+tests: True

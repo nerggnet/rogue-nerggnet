@@ -1,0 +1,131 @@
+-- test/File/MapIOSpec.hs
+--
+-- These specs exercise the real world.json, so they need the test-suite to run
+-- with the package root as the working directory (which is what cabal does).
+module File.MapIOSpec (spec) where
+
+import Control.Exception (evaluate, finally)
+import Control.Monad (when)
+import File.MapIO (loadNewGame, loadSavedGame, saveGame)
+import Game.Logic (executeAction)
+import Game.State (initGame)
+import Game.Types
+import Linear.V2 (V2 (..))
+import System.Directory (doesFileExist, getTemporaryDirectory, removeFile)
+import System.FilePath ((</>))
+import Test.Hspec
+
+import Fixtures (currentWorldOf)
+
+-- | Run an action with a scratch save file, removing it afterwards.
+withTempSave :: (FilePath -> IO a) -> IO a
+withTempSave act = do
+  dir <- getTemporaryDirectory
+  let path = dir </> "rogue-nerggnet-spec-save.json"
+  act path `finally` do
+    exists <- doesFileExist path
+    when exists (removeFile path)
+
+-- | A fresh game built from the repository's world.json.
+freshGame :: IO GameState
+freshGame = initGame <$> loadNewGame
+
+-- | Save a state and read it back the way startGame does.
+roundTrip :: GameState -> IO GameState
+roundTrip state =
+  withTempSave $ \path -> do
+    saveGame path state
+    loaded <- loadSavedGame path
+    case loaded of
+      Left err -> fail ("loadSavedGame failed: " ++ err)
+      Right s  -> pure (initGame (Right s))
+
+spec :: Spec
+spec = do
+  hasWorld <- runIO (doesFileExist "world.json")
+  if not hasWorld
+    then it "requires world.json" $
+           pendingWith "run the test-suite from the package root"
+    else describe "world.json" $ do
+      it "loads as a fresh game" $ do
+        state <- freshGame
+        length (levels state) `shouldSatisfy` (> 0)
+        currentLevel state `shouldBe` 0
+
+      it "starts the player on the S tile of the first level" $ do
+        state <- freshGame
+        let world = currentWorldOf state
+            V2 x y = position (player state)
+        (mapGrid world !! y !! x) `shouldBe` Start
+
+      it "builds every trigger on every level without erroring" $ do
+        state <- freshGame
+        mapM_
+          (\t -> evaluate (length (triggerDescription t)))
+          (concatMap triggers (levels state))
+
+      it "gives the player the stats of the first XP level" $ do
+        state <- freshGame
+        playerXPLevel (player state) `shouldBe` 1
+        health (player state) `shouldSatisfy` (> 0)
+
+      describe "the save/load round trip" $ do
+        it "preserves the player" $ do
+          before' <- freshGame
+          after' <- roundTrip before'
+          position (player after') `shouldBe` position (player before')
+          health (player after') `shouldBe` health (player before')
+          xp (player after') `shouldBe` xp (player before')
+          inventory (player after') `shouldBe` inventory (player before')
+
+        it "preserves every level and its dimensions" $ do
+          before' <- freshGame
+          after' <- roundTrip before'
+          length (levels after') `shouldBe` length (levels before')
+          map mapRows (levels after') `shouldBe` map mapRows (levels before')
+          map mapCols (levels after') `shouldBe` map mapCols (levels before')
+
+        it "restores the map grid from world.json" $ do
+          before' <- freshGame
+          after' <- roundTrip before'
+          map mapGrid (levels after') `shouldBe` map mapGrid (levels before')
+
+        it "preserves monsters, items, doors and NPCs" $ do
+          before' <- freshGame
+          after' <- roundTrip before'
+          map monsters (levels after') `shouldBe` map monsters (levels before')
+          map items (levels after') `shouldBe` map items (levels before')
+          map doors (levels after') `shouldBe` map doors (levels before')
+          map npcs (levels after') `shouldBe` map npcs (levels before')
+
+        it "rebuilds every trigger without erroring" $ do
+          before' <- freshGame
+          after' <- roundTrip before'
+          map (length . triggers) (levels after')
+            `shouldBe` map (length . triggers) (levels before')
+          mapM_
+            (\t -> evaluate (length (triggerDescription t)))
+            (concatMap triggers (levels after'))
+
+        it "keeps trigger conditions working" $ do
+          before' <- freshGame
+          after' <- roundTrip before'
+          -- Every rebuilt condition must at least be callable.
+          mapM_
+            (\t -> evaluate (triggerCondition t after'))
+            (concatMap triggers (levels after'))
+
+        it "preserves discovered tiles" $ do
+          before' <- freshGame
+          after' <- roundTrip before'
+          let discoveredCount = length . filter id . concat . discovered
+          map discoveredCount (levels after')
+            `shouldBe` map discoveredCount (levels before')
+
+        it "re-applies tile overrides left by shiftTile" $ do
+          before' <- freshGame
+          let shifted = executeAction before' (ShiftTile (V2 0 1) Floor)
+          after' <- roundTrip shifted
+          let world = currentWorldOf after'
+          (mapGrid world !! 1 !! 0) `shouldBe` Floor
+          tileOverrides world `shouldBe` [(V2 0 1, Floor)]
