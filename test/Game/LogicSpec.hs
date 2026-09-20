@@ -671,6 +671,15 @@ spec = do
       latest (goUp (mkState upStairs (V2 1 1)))
         `shouldSatisfy` ("top level" `isInfixOf`)
 
+    it "remembers the furthest down the player went" $ do
+      let descended = goDown twoLevels
+      deepestLevel descended `shouldBe` 1
+      -- coming back up does not undo having been there
+      deepestLevel (goUp descended) `shouldBe` 1
+
+    it "starts out at the top" $
+      deepestLevel twoLevels `shouldBe` 0
+
     it "refuses to use stairs that are not there" $
       latest (goDown baseState) `shouldSatisfy` ("No stairs" `isInfixOf`)
 

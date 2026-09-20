@@ -172,6 +172,12 @@ are drawn dimmed and without their contents.
 * **XP levels** — defined in `world.json`. Crossing a threshold raises your
   base attack and resistance and restores you to the new maximum health.
 * **Inventory** — limited to 15 slots.
+* **Score** — a run is measured by how deep you got and what you carried out.
+  Every item has an `itemValue`, and the sidebar shows the running total, so
+  the decision to press on or turn back is made with the numbers in view.
+  Getting out is what turns treasure carried into treasure kept: dying loses
+  the lot, and both endings show the same summary so two runs can be set
+  against each other.
 
 ## When the dungeon file is wrong
 
@@ -296,6 +302,7 @@ line of sight until opened with the matching key or by an `unlockDoor` action.
 | `itemHidden` | Not drawn on the map, but still pickable with `g` |
 | `itemInactive` | Not in the world yet — revealed by a `spawnItem` or `addToInventory` action |
 | `itemUses` | Charges, spent one at a time. Required for `Healing`, `Key` and `Range`; `null` (never consumed) is only for equipment |
+| `itemValue` | What it scores if carried out of the dungeon. Omit it for something worthless |
 
 Special items say what they do with `itemEffect`, so a new one can be written
 in `world.json` rather than in Haskell. `itemEffectValue` is its strength.

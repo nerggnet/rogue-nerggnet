@@ -88,6 +88,7 @@ goDown state =
           let newLevel = currentLevel state + 1
               updatedWorld = updateVisibility (player state) defaultFogRadius (levels state !! newLevel)
            in state { currentLevel = newLevel
+                    , deepestLevel = max (deepestLevel state) newLevel
                     , levels = replaceLevel state newLevel updatedWorld
                     , message = "You descend the stairs." : message state }
       | otherwise -> state { message = "You are already on the bottom level." : message state }

@@ -124,11 +124,16 @@ mkState world pos =
     , rng               = testGen
     , hiddenTurns       = 0
     , defeatedMonsters  = []
+    , deepestLevel      = 0
     }
 
 -- | The standard fixture: the open room with the player on the start tile.
 baseState :: GameState
 baseState = mkState (mkWorld openMap) (V2 4 3)
+
+-- | A treasure worth carrying out.
+mkTreasure :: String -> Int -> Item
+mkTreasure n worth = (mkItem n Special 0 (V2 0 0)) {iEffect = Just Keepsake, iValue = worth}
 
 -- | A Special item with the given effect.
 mkSpecial :: String -> ItemEffect -> Int -> Item
@@ -147,6 +152,7 @@ mkItem n cat val pos =
     , iInactive    = False
     , iUses        = Nothing
     , iEffect      = Nothing
+    , iValue       = 0
     }
 
 mkMonster :: String -> V2 Int -> Int -> Int -> Monster
@@ -287,4 +293,5 @@ jsonItemOf n cat =
     , FT.itemInactive = False
     , FT.itemUses = Nothing
     , FT.itemEffect = Nothing
+    , FT.itemValue = Nothing
     }

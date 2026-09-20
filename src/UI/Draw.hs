@@ -11,7 +11,7 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import Game.Types
-import Game.State (helpPages, maxInventorySize, visibleLogMessages, visibleMonsters, currentWorld)
+import Game.State (helpPages, maxInventorySize, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
 import Data.List (zip4)
@@ -24,8 +24,8 @@ drawUI :: GameState -> [Widget ()]
 drawUI state =
   [ drawLegendPopup (legendPage state) | legendPage state > 0 ] ++
   [ drawInventoryPopup mode (player state) | Just mode <- [inventoryMode state] ] ++
-  [ drawVictoryScreen | gameWon state ] ++
-  [ drawGameOverScreen | gameOver state && not (gameWon state) ] ++
+  [ drawVictoryScreen state | gameWon state ] ++
+  [ drawGameOverScreen state | gameOver state && not (gameWon state) ] ++
   [ vBox
       [ drawTitleBar
       , hBox
@@ -143,30 +143,46 @@ drawTile UpStair   = withAttr (attrName "upStair") $ str "<"
 drawTile DownStair = withAttr (attrName "downStair") $ str ">"
 drawTile Start     = str "."
 
+-- How the run went: how deep it got, and what it was worth.
+--
+-- The same two numbers either way, so that one attempt can be set against
+-- another. Getting out is what turns treasure carried into treasure kept.
+runSummary :: GameState -> [String]
+runSummary state =
+  [ "Reached level " ++ show (deepestLevel state + 1) ++ " of " ++ show (length (levels state))
+  , "Treasure " ++ (if gameWon state then "carried out" else "lost") ++ ": "
+      ++ show (treasureCarried state)
+  , "Experience: " ++ show (xp (player state))
+  ]
+
 -- Draw the victory screen as a popup
-drawVictoryScreen :: Widget ()
-drawVictoryScreen =
+drawVictoryScreen :: GameState -> Widget ()
+drawVictoryScreen state =
   C.centerLayer $
     B.borderWithLabel (str "Victory") $
-      padAll 2 $ vBox
-        [ C.hCenter $ str "Congratulations!"
-        , C.hCenter $ str "You have won the game!"
-        , C.hCenter $ str "Press :q to exit."
+      padAll 2 $ vBox $
+        [ C.hCenter $ str "You got out alive."
+        , C.hCenter $ str " "
         ]
+          ++ map (C.hCenter . str) (runSummary state)
+          ++ [C.hCenter $ str " ", C.hCenter $ str "Press :q to exit."]
 
 -- Draw the death screen as a popup.
 --
 -- Winning has always had one. Dying only wrote a line to the log, which
 -- scrolls away, so it was easy to miss why the keys had stopped working.
-drawGameOverScreen :: Widget ()
-drawGameOverScreen =
+drawGameOverScreen :: GameState -> Widget ()
+drawGameOverScreen state =
   C.centerLayer $
     B.borderWithLabel (str "Game Over") $
-      padAll 2 $ vBox
+      padAll 2 $ vBox $
         [ C.hCenter $ str "You have died."
         , C.hCenter $ str " "
-        , C.hCenter $ str "Press :restart for a new dungeon, or :q to quit."
         ]
+          ++ map (C.hCenter . str) (runSummary state)
+          ++ [ C.hCenter $ str " "
+             , C.hCenter $ str "Press :restart for a new dungeon, or :q to quit."
+             ]
 
 -- Draw the item chooser as a popup.
 --
@@ -221,6 +237,7 @@ drawStatsBox plyr =
           , padRight Max $ str $ "Attack: " ++ show (attack plyr) ++ " (Base: " ++ show (baseAttack plyr) ++ ")"
           , padRight Max $ str $ "Resistance: " ++ show (resistance plyr) ++ " (Base: " ++ show (baseResistance plyr) ++ ")"
           , padRight Max $ str $ "XP: " ++ show (xp plyr)
+          , padRight Max $ str $ "Treasure: " ++ show (sum (map iValue (inventory plyr)))
           ]
 
 -- Draw the inventory, highlighting equipped weapon and armor

@@ -134,10 +134,26 @@ data Item = Item
   , iInactive    :: Bool
   , iUses        :: Maybe Int
   , iEffect      :: Maybe ItemEffect -- What a Special item does
+  , iValue       :: Int              -- What it is worth carried out of the dungeon
   } deriving (Show, Eq, Generic)
 
 instance ToJSON Item
-instance FromJSON Item
+
+-- Read field by field, so that an item saved before a field existed still
+-- loads with a sensible value for it rather than failing the whole save.
+instance FromJSON Item where
+  parseJSON = withObject "Item" $ \v ->
+    Item
+      <$> v .:  Key.fromString "iName"
+      <*> v .:? Key.fromString "iDescription" .!= ""
+      <*> v .:  Key.fromString "iPosition"
+      <*> v .:  Key.fromString "iCategory"
+      <*> v .:? Key.fromString "iEffectValue" .!= 0
+      <*> v .:? Key.fromString "iHidden" .!= False
+      <*> v .:? Key.fromString "iInactive" .!= False
+      <*> v .:? Key.fromString "iUses" .!= Nothing
+      <*> v .:? Key.fromString "iEffect" .!= Nothing
+      <*> v .:? Key.fromString "iValue" .!= 0
 
 data DoorEntity = DoorEntity
   { dePosition :: V2 Int
@@ -291,6 +307,7 @@ data GameState = GameState
   , rng               :: StdGen -- Every roll the game makes comes from here
   , hiddenTurns       :: Int -- Turns left before monsters notice the player again
   , defeatedMonsters  :: [String] -- Names of monsters beaten so far
+  , deepestLevel      :: Int -- The furthest down the player has been
   } deriving (Generic)
 
 instance ToJSON GameState
@@ -320,3 +337,4 @@ instance FromJSON GameState where
       <*> v .:? Key.fromString "rng" .!= mkStdGen 0
       <*> v .:? Key.fromString "hiddenTurns" .!= 0
       <*> v .:? Key.fromString "defeatedMonsters" .!= []
+      <*> v .:? Key.fromString "deepestLevel" .!= 0

@@ -99,6 +99,12 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- A run has a score. Items carry an `itemValue`, the sidebar shows what is
+  being carried, and both endings report the same three figures: how deep
+  the run got, what it was worth, and the experience earned. Getting out
+  keeps the treasure and dying loses it, so pressing on is a wager rather
+  than a formality, and two attempts at the same dungeon can be compared.
+  Every item already in `world.json` has been given a value.
 - A `monsterDefeated` trigger, which fires once a monster of the given name
   has been beaten. It remembers defeats rather than asking whether one is
   currently alive, so it works for a boss that waits as an `inactive`

@@ -189,6 +189,7 @@ newGame gen config = do
         , rng = gen
         , hiddenTurns = 0
         , defeatedMonsters = []
+        , deepestLevel = 0
         }
       updatedWorld = updateVisibility initialPlayer defaultFogRadius initialWorld
   pure initialState { levels = replaceLevel initialState 0 updatedWorld }
@@ -366,6 +367,7 @@ transformItem fi = do
     , iInactive = FT.itemInactive fi
     , iUses = uses
     , iEffect = effect
+    , iValue = fromMaybe 0 (FT.itemValue fi)
     }
 
 itemEffects :: [(String, ItemEffect)]
@@ -558,6 +560,13 @@ validateTriggers trggrs triggerItems triggerNpcs triggerMonsters =
             problem $ "waits on the monster " ++ show mname
                       ++ ", which this level does not define"
       _ -> Right trigger
+
+-- What the player is carrying, counted in treasure.
+--
+-- The run is judged on what comes back out, so this is the number that makes
+-- one attempt comparable with another, alongside how far down it got.
+treasureCarried :: GameState -> Int
+treasureCarried state = sum (map iValue (inventory (player state)))
 
 -- Fail with all of these at once, or succeed
 noProblems :: Problems -> Either Problems ()

@@ -9,7 +9,7 @@ import Graphics.Vty
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 import File.MapIO (defaultWorldFile, loadNewGame, loadSavedGame, persistGame)
-import Game.State (maxHealth, newGame)
+import Game.State (maxHealth, newGame, treasureCarried)
 import Game.Logic
 import UI.Draw
 import Game.Types
@@ -65,9 +65,15 @@ startGame = do
       finalState <- runGame initialState
       persistGame saveFile finalState
       putStrLn $ case (gameWon finalState, gameOver finalState) of
-        (True, _) -> "You won! Cleared the save, so next time starts a new dungeon."
-        (_, True) -> "Game Over! Cleared the save, so next time starts a new dungeon."
-        _         -> "Saving progress..."
+        (True, _) ->
+          "You got out alive from level " ++ show (deepestLevel finalState + 1)
+            ++ " with " ++ show (treasureCarried finalState)
+            ++ " in treasure. Cleared the save, so next time starts a new dungeon."
+        (_, True) ->
+          "You died on level " ++ show (deepestLevel finalState + 1)
+            ++ ", losing " ++ show (treasureCarried finalState)
+            ++ " in treasure. Cleared the save, so next time starts a new dungeon."
+        _ -> "Saving progress..."
   where
     report headline problems = do
       hPutStrLn stderr (headline ++ ":")

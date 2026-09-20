@@ -65,6 +65,7 @@ data JSONItem = JSONItem
   , itemInactive    :: Bool        -- Controls whether or not an item can be found and picked up
   , itemUses        :: Maybe Int   -- The number of times an can be used
   , itemEffect      :: Maybe String -- What a Special item does when used
+  , itemValue       :: Maybe Int   -- What it scores if carried out; nothing means worthless
   } deriving (Show, Generic)
 
 instance FromJSON JSONItem

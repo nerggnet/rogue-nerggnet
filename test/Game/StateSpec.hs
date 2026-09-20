@@ -324,6 +324,7 @@ spec = do
             , FT.itemInactive = False
             , FT.itemUses = uses
             , FT.itemEffect = Nothing
+            , FT.itemValue = Nothing
             }
 
     it "reads a well-formed item" $ do
@@ -380,6 +381,24 @@ spec = do
     it "round-trips through its coordinate list" $
       forAll (vectorOf 5 (vector 7)) $ \grid ->
         coordsToGrid (gridToCoords grid) 5 7 === grid
+
+  describe "treasureCarried" $ do
+    it "is nothing with an empty pack" $
+      treasureCarried baseState `shouldBe` 0
+
+    it "adds up what is being carried" $
+      treasureCarried
+        (withPlayer (\p -> p {inventory = [mkTreasure "Coin" 250, mkTreasure "Crown" 900]}) baseState)
+        `shouldBe` 1150
+
+    it "ignores things that are not worth anything" $
+      treasureCarried
+        (withPlayer (\p -> p {inventory = [mkItem "Sword" Weapon 4 (V2 0 0)]}) baseState)
+        `shouldBe` 0
+
+    it "counts only what the player holds, not what is lying about" $
+      treasureCarried (withWorld (\w -> w {items = [mkTreasure "Crown" 900]}) baseState)
+        `shouldBe` 0
 
   describe "maxHealth" $ do
     it "reads the table by level number rather than by position" $ do
@@ -575,6 +594,7 @@ spec = do
             , FT.itemInactive = False
             , FT.itemUses = Nothing
             , FT.itemEffect = Nothing
+            , FT.itemValue = Nothing
             }
         npcNamed n = FT.JSONNPC {FT.npcName = n, FT.npcPosition = (0, 0), FT.npcMessage = ""}
         monsterNamed n = jsonMonsterAt n (1, 1)

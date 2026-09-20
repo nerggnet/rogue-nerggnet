@@ -159,8 +159,8 @@ spec = do
       showsText room {legendPage = 1} "Move up" `shouldBe` True
 
     it "shows the victory screen only after winning" $ do
-      showsText room "You have won the game!" `shouldBe` False
-      showsText room {gameWon = True} "You have won the game!" `shouldBe` True
+      showsText room "You got out alive" `shouldBe` False
+      showsText room {gameWon = True} "You got out alive" `shouldBe` True
 
   describe "the end of a run" $ do
     it "shows nothing special while the player is alive" $ do
@@ -176,8 +176,30 @@ spec = do
       showsText dead ":q" `shouldBe` True
 
     it "shows the victory screen rather than the death one after winning" $ do
-      showsText room {gameWon = True} "You have won the game!" `shouldBe` True
+      showsText room {gameWon = True} "You got out alive" `shouldBe` True
       showsText room {gameWon = True} "You have died" `shouldBe` False
+
+  describe "the run summary" $ do
+    let hauling =
+          withPlayer (\p -> p {inventory = [mkTreasure "Gold Coin" 250, mkTreasure "Crown" 900], xp = 77})
+            room {deepestLevel = 2}
+
+    it "counts what is being carried, on screen, while there is still a choice" $
+      showsText hauling "Treasure: 1150" `shouldBe` True
+
+    it "reports depth, treasure and experience on getting out" $ do
+      let out = hauling {gameWon = True}
+      showsText out "Reached level 3" `shouldBe` True
+      showsText out "Treasure carried out: 1150" `shouldBe` True
+      showsText out "Experience: 77" `shouldBe` True
+
+    it "calls the same treasure lost when the run ends badly" $ do
+      let dead = hauling {gameOver = True}
+      showsText dead "Treasure lost: 1150" `shouldBe` True
+      showsText dead "Treasure carried out" `shouldBe` False
+
+    it "counts nothing when the pack is empty" $
+      showsText room "Treasure: 0" `shouldBe` True
 
   describe "choosing an item" $ do
     let stocked =
