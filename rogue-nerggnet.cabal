@@ -71,6 +71,7 @@ test-suite spec
                       UI.DrawSpec
                       Render
                       UI.LayoutSpec
+                      UI.ScreenSpec
     build-depends:    base            >= 4.21 && < 4.23
                     , rogue-nerggnet
                     , aeson           >= 2.2  && < 2.4

@@ -213,11 +213,19 @@ drawInventory plyr =
       in str [key, ')', ' '] <+> str (iName itm ++ usesText ++ equippedMarker)
 
 -- Draw messages/log
--- Draw the most recent log lines, oldest at the top
+-- Draw the most recent log lines, oldest at the top.
+--
+-- Always exactly visibleLogMessages rows, blank ones included. The map takes
+-- whatever vertical space the rest of the screen leaves, so a pane that grew
+-- with the log would make the map shrink as messages arrived.
 drawMessages :: [String] -> Widget ()
 drawMessages msgs =
       vLimit visibleLogMessages $
-        vBox $ map str (reverse . take visibleLogMessages $ msgs)
+        vBox $ map str (blanks ++ shown)
+  where
+    shown = reverse (take visibleLogMessages msgs)
+    -- A space rather than "", which has no height to pad with.
+    blanks = replicate (visibleLogMessages - length shown) " "
 
 -- Draw the command input bar
 drawCommandInput :: GameState -> Widget ()

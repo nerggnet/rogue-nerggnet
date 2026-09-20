@@ -45,6 +45,11 @@ onItem =
 sizes :: [(Int, Int)]
 sizes = [(80, 24), (100, 30), (120, 36), (120, 40), (150, 50)]
 
+-- Every element equal, without assuming the list is non-empty.
+allSame :: Eq a => [a] -> Bool
+allSame [] = True
+allSame (x : xs) = all (== x) xs
+
 screen :: (Int, Int) -> GameState -> [String]
 screen size st = renderRows size (drawUI st)
 
@@ -86,6 +91,39 @@ spec = describe "the game screen" $ do
       forM_ [1 .. length fullLog] $ \n -> do
         let st = onItem {message = take n fullLog}
         showsText size st "NEWEST" `shouldBe` True
+
+  describe "a steady layout" $ do
+    -- The map takes whatever vertical space the rest of the screen leaves, so
+    -- anything above it that changes size makes the map jump about while the
+    -- player is reading it.
+    let size = (120, 40)
+        -- The map's border starts at column 0; the stats boxes are indented,
+        -- so anchoring on column 0 measures the map and nothing else.
+        mapHeight rows =
+          let col0 c = [i | (i, r) <- zip [0 :: Int ..] rows, take 1 r == [c]]
+           in case (col0 '\9484', col0 '\9492') of
+                (t : _, b : _) -> b - t - 1
+                _ -> error "no map border found"
+        heightWith st = mapHeight (screen size st)
+
+    it "keeps the map the same height however full the log is" $ do
+      [heightWith onItem {message = take n fullLog} | n <- [0 .. length fullLog]]
+        `shouldSatisfy` allSame
+
+    it "keeps the map the same height however full the inventory is" $ do
+      let stocked n =
+            withPlayer (\pl -> pl {inventory = [mkItem ("Item" ++ show i) Special 0 (V2 0 0) | i <- [1 .. n]]}) onItem
+      [heightWith (stocked n) | n <- [0, 5, 10, 15 :: Int]] `shouldSatisfy` allSame
+
+    it "keeps the newest log line on the same row however full the log is" $ do
+      let rowOfNewest n =
+            let rows = screen size onItem {message = "NEWEST" : replicate n "older"}
+             in length (takeWhile (not . ("NEWEST" `isInfixOf`)) rows)
+      [rowOfNewest n | n <- [0 .. 5]] `shouldSatisfy` allSame
+
+    it "keeps the map the same height when a message is very long" $ do
+      let long = replicate 400 'x'
+      heightWith onItem {message = [long]} `shouldBe` heightWith onItem {message = ["short"]}
 
   describe "scrolling" $ do
     -- A map bigger than the window has to move under the player rather than

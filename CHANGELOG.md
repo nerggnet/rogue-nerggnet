@@ -99,6 +99,10 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- The message pane is always the same height, blank rows included. It used to
+  be as tall as the log was long, and since the map takes whatever vertical
+  space is left, the map shrank by up to seven rows as messages arrived and
+  grew again as they aged out.
 - The map is drawn in a viewport that scrolls to follow the player, so the
   screen fits the terminal. It previously laid the whole dungeon out at full
   size, which needed a window 38 to 40 rows tall depending on how full the
