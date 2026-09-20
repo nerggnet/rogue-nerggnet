@@ -1,9 +1,12 @@
 -- src/File/MapIO.hs
-module File.MapIO (loadNewGame, loadSavedGame, saveGame, persistGame, deleteSave) where
+module File.MapIO
+  ( defaultWorldFile
+  , loadNewGame, loadSavedGame, saveGame, persistGame, deleteSave
+  ) where
 
 import qualified File.Types as FT
 import Game.Types
-import Game.State (updateVisibility, defaultFogRadius, charToTile)
+import Game.State (Problems, updateVisibility, defaultFogRadius, charToTile)
 import Game.GridUtils (updateTile)
 import Data.Aeson (eitherDecode, eitherDecodeFileStrict, encode)
 import qualified Data.ByteString.Lazy as B
@@ -14,35 +17,36 @@ import System.Directory (doesFileExist, removeFile)
 defaultWorldFile :: FilePath
 defaultWorldFile = "world.json"
 
--- Load new game configuration
-loadNewGame :: IO (Either FT.GameConfig GameState)
+-- Read the world file. A file that will not parse is reported, not fatal.
+loadNewGame :: IO (Either Problems FT.GameConfig)
 loadNewGame = do
   result <- loadMapLevels defaultWorldFile
   return $ case result of
-    Left err -> error $ "Failed to load " ++ defaultWorldFile ++ ": " ++ err
-    Right config -> Left config
+    Left err     -> Left [defaultWorldFile ++ ": " ++ err]
+    Right config -> Right config
 
 -- A save file that cannot be read is reported rather than fatal, so that the
 -- caller can fall back to starting a new game. Saves written by an older
 -- version of the game fail here.
-loadSavedGame :: FilePath -> IO (Either String GameState)
+loadSavedGame :: FilePath -> IO (Either Problems GameState)
 loadSavedGame saveFile = do
   rawState <- eitherDecodeFileStrict saveFile
   rawWorld <- eitherDecodeFileStrict defaultWorldFile
   return $ case (rawState, rawWorld) of
-    (Left err, _) -> Left $ saveFile ++ ": " ++ err
-    (_, Left err) -> Left $ defaultWorldFile ++ ": " ++ err
+    (Left err, _) -> Left [saveFile ++ ": " ++ err]
+    (_, Left err) -> Left [defaultWorldFile ++ ": " ++ err]
     (Right state, Right worldConfig) ->
-      Right
-        . validateGameState
+      validateGameState
         . recomputeVisibility
         $ restoreMapGrid (FT.levels worldConfig) state
 
-validateGameState :: GameState -> GameState
+validateGameState :: GameState -> Either Problems GameState
 validateGameState state
-  | null (levels state) = error "No levels found in GameState!"
-  | currentLevel state >= length (levels state) = error "currentLevel index out of bounds!"
-  | otherwise = state
+  | null (levels state) = Left ["the save file has no levels"]
+  | currentLevel state >= length (levels state) =
+      Left [ "the save file is on level " ++ show (currentLevel state)
+             ++ " but only has " ++ show (length (levels state)) ++ " level(s)" ]
+  | otherwise = Right state
 
 -- Load map FT.levels from a JSON file
 loadMapLevels :: FilePath -> IO (Either String FT.GameConfig)

@@ -153,6 +153,24 @@ are drawn dimmed and without their contents.
   base attack and resistance and restores you to the new maximum health.
 * **Inventory** — limited to 15 slots.
 
+## When the dungeon file is wrong
+
+`world.json` is checked when the game starts, and every problem found is
+reported together rather than one per run:
+
+```
+Could not start a game from world.json:
+  - level 0: item "Health Potion": unknown "itemCategory" "Sandwich"; expected one of "Armor", ...
+  - level 0: trigger 1: action 0: a "transportPlayer" action needs "actionPosition"
+  - level 1: the "mapGrid" is ragged: row 0 is 51 characters wide, but row(s) 3 are not
+  - level 4: trigger 1: needs item "Nonexistent Relic", which this level does not define
+```
+
+The checks cover unknown categories, trigger types and action types, missing
+required fields, consumables with no use count, maps whose rows are not all
+the same length, a first level with no `S` tile, and triggers naming items or
+NPCs the level does not define.
+
 ## Designing your own dungeon
 
 Everything lives in `world.json`:

@@ -8,15 +8,18 @@ import Graphics.Vty
   )
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
-import File.MapIO (loadNewGame, loadSavedGame, persistGame)
-import Game.State (initGame, maxHealth)
+import File.MapIO (defaultWorldFile, loadNewGame, loadSavedGame, persistGame)
+import Game.State (maxHealth, newGame)
 import Game.Logic
 import UI.Draw
 import Game.Types
 import Control.Monad (when)
+import Data.List (intercalate)
 import Data.Maybe (isJust)
 import Control.Monad.IO.Class (liftIO)
 import System.Directory (doesFileExist)
+import System.Exit (exitFailure)
+import System.IO (hPutStrLn, stderr)
 
 saveFile :: FilePath
 saveFile = "save.json"
@@ -40,24 +43,33 @@ chooseCursor state crsrs
 startGame :: IO ()
 startGame = do
   saveExists <- doesFileExist saveFile
-  gameState <- if saveExists
-    then do
-      -- Load the saved game state
-      savedGame <- loadSavedGame saveFile
-      case savedGame of
-        Left err -> do
-          putStrLn $ "Failed to load " ++ saveFile ++ ": " ++ err
-          -- Fallback to starting a new game
-          loadNewGame
-        Right state -> return $ Right state
-    else loadNewGame
+  resumed <- if saveExists
+    then loadSavedGame saveFile
+    else pure (Left [])
+  started <- case resumed of
+    Right state -> pure (Right state)
+    Left problems -> do
+      -- An unreadable save is not fatal; it just means starting over.
+      when saveExists $
+        report ("Could not read " ++ saveFile ++ ", starting a new game") problems
+      config <- loadNewGame
+      pure (config >>= newGame)
 
-  finalState <- runGame $ initGame gameState
-  persistGame saveFile finalState
-  putStrLn $ case (gameWon finalState, gameOver finalState) of
-    (True, _) -> "You won! Cleared the save, so next time starts a new dungeon."
-    (_, True) -> "Game Over! Cleared the save, so next time starts a new dungeon."
-    _         -> "Saving progress..."
+  case started of
+    Left problems -> do
+      report ("Could not start a game from " ++ defaultWorldFile) problems
+      exitFailure
+    Right initialState -> do
+      finalState <- runGame initialState
+      persistGame saveFile finalState
+      putStrLn $ case (gameWon finalState, gameOver finalState) of
+        (True, _) -> "You won! Cleared the save, so next time starts a new dungeon."
+        (_, True) -> "Game Over! Cleared the save, so next time starts a new dungeon."
+        _         -> "Saving progress..."
+  where
+    report headline problems = do
+      hPutStrLn stderr (headline ++ ":")
+      mapM_ (hPutStrLn stderr . ("  - " ++)) problems
 
 runGame :: GameState -> IO GameState
 runGame initialState = do
@@ -104,10 +116,13 @@ handleCommandInput key = do
 executeCommand :: String -> EventM () GameState ()
 executeCommand ":q" = halt -- Quit the game
 executeCommand ":restart" = do -- Restart the game
-  newState <- liftIO loadNewGame
-  case newState of
-    Left _ -> put $ initGame newState -- $ Left (config { message = ["Game restarted!"] } )
-    Right state -> put state
+  config <- liftIO loadNewGame
+  case config >>= newGame of
+    Right fresh -> put fresh
+    -- The world file has changed since startup and no longer loads. Say so
+    -- in the log rather than taking the running game down with it.
+    Left problems -> modify $ \s -> s
+      { message = ("Could not restart: " ++ intercalate "; " problems) : message s }
 executeCommand ":heal" = do -- Cheat
     state <- get
     let plyr = player state

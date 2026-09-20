@@ -9,14 +9,14 @@ import Control.Monad (when)
 import File.MapIO (deleteSave, loadNewGame, loadSavedGame, persistGame, saveGame)
 import Game.Logic (executeAction)
 import Game.GridUtils (gridLookup)
-import Game.State (currentWorld, initGame)
+import Game.State (currentWorld, newGame)
 import Game.Types
 import Linear.V2 (V2 (..))
 import System.Directory (doesFileExist, getTemporaryDirectory, removeFile)
 import System.FilePath ((</>))
 import Test.Hspec
 
-import Fixtures ()
+import Fixtures (shouldSucceed)
 
 -- | Run an action with a scratch save file, removing it afterwards.
 withTempSave :: (FilePath -> IO a) -> IO a
@@ -29,7 +29,7 @@ withTempSave act = do
 
 -- | A fresh game built from the repository's world.json.
 freshGame :: IO GameState
-freshGame = initGame <$> loadNewGame
+freshGame = loadNewGame >>= \config -> shouldSucceed (config >>= newGame)
 
 -- Put a corpse on the current level, as combat would.
 withCorpse :: GameState -> GameState
@@ -47,8 +47,8 @@ roundTrip state =
     saveGame path state
     loaded <- loadSavedGame path
     case loaded of
-      Left err -> fail ("loadSavedGame failed: " ++ err)
-      Right s  -> pure (initGame (Right s))
+      Left problems -> fail ("loadSavedGame failed: " ++ unlines problems)
+      Right s  -> pure s
 
 spec :: Spec
 spec = do

@@ -1,7 +1,6 @@
 -- test/Game/StateSpec.hs
 module Game.StateSpec (spec) where
 
-import Control.Exception (evaluate)
 import Data.Aeson (decode, encode)
 import Game.GridUtils (gridLookup)
 import Game.State
@@ -112,6 +111,48 @@ spec = do
       visibleAt (V2 8 3) (updateVisibility (mkPlayer (V2 4 3)) 5 unlocked)
         `shouldBe` True
 
+  describe "newGame" $ do
+    let validGrid = ["#####", "#S..#", "#####"]
+        withItems is lvl = lvl {FT.items = is}
+
+    it "builds a game from a minimal configuration" $ do
+      st <- shouldSucceed (newGame (jsonConfig [jsonLevel validGrid]))
+      st.player.position `shouldBe` V2 1 1
+      length (levels st) `shouldBe` 1
+
+    it "reports a configuration with no XP levels" $
+      newGame (jsonConfig [jsonLevel validGrid]) {FT.xpLevels = []}
+        `shouldReport` "xpLevels"
+
+    it "reports a configuration with no levels" $
+      newGame (jsonConfig []) `shouldReport` "levels"
+
+    it "reports a first level with nowhere to start" $
+      newGame (jsonConfig [jsonLevel ["#####", "#...#", "#####"]])
+        `shouldReport` "S"
+
+    it "reports a ragged map and names the rows that differ" $ do
+      let r = newGame (jsonConfig [jsonLevel ["#####", "#S.#", "#####"]])
+      r `shouldReport` "ragged"
+      r `shouldReport` "row(s) 1"
+
+    it "says which level a problem came from" $
+      newGame (jsonConfig [jsonLevel validGrid, jsonLevel ["###", "##"]])
+        `shouldReport` "level 1"
+
+    it "reports problems from every level, not just the first" $ do
+      let broken name = withItems [jsonItemOf name "Sandwich"] (jsonLevel validGrid)
+          r = newGame (jsonConfig [broken "First", broken "Second"])
+      r `shouldReport` "level 0"
+      r `shouldReport` "level 1"
+      r `shouldReport` "First"
+      r `shouldReport` "Second"
+      either length (const 0) r `shouldBe` 2
+
+    it "points at the item inside the level" $
+      newGame (jsonConfig [withItems [jsonItemOf "Lamp" "Healing"] (jsonLevel validGrid)])
+        `shouldReport` "level 0: item \"Lamp\": a Healing item must declare"
+
   describe "gridLookup" $ do
     let grid = [[1 :: Int, 2, 3], [4, 5, 6]] -- 3 wide, 2 tall
 
@@ -178,37 +219,36 @@ spec = do
             }
 
     it "reads a well-formed item" $ do
-      let i = transformItem (jsonItem "Health Potion" "Healing" (Just 3))
+      i <- shouldSucceed $ transformItem (jsonItem "Health Potion" "Healing" (Just 3))
       iCategory i `shouldBe` Healing
       iUses i `shouldBe` Just 3
       iPosition i `shouldBe` V2 1 2
 
     it "allows equipment to omit a use count" $
-      map (\cat -> iUses (transformItem (jsonItem "Thing" cat Nothing)))
+      traverse (\cat -> iUses <$> shouldSucceed (transformItem (jsonItem "Thing" cat Nothing)))
         ["Weapon", "Armor", "Special"]
-        `shouldBe` [Nothing, Nothing, Nothing]
+        `shouldReturn` [Nothing, Nothing, Nothing]
 
-    it "rejects a consumable that omits its use count" $
+    it "reports a consumable that omits its use count" $
       mapM_
-        (\cat -> evaluate (iUses (transformItem (jsonItem "Thing" cat Nothing)))
-                   `shouldThrow` anyErrorCall)
+        (\cat -> transformItem (jsonItem "Thing" cat Nothing) `shouldReport` "itemUses")
         ["Healing", "Key", "Range"]
 
-    it "names the offending item in the error" $
-      evaluate (iUses (transformItem (jsonItem "Greater Health Potion" "Healing" Nothing)))
-        `shouldThrow` errorCall
-          "Healing item \"Greater Health Potion\" must declare \"itemUses\""
+    it "names the category that needs a use count" $
+      transformItem (jsonItem "Greater Health Potion" "Healing" Nothing)
+        `shouldReport` "Healing item must declare"
 
-    it "rejects an unknown category" $
-      evaluate (iCategory (transformItem (jsonItem "Thing" "Sandwich" Nothing)))
-        `shouldThrow` anyErrorCall
+    it "names an unknown category and lists the valid ones" $ do
+      let r = transformItem (jsonItem "Thing" "Sandwich" Nothing)
+      r `shouldReport` "Sandwich"
+      r `shouldReport` "Healing"
 
   describe "findStartingPosition" $ do
     it "finds the S tile" $
-      findStartingPosition (mkWorld openMap) `shouldBe` V2 4 3
+      findStartingPosition (mkWorld openMap) `shouldBe` Just (V2 4 3)
 
-    it "falls back to the origin when the map has no S tile" $
-      findStartingPosition (mkWorld ["###", "...", "###"]) `shouldBe` V2 0 0
+    it "finds nothing when the map has no S tile" $
+      findStartingPosition (mkWorld ["###", "...", "###"]) `shouldBe` Nothing
 
   describe "the discovered grid" $
     it "round-trips through its coordinate list" $
@@ -249,41 +289,36 @@ spec = do
         `shouldBe` True
 
   describe "transformJSONTrigger" $ do
+    let conditionFrom t = triggerCondition <$> shouldSucceed (transformJSONTrigger t)
+
     it "builds a position condition" $
-      triggerCondition
-        (transformJSONTrigger baseJSONTrigger {FT.triggerType = "position", FT.target = Just (5, 6)})
-        `shouldBe` AtPosition (V2 5 6)
+      conditionFrom baseJSONTrigger {FT.triggerType = "position", FT.target = Just (5, 6)}
+        `shouldReturn` AtPosition (V2 5 6)
 
     it "builds a posAndItems condition" $
-      triggerCondition
-        ( transformJSONTrigger baseJSONTrigger
-            { FT.triggerType = "posAndItems"
-            , FT.target = Just (49, 14)
-            , FT.requiredItems = Just ["Gold Coin", "Magic Ring"]
-            }
-        )
-        `shouldBe` AtPositionWithItems (V2 49 14) ["Gold Coin", "Magic Ring"]
+      conditionFrom baseJSONTrigger
+          { FT.triggerType = "posAndItems"
+          , FT.target = Just (49, 14)
+          , FT.requiredItems = Just ["Gold Coin", "Magic Ring"]
+          }
+        `shouldReturn` AtPositionWithItems (V2 49 14) ["Gold Coin", "Magic Ring"]
 
     it "builds an itemPickup condition" $
-      triggerCondition
-        ( transformJSONTrigger baseJSONTrigger
-            {FT.triggerType = "itemPickup", FT.triggerItemName = Just "Gold Coin"}
-        )
-        `shouldBe` HasItem "Gold Coin"
+      conditionFrom baseJSONTrigger
+          {FT.triggerType = "itemPickup", FT.triggerItemName = Just "Gold Coin"}
+        `shouldReturn` HasItem "Gold Coin"
 
     it "builds an npcTalked condition" $
-      triggerCondition
-        ( transformJSONTrigger baseJSONTrigger
-            {FT.triggerType = "npcTalked", FT.triggerNpcName = Just "Friendly NPC"}
-        )
-        `shouldBe` TalkedToNpc "Friendly NPC"
+      conditionFrom baseJSONTrigger
+          {FT.triggerType = "npcTalked", FT.triggerNpcName = Just "Friendly NPC"}
+        `shouldReturn` TalkedToNpc "Friendly NPC"
 
     it "builds an allMonstersDefeated condition" $
-      triggerCondition (transformJSONTrigger baseJSONTrigger {FT.triggerType = "allMonstersDefeated"})
-        `shouldBe` AllMonstersDefeated
+      conditionFrom baseJSONTrigger {FT.triggerType = "allMonstersDefeated"}
+        `shouldReturn` AllMonstersDefeated
 
     it "carries the actions and the recurring flag across" $ do
-      let t = transformJSONTrigger baseJSONTrigger
+      t <- shouldSucceed $ transformJSONTrigger baseJSONTrigger
                 { FT.triggerType = "position"
                 , FT.target = Just (1, 1)
                 , FT.recurring = True
@@ -301,22 +336,19 @@ spec = do
       triggerActions t `shouldBe` [DisplayMessage "Hello"]
       triggerRecurring t `shouldBe` True
 
-    it "rejects an unknown trigger type" $
-      evaluate (triggerCondition (transformJSONTrigger baseJSONTrigger {FT.triggerType = "explode"}))
-        `shouldThrow` anyErrorCall
+    it "names an unknown trigger type and lists the valid ones" $ do
+      let r = transformJSONTrigger baseJSONTrigger {FT.triggerType = "explode"}
+      r `shouldReport` "explode"
+      r `shouldReport` "allMonstersDefeated"
 
-    it "rejects a position trigger with no target" $
-      evaluate (triggerCondition (transformJSONTrigger baseJSONTrigger {FT.triggerType = "position"}))
-        `shouldThrow` anyErrorCall
+    it "says which field a position trigger is missing" $
+      transformJSONTrigger baseJSONTrigger {FT.triggerType = "position"}
+        `shouldReport` "target"
 
-    it "rejects a posAndItems trigger with no requiredItems" $
-      evaluate
-        ( triggerCondition
-            ( transformJSONTrigger baseJSONTrigger
-                {FT.triggerType = "posAndItems", FT.target = Just (1, 1)}
-            )
-        )
-        `shouldThrow` anyErrorCall
+    it "says which fields a posAndItems trigger is missing" $
+      transformJSONTrigger baseJSONTrigger
+          {FT.triggerType = "posAndItems", FT.target = Just (1, 1)}
+        `shouldReport` "requiredItems"
 
   describe "evalTriggerCondition" $ do
     let carrying ns =
@@ -402,31 +434,39 @@ spec = do
         trigger c = Trigger {triggerCondition = c, triggerActions = [], triggerRecurring = False}
 
     it "accepts a trigger whose item exists" $
-      map triggerCondition
+      fmap (map triggerCondition)
         (validateTriggers [trigger (HasItem "Gold Coin")] [itemNamed "Gold Coin"] [])
-        `shouldBe` [HasItem "Gold Coin"]
+        `shouldBe` Right [HasItem "Gold Coin"]
 
-    it "rejects a trigger that refers to an unknown item" $
-      mapM_ evaluate (validateTriggers [trigger (HasItem "No Such Item")] [] [])
-        `shouldThrow` anyErrorCall
+    it "names an item the level does not define" $
+      validateTriggers [trigger (HasItem "No Such Item")] [] []
+        `shouldReport` "No Such Item"
 
-    it "rejects a posAndItems trigger with an unknown required item" $
-      mapM_
-        evaluate
-        ( validateTriggers
-            [trigger (AtPositionWithItems (V2 0 0) ["Gold Coin", "Ghost Item"])]
-            [itemNamed "Gold Coin"]
-            []
-        )
-        `shouldThrow` anyErrorCall
+    it "names every missing item of a posAndItems trigger" $ do
+      let r = validateTriggers
+                [trigger (AtPositionWithItems (V2 0 0) ["Gold Coin", "Ghost Item"])]
+                [itemNamed "Gold Coin"]
+                []
+      r `shouldReport` "Ghost Item"
 
-    it "rejects a trigger that refers to an unknown NPC" $
-      mapM_ evaluate (validateTriggers [trigger (TalkedToNpc "Nobody")] [] [npcNamed "Bob"])
-        `shouldThrow` anyErrorCall
+    it "names an NPC the level does not define" $
+      validateTriggers [trigger (TalkedToNpc "Nobody")] [] [npcNamed "Bob"]
+        `shouldReport` "Nobody"
+
+    it "reports every bad trigger, not just the first" $ do
+      let r = validateTriggers
+                [trigger (HasItem "Ghost A"), trigger (TalkedToNpc "Ghost B")] [] []
+      r `shouldReport` "Ghost A"
+      r `shouldReport` "Ghost B"
+      either length (const 0) r `shouldBe` 2
+
+    it "says which trigger is at fault" $
+      validateTriggers [trigger AllMonstersDefeated, trigger (HasItem "Ghost")] [] []
+        `shouldReport` "trigger 1"
 
     it "does not look at items for an allMonstersDefeated trigger" $
-      map triggerCondition (validateTriggers [trigger AllMonstersDefeated] [] [])
-        `shouldBe` [AllMonstersDefeated]
+      fmap (map triggerCondition) (validateTriggers [trigger AllMonstersDefeated] [] [])
+        `shouldBe` Right [AllMonstersDefeated]
 
   describe "transformJSONAction" $ do
     let action t = baseAction {FT.actionType = t}
@@ -443,19 +483,19 @@ spec = do
     it "builds a spawnItem action" $
       transformJSONAction
         (action "spawnItem") {FT.actionItemName = Just "Sword", FT.actionPosition = Just (1, 2)}
-        `shouldBe` SpawnItem "Sword" (V2 1 2)
+        `shouldBe` Right (SpawnItem "Sword" (V2 1 2))
 
     it "builds a shiftTile action from a map character" $
       transformJSONAction
         (action "shiftTile") {FT.actionPosition = Just (1, 2), FT.actionTileType = Just '#'}
-        `shouldBe` ShiftTile (V2 1 2) Wall
+        `shouldBe` Right (ShiftTile (V2 1 2) Wall)
 
     it "builds setGameWon" $
-      transformJSONAction (action "setGameWon") `shouldBe` SetGameWon
+      transformJSONAction (action "setGameWon") `shouldBe` Right SetGameWon
 
-    it "rejects an unknown action type" $
-      evaluate (transformJSONAction (action "explode")) `shouldThrow` anyErrorCall
+    it "names an unknown action type" $
+      transformJSONAction (action "explode") `shouldReport` "explode"
 
-    it "rejects a spawnItem action that is missing its position" $
-      evaluate (transformJSONAction (action "spawnItem") {FT.actionItemName = Just "Sword"})
-        `shouldThrow` anyErrorCall
+    it "says which field a spawnItem action is missing" $
+      transformJSONAction (action "spawnItem") {FT.actionItemName = Just "Sword"}
+        `shouldReport` "actionPosition"

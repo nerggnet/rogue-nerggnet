@@ -4,9 +4,11 @@
 -- deliberately tiny so that expected values can be worked out by hand.
 module Fixtures where
 
-import Game.State (charToTile, initializeGrid)
+import Game.State (Problems, charToTile, initializeGrid)
 import Game.Types
+import Data.List (isInfixOf)
 import Linear.V2 (V2 (..))
+import Test.Hspec
 import qualified File.Types as FT
 
 -- | A 9x7 room with no interior walls. @S@ (the start tile) is at @(4, 3)@.
@@ -197,3 +199,61 @@ visibleAt (V2 x y) world = visibility world !! y !! x
 
 discoveredAt :: V2 Int -> World -> Bool
 discoveredAt (V2 x y) world = discovered world !! y !! x
+
+-- | The value a configuration transform produced, or a test failure naming
+-- the problems it reported instead.
+shouldSucceed :: Either Problems a -> IO a
+shouldSucceed (Right a) = pure a
+shouldSucceed (Left problems) = do
+  expectationFailure ("expected success, but got: " ++ unlines problems)
+  error "unreachable"
+
+-- | Assert that a transform reported a problem mentioning some text.
+shouldReport :: Either Problems a -> String -> Expectation
+shouldReport (Left problems) needle
+  | any (needle `isInfixOf`) problems = pure ()
+  | otherwise = expectationFailure
+      ("expected a problem mentioning " ++ show needle ++ ", but got:\n" ++ unlines problems)
+shouldReport (Right _) needle =
+  expectationFailure
+    ("expected a problem mentioning " ++ show needle ++ ", but it succeeded")
+
+-- | A level with nothing in it but a map.
+jsonLevel :: [String] -> FT.MapLevel
+jsonLevel grid =
+  FT.MapLevel
+    { FT.levelNumber = 1
+    , FT.mapGrid = grid
+    , FT.monsters = []
+    , FT.doors = []
+    , FT.items = []
+    , FT.triggers = []
+    , FT.npcs = []
+    }
+
+-- | A configuration with one XP level and the given map levels.
+jsonConfig :: [FT.MapLevel] -> FT.GameConfig
+jsonConfig lvls =
+  FT.GameConfig
+    { FT.xpLevels =
+        [ FT.XPLevel
+            { FT.xpLevel = 1, FT.xpThreshold = 0, FT.xpHealth = 20
+            , FT.xpAttack = 5, FT.xpResistance = 1
+            }
+        ]
+    , FT.levels = lvls
+    }
+
+-- | A floor item with the given name and category string.
+jsonItemOf :: String -> String -> FT.JSONItem
+jsonItemOf n cat =
+  FT.JSONItem
+    { FT.itemName = n
+    , FT.itemPosition = (1, 1)
+    , FT.itemDescription = ""
+    , FT.itemCategory = cat
+    , FT.itemEffectValue = 0
+    , FT.itemHidden = False
+    , FT.itemInactive = False
+    , FT.itemUses = Nothing
+    }

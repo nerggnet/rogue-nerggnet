@@ -81,6 +81,22 @@ All notable changes to this project are documented in this file.
   `restoreWorld`, which could only ever return its argument unchanged
   because the map grid is empty at the point it ran.
 
+### Changed
+
+- A bad `world.json` is now reported instead of crashing the game. Reading
+  the configuration used to call `error` in twenty-five places, so a single
+  typo killed the process with a bare message and no idea which level, item
+  or trigger it came from. Every one of those is now a described problem,
+  and independent checks are combined so one run lists everything wrong
+  rather than stopping at the first. Messages name the level, the entity and
+  the field, and unknown values list what was expected.
+- Two problems that previously went unreported are now caught: a map whose
+  rows are not all the same length, which used to fail only when the player
+  walked into the short part, and a first level with no `S` tile, which
+  silently started the player at the top-left corner.
+- `:restart` reports a world file that no longer loads in the message log
+  instead of taking the running game down with it.
+
 ### Fixed
 
 - Dying or winning now clears the save file instead of writing it. The game

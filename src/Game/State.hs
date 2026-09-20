@@ -5,8 +5,50 @@ import Game.Types
 import Game.GridUtils (gridLookup)
 import qualified File.Types as FT
 import Linear.V2 (V2(..))
+import Data.Bifunctor (first)
 import Data.List (find, intercalate)
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe, isNothing, listToMaybe)
+
+-- | Everything wrong with a configuration file.
+--
+-- A list rather than a single message so that one run reports every problem
+-- it can find, instead of making the author fix them one at a time.
+type Problems = [String]
+
+-- A single problem
+problem :: String -> Either Problems a
+problem msg = Left [msg]
+
+-- | Either, with an Applicative that keeps the problems from both sides
+-- instead of stopping at the first.
+--
+-- Checks that do not depend on each other are combined through this, so that
+-- a world file with a bad item on one level and a bad map on another reports
+-- both rather than making the author find them one run at a time.
+newtype Validation a = Validation (Either Problems a)
+
+instance Functor Validation where
+  fmap f (Validation e) = Validation (fmap f e)
+
+instance Applicative Validation where
+  pure = Validation . Right
+  Validation f <*> Validation x = Validation $ case (f, x) of
+    (Left a, Left b)   -> Left (a ++ b)
+    (Left a, _)        -> Left a
+    (_, Left b)        -> Left b
+    (Right g, Right y) -> Right (g y)
+
+-- Run independent checks, keeping every problem any of them found
+checkAll :: Validation a -> Either Problems a
+checkAll (Validation e) = e
+
+-- Combine results, keeping the problems from all of them
+collect :: [Either Problems a] -> Either Problems [a]
+collect = checkAll . traverse Validation
+
+-- Say where a problem was found
+inContext :: String -> Either Problems a -> Either Problems a
+inContext what = first (map ((what ++ ": ") ++))
 
 -- Default values for monster, fog radius, and inventory size
 defaultMonsterRadius :: Int
@@ -30,21 +72,24 @@ visibleLogMessages :: Int
 visibleLogMessages = 5
 
 -- Initialize the game state
-initGame :: Either FT.GameConfig GameState -> GameState
-initGame (Right savedState) = savedState
-
-initGame (Left config) =
-  -- Fresh game initialization
-  let allWorlds = map transformFileWorld (FT.levels config)
-      allXPLevels = transformXPLevels (FT.xpLevels config)
-      initialXPLevel = case allXPLevels of
-                         []    -> error "No XP levels found"
-                         (l:_) -> l
-      initialWorld = case allWorlds of
-                       []    -> error "No dungeon levels found"
-                       (w:_) -> w
-      startingPosition = findStartingPosition initialWorld
-      initialPlayer = Player
+-- Build a new game from a freshly loaded configuration.
+--
+-- Anything wrong with the configuration is reported rather than thrown, so a
+-- typo in the world file is a message about the world file instead of a crash.
+newGame :: FT.GameConfig -> Either Problems GameState
+newGame config = do
+  (initialXPLevel, allWorlds) <- checkAll $
+    (,) <$> Validation (firstOr "no \"xpLevels\" are defined" allXPLevels)
+        <*> Validation (collect
+              [ inContext ("level " ++ show ix) (transformFileWorld fileWorld)
+              | (ix, fileWorld) <- zip [0 :: Int ..] (FT.levels config)
+              ])
+  initialWorld <- firstOr "no \"levels\" are defined" allWorlds
+  startingPosition <- inContext "level 0" $
+    maybe (problem "the map grid has no \"S\" tile for the player to start on")
+          Right
+          (findStartingPosition initialWorld)
+  let initialPlayer = Player
         { position = startingPosition
         , health = xpHealth initialXPLevel
         , baseAttack = xpAttack initialXPLevel
@@ -75,7 +120,12 @@ initGame (Left config) =
         , gameWon = False
         }
       updatedWorld = updateVisibility initialPlayer defaultFogRadius initialWorld
-  in initialState { levels = replaceLevel initialState 0 updatedWorld }
+  pure initialState { levels = replaceLevel initialState 0 updatedWorld }
+  where
+    allXPLevels = transformXPLevels (FT.xpLevels config)
+
+    firstOr :: String -> [a] -> Either Problems a
+    firstOr msg = maybe (problem msg) Right . listToMaybe
 
 -- Update what the player sees of the map
 updateVisibility :: Player -> Int -> World -> World
@@ -141,28 +191,52 @@ setCurrentWorld :: World -> GameState -> GameState
 setCurrentWorld world = withCurrentWorld (const world)
 
 -- Transform a File.Types.MapLevel to Game.Types.World
-transformFileWorld :: FT.MapLevel -> World
-transformFileWorld fileWorld =
-  let rows = length (FT.mapGrid fileWorld)
-      cols = case FT.mapGrid fileWorld of
-               []    -> error "Incorrectly formatted dungeon map"
-               (r:_) -> length r
-   in World
-        { mapGrid = map (map charToTile) (FT.mapGrid fileWorld)
-        , mapRows = rows
-        , mapCols = cols
-        , monsters = map transformMonster (FT.monsters fileWorld)
-        , npcs = map transformNPC (FT.npcs fileWorld)
-        , items = map transformItem (FT.items fileWorld)
-        , doors = map transformDoorEntity (FT.doors fileWorld)
-        , triggers = validateTriggers (map transformJSONTrigger (FT.triggers fileWorld))
-                                      (FT.items fileWorld) (FT.npcs fileWorld)
-        , visibility = initializeGrid False rows cols
-        , discovered = initializeGrid False rows cols
-        , discoveredCoords = []
-        , tileOverrides = []
-        , corpses = []
-        }
+transformFileWorld :: FT.MapLevel -> Either Problems World
+transformFileWorld fileWorld = do
+  ((rows, cols), itms, trggrs) <- checkAll $
+    (,,)
+      <$> Validation gridSize
+      <*> Validation (collect
+            [ inContext ("item " ++ show (FT.itemName i)) (transformItem i)
+            | i <- FT.items fileWorld
+            ])
+      <*> Validation (collect
+            [ inContext ("trigger " ++ show ix) (transformJSONTrigger t)
+            | (ix, t) <- zip [0 :: Int ..] (FT.triggers fileWorld)
+            ])
+  -- This one genuinely depends on the triggers above having been built.
+  checked <- validateTriggers trggrs (FT.items fileWorld) (FT.npcs fileWorld)
+  pure World
+    { mapGrid = map (map charToTile) grid
+    , mapRows = rows
+    , mapCols = cols
+    , monsters = map transformMonster (FT.monsters fileWorld)
+    , npcs = map transformNPC (FT.npcs fileWorld)
+    , items = itms
+    , doors = map transformDoorEntity (FT.doors fileWorld)
+    , triggers = checked
+    , visibility = initializeGrid False rows cols
+    , discovered = initializeGrid False rows cols
+    , discoveredCoords = []
+    , tileOverrides = []
+    , corpses = []
+    }
+  where
+    grid = FT.mapGrid fileWorld
+
+    -- Every row must be the same length. A short row is not caught anywhere
+    -- else: mapCols comes from the first row, so walking onto the missing
+    -- part of a later one would fail at the point the player reached it.
+    gridSize = case grid of
+      [] -> problem "the \"mapGrid\" is empty"
+      (firstRow : _) ->
+        let width = length firstRow
+            ragged = [ y | (y, row) <- zip [0 :: Int ..] grid, length row /= width ]
+         in if null ragged
+              then Right (length grid, width)
+              else problem $ "the \"mapGrid\" is ragged: row 0 is " ++ show width
+                     ++ " characters wide, but row(s) "
+                     ++ intercalate ", " (map show ragged) ++ " are not"
 
 initializeGrid :: a -> Int -> Int -> [[a]]
 initializeGrid value rows cols = replicate rows (replicate cols value)
@@ -199,29 +273,33 @@ transformXPLevels = map $ \fxp -> XPLevel
   }
 
 -- Transform a File.Types.JSONItem to Game.Types.Item
-transformItem :: FT.JSONItem -> Item
-transformItem fi =
-  let category = parseItemCategory (FT.itemName fi) (FT.itemCategory fi)
-   in Item
-        { iName = FT.itemName fi
-        , iDescription = FT.itemDescription fi
-        , iPosition = uncurry V2 (FT.itemPosition fi)
-        , iCategory = category
-        , iEffectValue = FT.itemEffectValue fi
-        , iHidden = FT.itemHidden fi
-        , iInactive = FT.itemInactive fi
-        , iUses = validateItemUses category (FT.itemName fi) (FT.itemUses fi)
-        }
+transformItem :: FT.JSONItem -> Either Problems Item
+transformItem fi = do
+  category <- parseItemCategory (FT.itemCategory fi)
+  uses <- validateItemUses category (FT.itemUses fi)
+  pure Item
+    { iName = FT.itemName fi
+    , iDescription = FT.itemDescription fi
+    , iPosition = uncurry V2 (FT.itemPosition fi)
+    , iCategory = category
+    , iEffectValue = FT.itemEffectValue fi
+    , iHidden = FT.itemHidden fi
+    , iInactive = FT.itemInactive fi
+    , iUses = uses
+    }
 
-parseItemCategory :: String -> String -> ItemCategory
-parseItemCategory _ "Armor"   = Armor
-parseItemCategory _ "Weapon"  = Weapon
-parseItemCategory _ "Range"   = Range
-parseItemCategory _ "Healing" = Healing
-parseItemCategory _ "Special" = Special
-parseItemCategory _ "Key"     = Key
-parseItemCategory itemName other =
-  error $ "Unknown item category \"" ++ other ++ "\" for item \"" ++ itemName ++ "\""
+itemCategories :: [(String, ItemCategory)]
+itemCategories =
+  [ ("Armor", Armor), ("Weapon", Weapon), ("Range", Range)
+  , ("Healing", Healing), ("Special", Special), ("Key", Key)
+  ]
+
+parseItemCategory :: String -> Either Problems ItemCategory
+parseItemCategory name =
+  maybe (problem $ "unknown \"itemCategory\" " ++ show name ++ "; expected one of "
+                   ++ intercalate ", " (map (show . fst) itemCategories))
+        Right
+        (lookup name itemCategories)
 
 -- Categories whose items are spent as they are used
 consumableCategories :: [ItemCategory]
@@ -229,11 +307,12 @@ consumableCategories = [Healing, Key, Range]
 
 -- An item with no use count is never consumed, which only makes sense for
 -- equipment. A consumable without one would be usable forever.
-validateItemUses :: ItemCategory -> String -> Maybe Int -> Maybe Int
-validateItemUses category itemName uses
+validateItemUses :: ItemCategory -> Maybe Int -> Either Problems (Maybe Int)
+validateItemUses category uses
   | category `elem` consumableCategories && isNothing uses =
-      error $ show category ++ " item \"" ++ itemName ++ "\" must declare \"itemUses\""
-  | otherwise = uses
+      problem $ "a " ++ show category ++ " item must declare \"itemUses\"; "
+                ++ "without one it is never used up"
+  | otherwise = Right uses
 
 -- Transform a File.Types.JSONDoorEntity to Game.Types.DoorEntity
 transformDoorEntity :: FT.JSONDoorEntity -> DoorEntity
@@ -244,34 +323,39 @@ transformDoorEntity jsonDoor = DoorEntity
   }
 
 -- Transform a File.Types.JSONTrigger to Game.Types.Trigger
-transformJSONTrigger :: FT.JSONTrigger -> Trigger
-transformJSONTrigger jsonTrigger = Trigger
-  { triggerCondition = conditionOf jsonTrigger
-  , triggerActions   = map transformJSONAction (FT.actions jsonTrigger)
-  , triggerRecurring = FT.recurring jsonTrigger
-  }
+transformJSONTrigger :: FT.JSONTrigger -> Either Problems Trigger
+transformJSONTrigger jsonTrigger = checkAll $
+  Trigger
+    <$> Validation (conditionOf jsonTrigger)
+    <*> Validation (collect
+          [ inContext ("action " ++ show ix) (transformJSONAction a)
+          | (ix, a) <- zip [0 :: Int ..] (FT.actions jsonTrigger)
+          ])
+    <*> pure (FT.recurring jsonTrigger)
 
 -- Build the firing condition described by a JSON trigger
-conditionOf :: FT.JSONTrigger -> TriggerCondition
+conditionOf :: FT.JSONTrigger -> Either Problems TriggerCondition
 conditionOf jsonTrigger = case FT.triggerType jsonTrigger of
   "position" ->
     case FT.target jsonTrigger of
-      Just (x, y) -> AtPosition (V2 x y)
-      Nothing     -> error "A \"position\" trigger needs a \"target\""
+      Just (x, y) -> Right (AtPosition (V2 x y))
+      Nothing     -> problem "a \"position\" trigger needs a \"target\""
   "posAndItems" ->
     case (FT.target jsonTrigger, FT.requiredItems jsonTrigger) of
-      (Just (x, y), Just reqItems) -> AtPositionWithItems (V2 x y) reqItems
-      _ -> error "A \"posAndItems\" trigger needs both a \"target\" and \"requiredItems\""
+      (Just (x, y), Just reqItems) -> Right (AtPositionWithItems (V2 x y) reqItems)
+      _ -> problem "a \"posAndItems\" trigger needs both a \"target\" and \"requiredItems\""
   "itemPickup" ->
     case FT.triggerItemName jsonTrigger of
-      Just itemName -> HasItem itemName
-      Nothing       -> error "An \"itemPickup\" trigger needs a \"triggerItemName\""
+      Just itemName -> Right (HasItem itemName)
+      Nothing       -> problem "an \"itemPickup\" trigger needs a \"triggerItemName\""
   "npcTalked" ->
     case FT.triggerNpcName jsonTrigger of
-      Just nName -> TalkedToNpc nName
-      Nothing    -> error "An \"npcTalked\" trigger needs a \"triggerNpcName\""
-  "allMonstersDefeated" -> AllMonstersDefeated
-  other -> error $ "Unknown trigger type: " ++ other
+      Just nName -> Right (TalkedToNpc nName)
+      Nothing    -> problem "an \"npcTalked\" trigger needs a \"triggerNpcName\""
+  "allMonstersDefeated" -> Right AllMonstersDefeated
+  other -> problem $ "unknown \"triggerType\" " ++ show other
+             ++ "; expected one of \"position\", \"posAndItems\", \"itemPickup\", "
+             ++ "\"npcTalked\", \"allMonstersDefeated\""
 
 -- Interpret a trigger condition against the current game state
 evalTriggerCondition :: TriggerCondition -> GameState -> Bool
@@ -289,46 +373,53 @@ evalTriggerCondition AllMonstersDefeated state =
   allMonstersDefeated state
 
 -- Convert JSONTriggerAction to Action
-transformJSONAction :: FT.JSONTriggerAction -> Action
+transformJSONAction :: FT.JSONTriggerAction -> Either Problems Action
 transformJSONAction jsonAction = case FT.actionType jsonAction of
   "spawnItem" ->
     case (FT.actionItemName jsonAction, FT.actionPosition jsonAction) of
-      (Just name, Just (x, y)) -> SpawnItem name (V2 x y)
-      _ -> error "Invalid spawnItem action"
+      (Just name, Just (x, y)) -> Right (SpawnItem name (V2 x y))
+      _ -> needs "spawnItem" ["actionItemName", "actionPosition"]
   "spawnMonster" ->
     case (FT.actionMonsterName jsonAction, FT.actionPosition jsonAction) of
-      (Just name, Just (x, y)) -> SpawnMonster name (V2 x y)
-      _ -> error "Invalid spawnMonster action"
+      (Just name, Just (x, y)) -> Right (SpawnMonster name (V2 x y))
+      _ -> needs "spawnMonster" ["actionMonsterName", "actionPosition"]
   "unlockDoor" ->
     case FT.actionPosition jsonAction of
-      Just (x, y) -> UnlockDoor (V2 x y)
-      _ -> error "Invalid unlockDoor action"
+      Just (x, y) -> Right (UnlockDoor (V2 x y))
+      _ -> needs "unlockDoor" ["actionPosition"]
   "displayMessage" ->
     case FT.actionMessage jsonAction of
-      Just msg -> DisplayMessage msg
-      _ -> error "Invalid displayMessage action"
+      Just msg -> Right (DisplayMessage msg)
+      _ -> needs "displayMessage" ["actionMessage"]
   "shiftTile" ->
     case (FT.actionPosition jsonAction, FT.actionTileType jsonAction) of
-      (Just (x, y), Just tileType) -> ShiftTile (V2 x y) (charToTile tileType)
-      _ -> error "Invalid shiftTile action"
+      (Just (x, y), Just tileType) -> Right (ShiftTile (V2 x y) (charToTile tileType))
+      _ -> needs "shiftTile" ["actionPosition", "actionTileType"]
   "transportPlayer" ->
     case FT.actionPosition jsonAction of
-      Just (x, y) -> TransportPlayer (V2 x y)
-      _ -> error "Invalid transportPlayer action"
+      Just (x, y) -> Right (TransportPlayer (V2 x y))
+      _ -> needs "transportPlayer" ["actionPosition"]
   "consumeItem" ->
     case FT.actionItemName jsonAction of
-      Just name -> ConsumeItem name
-      _ -> error "Invalid consumeItem action"
+      Just name -> Right (ConsumeItem name)
+      _ -> needs "consumeItem" ["actionItemName"]
   "addToInventory" ->
     case FT.actionItemName jsonAction of
-      Just name -> AddToInventory name
-      _ -> error "Invalid addToInventory action"
-  "setGameWon" -> SetGameWon
-  _ -> error $ "Unknown action type: " ++ FT.actionType jsonAction
+      Just name -> Right (AddToInventory name)
+      _ -> needs "addToInventory" ["actionItemName"]
+  "setGameWon" -> Right SetGameWon
+  other -> problem $ "unknown \"actionType\" " ++ show other
+  where
+    needs what fields =
+      problem $ "a " ++ show what ++ " action needs "
+                ++ intercalate " and " (map show fields)
 
 -- Reject triggers that refer to items or NPCs the level does not define
-validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> [Trigger]
-validateTriggers trggrs triggerItems triggerNpcs = map validateTrigger trggrs
+validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> Either Problems [Trigger]
+validateTriggers trggrs triggerItems triggerNpcs =
+  collect [ inContext ("trigger " ++ show ix) (validateTrigger t)
+          | (ix, t) <- zip [0 :: Int ..] trggrs
+          ]
   where
     itemNames = map FT.itemName triggerItems
     npcNames  = map FT.npcName triggerNpcs
@@ -336,14 +427,15 @@ validateTriggers trggrs triggerItems triggerNpcs = map validateTrigger trggrs
     validateTrigger trigger = case triggerCondition trigger of
       HasItem itemName
         | itemName `notElem` itemNames ->
-            error $ "Trigger refers to an unknown item: " ++ itemName
+            problem $ "needs item " ++ show itemName ++ ", which this level does not define"
       AtPositionWithItems _ required
         | missing@(_:_) <- filter (`notElem` itemNames) required ->
-            error $ "Trigger refers to unknown items: " ++ intercalate ", " missing
+            problem $ "needs item(s) " ++ intercalate ", " (map show missing)
+                      ++ ", which this level does not define"
       TalkedToNpc nName
         | nName `notElem` npcNames ->
-            error $ "Trigger refers to an unknown NPC: " ++ nName
-      _ -> trigger
+            problem $ "refers to NPC " ++ show nName ++ ", which this level does not define"
+      _ -> Right trigger
 
 -- Is a position currently lit for the player? Out of bounds counts as unseen.
 isVisibleAt :: World -> V2 Int -> Bool
@@ -390,10 +482,12 @@ tileToChar UpStair   = '<'
 tileToChar DownStair = '>'
 tileToChar Start     = 'S'
 
--- Find the starting position (e.g., the first Floor tile)
-findStartingPosition :: World -> V2 Int
+-- Find the tile the player starts on, if the map marks one
+findStartingPosition :: World -> Maybe (V2 Int)
 findStartingPosition wrld =
-  let grid = mapGrid wrld
-  in case [(x, y) | (y, row) <- zip [0..] grid, (x, tile) <- zip [0..] row, tile == Start] of
-       ((x, y):_) -> V2 x y
-       _          -> V2 0 0 -- Default to top-left if no Floor tile is found.
+  listToMaybe
+    [ V2 x y
+    | (y, row) <- zip [0 ..] (mapGrid wrld)
+    , (x, tile) <- zip [0 ..] row
+    , tile == Start
+    ]
