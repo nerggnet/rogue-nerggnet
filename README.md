@@ -450,6 +450,11 @@ the test-suite can import it.
 Brick and Vty are confined to the `UI` modules; `Game` and `File` are
 UI-independent.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to build, what CI enforces,
+and where to add a new floor, item effect, trigger type or action.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

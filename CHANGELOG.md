@@ -75,8 +75,17 @@ All notable changes to this project are documented in this file.
   reported that Hackage would reject the package.
 - `.gitignore` is a Haskell one. It was the Visual Studio template with a
   few Haskell lines appended, 381 lines for a project with no C# in it.
+- `CONTRIBUTING.md`, setting out what the project is trying to be — an
+  authored dungeon rather than a generated one, content mistakes caught
+  before the game starts, and beatability proved by machine — and where to
+  add a new floor, Special item effect, trigger type or trigger action.
+- `CLAUDE.md`, the same ground in short form for coding agents.
 
 ### Removed
+
+- `compile_haskell.sh`, which concatenated `src/` and `app/` into one
+  markdown file for pasting into a chat window. Tooling reads the repository
+  directly now.
 
 - The `lens` dependency. It was pulled in for six uses of `^. _x` and
   `^. _y`; `updateTile` and `gridLookup` take a `V2 Int` directly now, and

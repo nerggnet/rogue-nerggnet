@@ -15,6 +15,7 @@ homepage:           https://github.com/nerggnet/rogue-nerggnet
 build-type:         Simple
 extra-doc-files:    README.md
                     CHANGELOG.md
+                    CONTRIBUTING.md
 tested-with:        GHC == 9.12.2 || == 9.14.1
 
 source-repository head

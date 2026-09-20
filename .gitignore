@@ -46,8 +46,5 @@ output.txt
 debug.txt
 [Bb]ackup*/
 
-# Produced by compile_haskell.sh, for pasting the sources somewhere
-compiled_source.md
-
 # Game save file
 save.json
