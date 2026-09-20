@@ -219,7 +219,7 @@
      "inactive": false
     },
     {
-     "name": "Vicous Rat",
+     "name": "Vicious Rat",
      "position": [
       3,
       1
@@ -649,7 +649,7 @@
         22
        ],
        "actionItemName": null,
-       "actionMonsterName": "Vicous Rat",
+       "actionMonsterName": "Vicious Rat",
        "actionTileType": null,
        "actionMessage": null,
        "actionAmount": null
