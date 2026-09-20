@@ -104,6 +104,7 @@ data JSONTriggerAction = JSONTriggerAction
   , actionMonsterName :: Maybe String     -- For "spawnMonster", the monster's name
   , actionTileType    :: Maybe Char       -- For "shiftTile", the tile's new type
   , actionMessage     :: Maybe String     -- For "displayMessage", the custom message
+  , actionAmount      :: Maybe Int        -- For "harmPlayer" and "healPlayer"
   } deriving (Show, Generic)
 
 instance FromJSON JSONTriggerAction

@@ -833,6 +833,23 @@ spec = do
       map iName (inventory (player s)) `shouldBe` ["Mithril Shield"]
       items (currentWorld s) `shouldBe` []
 
+    it "HarmPlayer springs a trap" $ do
+      let s = executeAction (withPlayer (\p -> p {health = 20}) baseState) (HarmPlayer 7)
+      health (player s) `shouldBe` 13
+      gameOver s `shouldBe` False
+      latest s `shouldSatisfy` ("7 damage" `isInfixOf`)
+
+    it "a trap can kill" $ do
+      let s = executeAction (withPlayer (\p -> p {health = 5}) baseState) (HarmPlayer 40)
+      health (player s) `shouldBe` 0
+      gameOver s `shouldBe` True
+      message s `shouldSatisfy` any ("died" `isInfixOf`)
+
+    it "HealPlayer mends, but not past the maximum" $ do
+      let hurt = withPlayer (\p -> p {health = 5}) baseState
+      health (player (executeAction hurt (HealPlayer 7))) `shouldBe` 12
+      health (player (executeAction hurt (HealPlayer 500))) `shouldBe` 20
+
     it "SetGameWon wins the game" $
       gameWon (executeAction baseState SetGameWon) `shouldBe` True
 

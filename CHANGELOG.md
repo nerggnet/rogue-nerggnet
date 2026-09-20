@@ -99,6 +99,8 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- `harmPlayer` and `healPlayer` trigger actions, for traps and for fountains.
+  A trap can kill, so it is a real cost rather than scenery.
 - A run has a score. Items carry an `itemValue`, the sidebar shows what is
   being carried, and both endings report the same three figures: how deep
   the run got, what it was worth, and the experience earned. Getting out

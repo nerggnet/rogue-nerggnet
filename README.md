@@ -395,6 +395,8 @@ It may name such a template. Between them, `position` to raise the boss and
 | `transportPlayer` | Teleports the player | `actionPosition` |
 | `consumeItem` | Removes a named item from the inventory | `actionItemName` |
 | `addToInventory` | Moves a named `itemInactive` item into the inventory | `actionItemName` |
+| `harmPlayer` | Springs a trap for `actionAmount` damage, which can kill | `actionAmount` |
+| `healPlayer` | A fountain or shrine, mending `actionAmount` | `actionAmount` |
 | `displayMessage` | Writes a line to the message log | `actionMessage` |
 | `setGameWon` | Wins the game | — |
 

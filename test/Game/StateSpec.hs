@@ -484,6 +484,7 @@ spec = do
                         , FT.actionMonsterName = Nothing
                         , FT.actionTileType = Nothing
                         , FT.actionMessage = Just "Hello"
+                        , FT.actionAmount = Nothing
                         }
                     ]
                 }
@@ -656,6 +657,7 @@ spec = do
             , FT.actionMonsterName = Nothing
             , FT.actionTileType = Nothing
             , FT.actionMessage = Nothing
+            , FT.actionAmount = Nothing
             }
 
     it "builds a spawnItem action" $
@@ -667,6 +669,15 @@ spec = do
       transformJSONAction
         (action "shiftTile") {FT.actionPosition = Just (1, 2), FT.actionTileType = Just '#'}
         `shouldBe` Right (ShiftTile (V2 1 2) Wall)
+
+    it "builds harmPlayer and healPlayer" $ do
+      transformJSONAction (action "harmPlayer") {FT.actionAmount = Just 7}
+        `shouldBe` Right (HarmPlayer 7)
+      transformJSONAction (action "healPlayer") {FT.actionAmount = Just 7}
+        `shouldBe` Right (HealPlayer 7)
+
+    it "says which field a trap is missing" $
+      transformJSONAction (action "harmPlayer") `shouldReport` "actionAmount"
 
     it "builds setGameWon" $
       transformJSONAction (action "setGameWon") `shouldBe` Right SetGameWon

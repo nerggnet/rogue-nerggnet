@@ -524,6 +524,14 @@ transformJSONAction jsonAction = case FT.actionType jsonAction of
     case FT.actionItemName jsonAction of
       Just name -> Right (AddToInventory name)
       _ -> needs "addToInventory" ["actionItemName"]
+  "harmPlayer" ->
+    case FT.actionAmount jsonAction of
+      Just n -> Right (HarmPlayer n)
+      _ -> needs "harmPlayer" ["actionAmount"]
+  "healPlayer" ->
+    case FT.actionAmount jsonAction of
+      Just n -> Right (HealPlayer n)
+      _ -> needs "healPlayer" ["actionAmount"]
   "setGameWon" -> Right SetGameWon
   other -> problem $ "unknown \"actionType\" " ++ show other
   where

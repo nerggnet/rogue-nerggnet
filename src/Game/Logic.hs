@@ -849,6 +849,22 @@ executeAction state (UnlockDoor pos) =
       updatedWorld = world { doors = updatedDoors }
    in setCurrentWorld updatedWorld state
 
+-- A trap. Enough of them and the run ends, so they are a real cost rather
+-- than scenery.
+executeAction state (HarmPlayer amount) =
+  let hurt = max 0 (health (player state) - amount)
+   in state { player = (player state) { health = hurt }
+            , gameOver = hurt <= 0
+            , message = ("You take " ++ show amount ++ " damage!")
+                        : ["You have died! Game Over." | hurt <= 0]
+                        ++ message state }
+
+executeAction state (HealPlayer amount) =
+  let mended = min (maxHealth state) (health (player state) + amount)
+   in state { player = (player state) { health = mended }
+            , message = ("You feel better, and recover "
+                         ++ show (mended - health (player state)) ++ " HP.") : message state }
+
 executeAction state (DisplayMessage msg) =
   state { message = msg : message state }
 

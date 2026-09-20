@@ -197,6 +197,8 @@ data Action
   | TransportPlayer (V2 Int)         -- Target position for the player
   | ConsumeItem String               -- Remove item from inventory
   | AddToInventory String            -- Add an item to the player's inventory
+  | HarmPlayer Int                   -- A trap springs, for this much damage
+  | HealPlayer Int                   -- A fountain, a shrine, a blessing
   | DisplayMessage String            -- Message to display
   | SetGameWon                       -- Indicate that the game has been won
   deriving (Show, Eq, Generic)
