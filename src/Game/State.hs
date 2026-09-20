@@ -172,6 +172,7 @@ newGame gen config = do
         , gameOver = False
         , gameWon = False
         , rng = gen
+        , hiddenTurns = 0
         }
       updatedWorld = updateVisibility initialPlayer defaultFogRadius initialWorld
   pure initialState { levels = replaceLevel initialState 0 updatedWorld }
@@ -337,6 +338,7 @@ transformItem :: FT.JSONItem -> Either Problems Item
 transformItem fi = do
   category <- parseItemCategory (FT.itemCategory fi)
   uses <- validateItemUses category (FT.itemUses fi)
+  effect <- validateItemEffect category (FT.itemEffect fi)
   pure Item
     { iName = FT.itemName fi
     , iDescription = FT.itemDescription fi
@@ -346,7 +348,37 @@ transformItem fi = do
     , iHidden = FT.itemHidden fi
     , iInactive = FT.itemInactive fi
     , iUses = uses
+    , iEffect = effect
     }
+
+itemEffects :: [(String, ItemEffect)]
+itemEffects =
+  [ ("Keepsake", Keepsake), ("Empower", Empower), ("Fortify", Fortify)
+  , ("Reveal", Reveal), ("Blink", Blink), ("Firestorm", Firestorm)
+  , ("Regenerate", Regenerate), ("Lifesteal", Lifesteal), ("Revive", Revive)
+  , ("Vanish", Vanish)
+  ]
+
+parseItemEffect :: String -> Either Problems ItemEffect
+parseItemEffect name =
+  maybe (problem $ "unknown \"itemEffect\" " ++ show name ++ "; expected one of "
+                   ++ intercalate ", " (map (show . fst) itemEffects))
+        Right
+        (lookup name itemEffects)
+
+-- A Special item does whatever its "itemEffect" says, and nothing otherwise,
+-- so one without an effect is inert and almost certainly a mistake. Every
+-- other category already has behaviour of its own, so declaring an effect
+-- there would quietly do nothing.
+validateItemEffect :: ItemCategory -> Maybe String -> Either Problems (Maybe ItemEffect)
+validateItemEffect Special Nothing =
+  problem $ "a Special item must declare an \"itemEffect\"; expected one of "
+            ++ intercalate ", " (map (show . fst) itemEffects)
+validateItemEffect Special (Just name) = Just <$> parseItemEffect name
+validateItemEffect category (Just _) =
+  problem $ "only a Special item can declare an \"itemEffect\", and this is a "
+            ++ show category ++ " item"
+validateItemEffect _ Nothing = Right Nothing
 
 itemCategories :: [(String, ItemCategory)]
 itemCategories =

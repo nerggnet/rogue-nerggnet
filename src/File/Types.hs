@@ -64,6 +64,7 @@ data JSONItem = JSONItem
   , itemHidden      :: Bool        -- Controls whether or not an item is visible
   , itemInactive    :: Bool        -- Controls whether or not an item can be found and picked up
   , itemUses        :: Maybe Int   -- The number of times an can be used
+  , itemEffect      :: Maybe String -- What a Special item does when used
   } deriving (Show, Generic)
 
 instance FromJSON JSONItem

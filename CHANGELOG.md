@@ -99,6 +99,16 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Special items do something. All eleven of them printed "Its effect is
+  mysterious." and stopped, and several carried an `itemEffectValue` that
+  nothing read. They now declare an `itemEffect` in `world.json`, so a new
+  one can be written as data rather than as Haskell: `Empower`, `Fortify`,
+  `Reveal`, `Blink`, `Firestorm` and `Vanish` fire once and are used up,
+  while `Regenerate`, `Lifesteal` and `Revive` work away as long as the item
+  is carried. `Keepsake` is the one that deliberately does nothing, for the
+  quest items a trigger asks for.
+- Loading rejects a Special item with no effect, since it would be inert,
+  and an effect on any other category, since nothing would read it.
 - Damage is rolled rather than calculated. The game had no randomness in it
   at all, so every fight was arithmetic with an answer you could work out in
   advance. A blow now lands within a quarter either side of the attacker's

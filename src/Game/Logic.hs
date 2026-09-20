@@ -4,7 +4,7 @@ module Game.Logic where
 import Game.State
   ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
   , updateVisibility, manhattanDistance, evalTriggerCondition, visibleMonsters
-  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom
+  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid
   )
 import Game.GridUtils (updateTile, gridLookup, keyedInventory)
 import Game.Types
@@ -44,12 +44,25 @@ handleMovementInternal key state =
 -- and the NPCs take a step every npcMoveInterval turns.
 processTurn :: GameState -> GameState
 processTurn state =
-  let ticked = state { keyPressCount = (keyPressCount state + 1) `mod` npcMoveInterval }
+  let ticked = regenerate state
+        { keyPressCount = (keyPressCount state + 1) `mod` npcMoveInterval
+        , hiddenTurns = max 0 (hiddenTurns state - 1)
+        }
       state' = moveMonsters ticked
       state'' = monstersAttack state'
       state''' = processTriggers state''
       state'''' = if keyPressCount state''' == 0 then moveNPCs state''' else state'''
   in state'''' { message = take maxLogMessages (message state'''') }
+
+-- Heal a little each turn, for as long as the charm is carried
+regenerate :: GameState -> GameState
+regenerate state = case carrying Regenerate state of
+  Nothing -> state
+  Just charm
+    | health (player state) >= maxHealth state -> state
+    | otherwise ->
+        let healed = min (maxHealth state) (health (player state) + iEffectValue charm)
+         in state {player = (player state) {health = healed}}
 
 -- Go up stairs
 goUp :: GameState -> GameState
@@ -189,10 +202,116 @@ useItem itm state =
                     else "You equipped " ++ iName itm ++ "."
            in state { player = newPlayerWithNewResistance
                     , message = msg : message state }
-        Special ->
-          state { message = ("You used " ++ iName itm ++ ". Its effect is mysterious.")
-                               : message state }
+        Special -> useSpecial itm state
    in updatedState { inventoryMode = Nothing }
+
+-- Use a Special item, doing whatever its effect says.
+--
+-- Effects that fire once spend the item; the ones that work while it is
+-- carried leave it alone and say so, so that using one is not a way to
+-- throw it away by accident.
+useSpecial :: Item -> GameState -> GameState
+useSpecial itm state = case iEffect itm of
+  Nothing -> say (iName itm ++ " does nothing at all.") state
+  Just effect ->
+    let acted = apply effect
+     in if spentOnUse effect then spend acted else acted
+  where
+    plyr = player state
+    value = iEffectValue itm
+    say msg s = s {message = msg : message s}
+    spend s = s {player = (player s) {inventory = filter (/= itm) (inventory (player s))}}
+
+    -- Equipment bonuses sit on top of the base figures, so a permanent gain
+    -- has to be folded back into the effective ones.
+    recalculated p = p
+      { attack = baseAttack p + maybe 0 iEffectValue (equippedWeapon p)
+      , resistance = baseResistance p + maybe 0 iEffectValue (equippedArmor p)
+      }
+
+    apply Keepsake =
+      say (iName itm ++ " is not something you can use.") state
+    apply Empower =
+      say ("You feel stronger. Attack is up by " ++ show value ++ ".")
+        state {player = recalculated plyr {baseAttack = baseAttack plyr + value}}
+    apply Fortify =
+      say ("You feel tougher. Resistance is up by " ++ show value ++ ".")
+        state {player = recalculated plyr {baseResistance = baseResistance plyr + value}}
+    apply Reveal =
+      say "The layout of this floor comes to you all at once." $
+        withCurrentWorld
+          (\w -> w {discovered = initializeGrid True (mapRows w) (mapCols w)})
+          state
+    apply Blink =
+      case blinkTargets (currentWorld state) of
+        [] -> say "There is nowhere to go." state
+        spots ->
+          let (ix, moved) = withRandom (uniformR (0, length spots - 1)) state
+              destination = spots !! ix
+              relocated = moved {player = (player moved) {position = destination}}
+           in say "The floor lurches, and you are somewhere else." $
+                withCurrentWorld (updateVisibility (player relocated) defaultFogRadius) relocated
+    apply Firestorm = firestorm value state
+    apply Regenerate =
+      say (iName itm ++ " works away quietly while you carry it.") state
+    apply Lifesteal =
+      say (iName itm ++ " drinks from the wounds you deal while you carry it.") state
+    apply Revive =
+      say (iName itm ++ " will catch you once, while you carry it.") state
+    apply Vanish =
+      say ("Nothing can see you for " ++ show value ++ " turns.")
+        state {hiddenTurns = hiddenTurns state + value}
+
+-- Floor tiles the player could be dropped on: anywhere they could walk, and
+-- not on top of something else.
+blinkTargets :: World -> [V2 Int]
+blinkTargets world =
+  [ pos
+  | y <- [0 .. mapRows world - 1]
+  , x <- [0 .. mapCols world - 1]
+  , let pos = V2 x y
+  , gridLookup (mapGrid world) pos == Just Floor
+  , not (any ((== pos) . mPosition) (filter (not . mInactive) (monsters world)))
+  , not (any ((== pos) . npcPosition) (npcs world))
+  ]
+
+-- Hurt every monster the player can see.
+firestorm :: Int -> GameState -> GameState
+firestorm power state =
+  let world = currentWorld state
+      targets = map snd (visibleMonsters world)
+      (hits, rolled) = foldl' roll ([], state) targets
+      roll (done, s) target =
+        let (damage, s') = withRandom (rollDamage power) s
+         in ((target, damage) : done, s')
+      hurt m = case lookup m hits of
+        Just damage -> m {mHealth = mHealth m - damage}
+        Nothing -> m
+      struck = map hurt (monsters world)
+      (felled, standing) = partition (\m -> not (mInactive m) && mHealth m <= 0) struck
+      updatedWorld = world
+        { monsters = standing
+        , corpses = foldr (addCorpse . mPosition) (corpses world) felled
+        }
+      gained = sum (map mXP felled)
+      (grown, levelUpMessages) =
+        levelUp ((player rolled) {xp = xp (player rolled) + gained}) (xpLevels rolled)
+      told
+        | null targets = ["Fire washes over nothing in particular."]
+        | otherwise =
+            ("Fire washes over " ++ show (length targets) ++ " of them!")
+              : [ "You defeated " ++ mName m ++ "!" | m <- felled ]
+              ++ [ "You gained " ++ show gained ++ " XP!" | gained > 0 ]
+   in setCurrentWorld updatedWorld
+        rolled {player = grown, message = reverse told ++ levelUpMessages ++ message rolled}
+
+-- The first item in the pack with this effect, if there is one
+carrying :: ItemEffect -> GameState -> Maybe Item
+carrying effect state = find ((== Just effect) . iEffect) (inventory (player state))
+
+-- Can the monsters see the player at all?
+playerIsHidden :: GameState -> Bool
+playerIsHidden state = hiddenTurns state > 0
 
 -- Roll the damage an attack of this strength does.
 --
@@ -427,9 +546,29 @@ combat state mnstr playerGoesFirst =
           (playerDamage, rolledOnce) = withRandom (rollDamage (attack plyr)) state
           (monsterDamage, rolled) =
             withRandom (rollDamage (mAttack target - resistance plyr)) rolledOnce
-          newHealth = max 0 (health plyr - monsterDamage)
-          updatedPlayer = plyr { health = newHealth }
           monsterDefeated = mHealth target - playerDamage <= 0
+
+          -- A charm that drinks from the wounds you deal gives back a share
+          -- of the damage, before the counterblow is taken off again.
+          -- The charm's value is the percentage it gives back, so a bigger
+          -- number is a better charm.
+          drained = case carrying Lifesteal rolled of
+            Just charm | playerDamage > 0 ->
+              min (maxHealth rolled)
+                  (health plyr + (playerDamage * iEffectValue charm) `div` 100)
+            _ -> health plyr
+          wounded = max 0 (drained - monsterDamage)
+
+          -- A charm that catches you once is spent doing so.
+          (newHealth, survivingPack, rescueMessage) =
+            case carrying Revive rolled of
+              Just charm | wounded <= 0 ->
+                ( maxHealth rolled
+                , filter (/= charm) (inventory plyr)
+                , [iName charm ++ " burns up, and you are standing again."]
+                )
+              _ -> (wounded, inventory plyr, [])
+          updatedPlayer = plyr { health = newHealth, inventory = survivingPack }
 
           isTarget m = not (mInactive m) && mPosition m == mPosition target
           updatedMonsters =
@@ -458,7 +597,7 @@ combat state mnstr playerGoesFirst =
           deadMessage = if isDead then "You have died! Game Over." else ""
           -- Events that did not happen contribute "", which would otherwise
           -- take up one of the few lines the message pane shows.
-          combatMessages = filter (not . null)
+          combatMessages = rescueMessage ++ filter (not . null)
             [deadMessage, defeatMessage, counterattackMessage, attackMessage]
           updatedPlayerWithXP = if monsterDefeated
                                 then updatedPlayer { xp = xp updatedPlayer + mXP target }
@@ -503,7 +642,9 @@ levelUp plyr lvls =
 
 -- Monsters in tiles adjacent to the player should attack
 monstersAttack :: GameState -> GameState
-monstersAttack state =
+monstersAttack state
+  | playerIsHidden state = state -- nothing can find the player to swing at
+  | otherwise =
   let world = currentWorld state
       playerPos = state.player.position
       (_, activeMonsters) = partition mInactive (monsters world)
@@ -544,7 +685,9 @@ moveMonsters state =
           activeMonsters
 
       updatedWorld = world { monsters = updatedMonsters ++ inactiveMonsters }
-  in setCurrentWorld updatedWorld state
+  in if playerIsHidden state
+       then state -- monsters mill about rather than close in
+       else setCurrentWorld updatedWorld state
 
 -- Replace the first occurrence of a value in a list, leaving any later
 -- occurrences alone

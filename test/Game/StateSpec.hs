@@ -216,6 +216,7 @@ spec = do
             , FT.itemHidden = False
             , FT.itemInactive = False
             , FT.itemUses = uses
+            , FT.itemEffect = Nothing
             }
 
     it "reads a well-formed item" $ do
@@ -226,8 +227,26 @@ spec = do
 
     it "allows equipment to omit a use count" $
       traverse (\cat -> iUses <$> shouldSucceed (transformItem (jsonItem "Thing" cat Nothing)))
-        ["Weapon", "Armor", "Special"]
-        `shouldReturn` [Nothing, Nothing, Nothing]
+        ["Weapon", "Armor"]
+        `shouldReturn` [Nothing, Nothing]
+
+    it "reads the effect of a Special item" $ do
+      i <- shouldSucceed
+        (transformItem (jsonItem "Phoenix Feather" "Special" Nothing) {FT.itemEffect = Just "Revive"})
+      iEffect i `shouldBe` Just Revive
+
+    it "reports a Special item with no effect, since it would do nothing" $
+      transformItem (jsonItem "Odd Trinket" "Special" Nothing)
+        `shouldReport` "must declare an \"itemEffect\""
+
+    it "names an unknown effect and lists the valid ones" $ do
+      let r = transformItem (jsonItem "Thing" "Special" Nothing) {FT.itemEffect = Just "Levitate"}
+      r `shouldReport` "Levitate"
+      r `shouldReport` "Firestorm"
+
+    it "reports an effect on a category that already has behaviour" $
+      transformItem (jsonItem "Sword" "Weapon" Nothing) {FT.itemEffect = Just "Empower"}
+        `shouldReport` "only a Special item"
 
     it "reports a consumable that omits its use count" $
       mapM_
@@ -429,6 +448,7 @@ spec = do
             , FT.itemHidden = False
             , FT.itemInactive = False
             , FT.itemUses = Nothing
+            , FT.itemEffect = Nothing
             }
         npcNamed n = FT.JSONNPC {FT.npcName = n, FT.npcPosition = (0, 0), FT.npcMessage = ""}
         trigger c = Trigger {triggerCondition = c, triggerActions = [], triggerRecurring = False}

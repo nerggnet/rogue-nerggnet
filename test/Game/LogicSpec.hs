@@ -342,41 +342,41 @@ spec = do
       map fst helpPages `shouldSatisfy` notElem ""
 
   describe "the item chooser" $ do
-    let carrying = withPlayer (\p -> p {inventory = [mkItem "Sword" Weapon 4 (V2 0 0)]}) baseState
+    let holding = withPlayer (\p -> p {inventory = [mkItem "Sword" Weapon 4 (V2 0 0)]}) baseState
 
     it "opens when the player asks to use an item" $ do
-      let s = promptUseItem carrying
+      let s = promptUseItem holding
       inventoryMode s `shouldBe` Just UseMode
       commandMode s `shouldBe` True
 
     it "opens in drop mode when the player asks to drop one" $
-      inventoryMode (promptDropItem carrying) `shouldBe` Just DropMode
+      inventoryMode (promptDropItem holding) `shouldBe` Just DropMode
 
     it "does not open when there is nothing to choose from" $
       inventoryMode (promptUseItem baseState) `shouldBe` Nothing
 
     it "closes on escape" $ do
-      let opened = promptUseItem carrying
+      let opened = promptUseItem holding
           escaped = handleCommandInputInternal Nothing True opened opened
       inventoryMode escaped `shouldBe` Nothing
       commandMode escaped `shouldBe` False
 
     it "closes once an item has been chosen" $ do
-      let opened = promptUseItem carrying
+      let opened = promptUseItem holding
           chosen = handleCommandInputInternal (Just 'a') False opened opened
       inventoryMode chosen `shouldBe` Nothing
 
   describe "dropItem" $ do
     let sword = mkItem "Sword" Weapon 4 (V2 0 0)
-        carrying = withPlayer (\p -> p {inventory = [sword]}) baseState
+        holding = withPlayer (\p -> p {inventory = [sword]}) baseState
 
     it "puts the item back on the player's tile" $ do
-      let s = dropItem sword carrying
+      let s = dropItem sword holding
       inventory (player s) `shouldBe` []
       map iPosition (items (currentWorld s)) `shouldBe` [V2 4 3]
 
     it "refuses when the tile already holds an item" $ do
-      let occupied = withWorld (\w -> w {items = [mkItem "Shield" Armor 2 (V2 4 3)]}) carrying
+      let occupied = withWorld (\w -> w {items = [mkItem "Shield" Armor 2 (V2 4 3)]}) holding
           s = dropItem sword occupied
       inventory (player s) `shouldBe` [sword]
       latest s `shouldSatisfy` ("occupied" `isInfixOf`)
@@ -449,6 +449,153 @@ spec = do
       let key = (mkItem "Iron Key" Key 0 (V2 0 0)) {iUses = Just 1}
           s = useItem key (withPlayer (\p -> p {inventory = [key]}) baseState)
       latest s `shouldSatisfy` ("no door nearby" `isInfixOf`)
+
+  describe "Special items" $ do
+    let carryingOne itm = withPlayer (\p -> p {inventory = [itm]}) baseState
+        packOf s = map iName (inventory (player s))
+
+    describe "using one that fires once" $ do
+      it "Empower raises attack for good, and is spent" $ do
+        let tome = mkSpecial "Tome" Empower 5
+            s = useItem tome (carryingOne tome)
+        baseAttack (player s) `shouldBe` 10
+        attack (player s) `shouldBe` 10
+        packOf s `shouldBe` []
+
+      it "Empower keeps the weapon bonus on top" $ do
+        let tome = mkSpecial "Tome" Empower 5
+            sword = mkItem "Sword" Weapon 4 (V2 0 0)
+            armed = withPlayer (\p -> p {inventory = [tome], equippedWeapon = Just sword}) baseState
+            s = useItem tome armed
+        baseAttack (player s) `shouldBe` 10
+        attack (player s) `shouldBe` 14
+
+      it "Fortify raises resistance for good, and is spent" $ do
+        let amulet = mkSpecial "Amulet" Fortify 10
+            s = useItem amulet (carryingOne amulet)
+        baseResistance (player s) `shouldBe` 11
+        packOf s `shouldBe` []
+
+      it "Reveal maps the floor" $ do
+        let scroll = mkSpecial "Scroll" Reveal 0
+            s = useItem scroll (carryingOne scroll)
+        concat (discovered (currentWorld s)) `shouldSatisfy` and
+        packOf s `shouldBe` []
+
+      it "Blink moves the player onto a floor tile" $ do
+        let potion = mkSpecial "Potion" Blink 0
+            s = useItem potion (carryingOne potion)
+        position (player s) `shouldSatisfy` (/= V2 4 3)
+        tileAt (position (player s)) (currentWorld s) `shouldBe` Floor
+        packOf s `shouldBe` []
+
+      it "Blink lights up wherever it drops the player" $ do
+        let potion = mkSpecial "Potion" Blink 0
+            s = useItem potion (carryingOne potion)
+        visibleAt (position (player s)) (currentWorld s) `shouldBe` True
+
+      it "Vanish hides the player for a while, and is spent" $ do
+        let potion = mkSpecial "Potion" Vanish 10
+            s = useItem potion (carryingOne potion)
+        hiddenTurns s `shouldBe` 10
+        packOf s `shouldBe` []
+
+      it "Keepsake does nothing and is never spent" $ do
+        let coin = mkSpecial "Gold Coin" Keepsake 0
+            s = useItem coin (carryingOne coin)
+        packOf s `shouldBe` ["Gold Coin"]
+        latest s `shouldSatisfy` ("not something you can use" `isInfixOf`)
+
+    describe "Firestorm" $ do
+      let scroll = mkSpecial "Scroll of Fireball" Firestorm 40
+          lit w = w {visibility = replicate 7 (replicate 9 True)}
+          withMonsters ms =
+            withPlayer (\p -> p {inventory = [scroll]})
+              (withWorld (lit . (\w -> w {monsters = ms})) baseState)
+
+      it "kills everything in sight and pays out the XP" $ do
+        let s = useItem scroll (withMonsters
+                  [mkMonster "Goblin" (V2 1 1) 10 2, mkMonster "Rat" (V2 2 2) 5 1])
+        monsters (currentWorld s) `shouldBe` []
+        xp (player s) `shouldBe` 20
+        length (corpses (currentWorld s)) `shouldBe` 2
+
+      it "leaves a monster that survives the blast standing" $ do
+        let s = useItem scroll (withMonsters [mkMonster "Troll" (V2 1 1) 500 2])
+        map mName (monsters (currentWorld s)) `shouldBe` ["Troll"]
+        map mHealth (monsters (currentWorld s)) `shouldSatisfy` onlyBetween 440 470
+
+      it "spares anything the player cannot see" $ do
+        let dark = withPlayer (\p -> p {inventory = [scroll]})
+                     (withWorld (\w -> w {monsters = [mkMonster "Goblin" (V2 1 1) 10 2]}) baseState)
+            s = useItem scroll dark
+        map mName (monsters (currentWorld s)) `shouldBe` ["Goblin"]
+
+      it "is spent even when there is nothing to burn" $ do
+        let s = useItem scroll (withMonsters [])
+        packOf s `shouldBe` []
+        latest s `shouldSatisfy` ("nothing in particular" `isInfixOf`)
+
+    describe "the ones that work while carried" $ do
+      it "Regenerate heals a little each turn" $ do
+        let ring = mkSpecial "Ring of Vitality" Regenerate 2
+            hurt = withPlayer (\p -> p {health = 10, inventory = [ring]}) baseState
+        health (player (processTurn hurt)) `shouldBe` 12
+
+      it "Regenerate does not heal past the maximum" $ do
+        let ring = mkSpecial "Ring of Vitality" Regenerate 2
+            whole = withPlayer (\p -> p {health = 20, inventory = [ring]}) baseState
+        health (player (processTurn whole)) `shouldBe` 20
+
+      it "Regenerate is not spent by using it" $ do
+        let ring = mkSpecial "Ring of Vitality" Regenerate 2
+            s = useItem ring (carryingOne ring)
+        packOf s `shouldBe` ["Ring of Vitality"]
+
+      it "Lifesteal gives back a share of the damage dealt" $ do
+        let ring = mkSpecial "Bloodstone Ring" Lifesteal 100
+            goblin = mkMonster "Goblin" (V2 5 3) 100 3
+            hurt = withPlayer (\p -> p {health = 5, inventory = [ring]})
+                     (withWorld (\w -> w {monsters = [goblin]}) baseState)
+            s = combat hurt goblin True
+        -- about five back from the blow, less about two from the counterblow
+        health (player s) `shouldSatisfy` onlyBetween 6 9 . pure
+
+      it "Revive catches a killing blow once, and burns up doing it" $ do
+        let feather = mkSpecial "Phoenix Feather" Revive 0
+            brute = mkMonster "Brute" (V2 5 3) 100 30
+            doomed = withPlayer (\p -> p {health = 1, inventory = [feather]})
+                       (withWorld (\w -> w {monsters = [brute]}) baseState)
+            s = combat doomed brute True
+        gameOver s `shouldBe` False
+        health (player s) `shouldBe` 20
+        packOf s `shouldBe` []
+        latest s `shouldSatisfy` ("standing again" `isInfixOf`)
+
+      it "without the feather the same blow is fatal" $ do
+        let brute = mkMonster "Brute" (V2 5 3) 100 30
+            doomed = withPlayer (\p -> p {health = 1}) (withWorld (\w -> w {monsters = [brute]}) baseState)
+        gameOver (combat doomed brute True) `shouldBe` True
+
+    describe "being hidden" $ do
+      let goblin = mkMonster "Goblin" (V2 5 3) 100 5
+          seen = withWorld (\w -> w {monsters = [goblin]}) baseState
+          unseen = seen {hiddenTurns = 3}
+
+      it "stops monsters swinging at the player" $
+        health (player (monstersAttack (monstersAttack unseen))) `shouldBe` 20
+
+      it "stops monsters closing in" $ do
+        let far = (withWorld (\w -> w {monsters = [mkMonster "Goblin" (V2 7 3) 10 2]}) baseState)
+                    {hiddenTurns = 3}
+        map mPosition (monsters (currentWorld (moveMonsters far))) `shouldBe` [V2 7 3]
+
+      it "wears off a turn at a time" $
+        map hiddenTurns (take 5 (iterate processTurn unseen)) `shouldBe` [3, 2, 1, 0, 0]
+
+      it "lets them find the player again once it has" $ do
+        let worn = iterate processTurn unseen !! 4
+        health (player (monstersAttack (monstersAttack worn))) `shouldSatisfy` (< 20)
 
   describe "stairs" $ do
     -- Level 0 has a down staircase under the player, level 1 an up staircase.

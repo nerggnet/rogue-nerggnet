@@ -122,11 +122,17 @@ mkState world pos =
     , gameOver          = False
     , gameWon           = False
     , rng               = testGen
+    , hiddenTurns       = 0
     }
 
 -- | The standard fixture: the open room with the player on the start tile.
 baseState :: GameState
 baseState = mkState (mkWorld openMap) (V2 4 3)
+
+-- | A Special item with the given effect.
+mkSpecial :: String -> ItemEffect -> Int -> Item
+mkSpecial n effect val =
+  (mkItem n Special val (V2 0 0)) {iEffect = Just effect}
 
 mkItem :: String -> ItemCategory -> Int -> V2 Int -> Item
 mkItem n cat val pos =
@@ -139,6 +145,7 @@ mkItem n cat val pos =
     , iHidden      = False
     , iInactive    = False
     , iUses        = Nothing
+    , iEffect      = Nothing
     }
 
 mkMonster :: String -> V2 Int -> Int -> Int -> Monster
@@ -262,4 +269,5 @@ jsonItemOf n cat =
     , FT.itemHidden = False
     , FT.itemInactive = False
     , FT.itemUses = Nothing
+    , FT.itemEffect = Nothing
     }

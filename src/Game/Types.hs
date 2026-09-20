@@ -43,6 +43,31 @@ data ItemCategory = Armor | Weapon | Range | Healing | Special | Key deriving (E
 instance ToJSON ItemCategory
 instance FromJSON ItemCategory
 
+-- | What a Special item does.
+--
+-- Everything else in ItemCategory has behaviour baked into the game: armour
+-- is worn, keys unlock, potions heal. A Special item says here what it is
+-- for, so new ones can be written in world.json rather than in Haskell.
+data ItemEffect
+  = Keepsake   -- ^ Nothing; carried for a trigger, or for its own sake
+  | Empower    -- ^ Raises attack for good
+  | Fortify    -- ^ Raises resistance for good
+  | Reveal     -- ^ Maps the whole level
+  | Blink      -- ^ Moves the player elsewhere on the level
+  | Firestorm  -- ^ Hurts every monster in sight
+  | Regenerate -- ^ While carried, heals a little each turn
+  | Lifesteal  -- ^ While carried, returns a share of the damage dealt
+  | Revive     -- ^ While carried, saves the player from one death
+  | Vanish     -- ^ Hides the player from monsters for a while
+  deriving (Eq, Show, Generic)
+
+instance ToJSON ItemEffect
+instance FromJSON ItemEffect
+
+-- | Effects that are spent by using them, rather than working while carried.
+spentOnUse :: ItemEffect -> Bool
+spentOnUse effect = effect `elem` [Empower, Fortify, Reveal, Blink, Firestorm, Vanish]
+
 data InventoryMode = UseMode | DropMode deriving (Eq, Show, Generic)
 
 instance ToJSON InventoryMode
@@ -108,6 +133,7 @@ data Item = Item
   , iHidden      :: Bool
   , iInactive    :: Bool
   , iUses        :: Maybe Int
+  , iEffect      :: Maybe ItemEffect -- What a Special item does
   } deriving (Show, Eq, Generic)
 
 instance ToJSON Item
@@ -262,6 +288,7 @@ data GameState = GameState
   , gameOver          :: Bool
   , gameWon           :: Bool
   , rng               :: StdGen -- Every roll the game makes comes from here
+  , hiddenTurns       :: Int -- Turns left before monsters notice the player again
   } deriving (Generic)
 
 instance ToJSON GameState
@@ -289,3 +316,4 @@ instance FromJSON GameState where
       <*> v .:? Key.fromString "gameWon" .!= False
       -- A save from before the game rolled dice has no generator to restore.
       <*> v .:? Key.fromString "rng" .!= mkStdGen 0
+      <*> v .:? Key.fromString "hiddenTurns" .!= 0

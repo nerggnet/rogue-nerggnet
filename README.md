@@ -126,6 +126,8 @@ readable even on a small terminal.
   current XP level.
 * **Key** — unlocks an adjacent locked door, if the key's name matches the
   door's `doorKeyName`.
+* **Special** — does whatever its `itemEffect` says. Some fire once and are
+  used up; others work quietly while you carry them.
 * **Range** — enters aiming mode. Visible monsters are relabelled `a`, `b`,
   `c`… on the map; press a letter to fire, or `Esc` to cancel.
 
@@ -271,10 +273,30 @@ line of sight until opened with the matching key or by an `unlockDoor` action.
 | Field | Meaning |
 | --- | --- |
 | `itemCategory` | One of `Armor`, `Weapon`, `Range`, `Healing`, `Special`, `Key` |
+| `itemEffect` | Required for `Special`, and only for `Special`. See the table below |
 | `itemEffectValue` | Attack/resistance bonus, healing amount, or ranged damage bonus |
 | `itemHidden` | Not drawn on the map, but still pickable with `g` |
 | `itemInactive` | Not in the world yet — revealed by a `spawnItem` or `addToInventory` action |
 | `itemUses` | Charges, spent one at a time. Required for `Healing`, `Key` and `Range`; `null` (never consumed) is only for equipment |
+
+Special items say what they do with `itemEffect`, so a new one can be written
+in `world.json` rather than in Haskell. `itemEffectValue` is its strength.
+
+| `itemEffect` | What it does | Spent on use? |
+| --- | --- | --- |
+| `Keepsake` | Nothing. For quest items a trigger asks for | no |
+| `Empower` | Raises attack permanently by the effect value | yes |
+| `Fortify` | Raises resistance permanently by the effect value | yes |
+| `Reveal` | Maps the whole floor | yes |
+| `Blink` | Moves you to a random floor tile on the level | yes |
+| `Firestorm` | Hurts every monster you can see, by the effect value | yes |
+| `Vanish` | Monsters cannot find you for `itemEffectValue` turns | yes |
+| `Regenerate` | Heals the effect value each turn while carried | no |
+| `Lifesteal` | Returns `itemEffectValue`% of the damage you deal, while carried | no |
+| `Revive` | Saves you from one death, then burns up | when it saves you |
+
+An item a trigger needs should be a `Keepsake`, so that using it cannot
+destroy it before the trigger fires.
 
 #### `npcs`
 
