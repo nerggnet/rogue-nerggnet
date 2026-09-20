@@ -116,33 +116,33 @@ spec = do
         withItems is lvl = lvl {FT.items = is}
 
     it "builds a game from a minimal configuration" $ do
-      st <- shouldSucceed (newGame (jsonConfig [jsonLevel validGrid]))
+      st <- shouldSucceed (newGame testGen (jsonConfig [jsonLevel validGrid]))
       st.player.position `shouldBe` V2 1 1
       length (levels st) `shouldBe` 1
 
     it "reports a configuration with no XP levels" $
-      newGame (jsonConfig [jsonLevel validGrid]) {FT.xpLevels = []}
+      newGame testGen (jsonConfig [jsonLevel validGrid]) {FT.xpLevels = []}
         `shouldReport` "xpLevels"
 
     it "reports a configuration with no levels" $
-      newGame (jsonConfig []) `shouldReport` "levels"
+      newGame testGen (jsonConfig []) `shouldReport` "levels"
 
     it "reports a first level with nowhere to start" $
-      newGame (jsonConfig [jsonLevel ["#####", "#...#", "#####"]])
+      newGame testGen (jsonConfig [jsonLevel ["#####", "#...#", "#####"]])
         `shouldReport` "S"
 
     it "reports a ragged map and names the rows that differ" $ do
-      let r = newGame (jsonConfig [jsonLevel ["#####", "#S.#", "#####"]])
+      let r = newGame testGen (jsonConfig [jsonLevel ["#####", "#S.#", "#####"]])
       r `shouldReport` "ragged"
       r `shouldReport` "row(s) 1"
 
     it "says which level a problem came from" $
-      newGame (jsonConfig [jsonLevel validGrid, jsonLevel ["###", "##"]])
+      newGame testGen (jsonConfig [jsonLevel validGrid, jsonLevel ["###", "##"]])
         `shouldReport` "level 1"
 
     it "reports problems from every level, not just the first" $ do
       let broken name = withItems [jsonItemOf name "Sandwich"] (jsonLevel validGrid)
-          r = newGame (jsonConfig [broken "First", broken "Second"])
+          r = newGame testGen (jsonConfig [broken "First", broken "Second"])
       r `shouldReport` "level 0"
       r `shouldReport` "level 1"
       r `shouldReport` "First"
@@ -150,7 +150,7 @@ spec = do
       either length (const 0) r `shouldBe` 2
 
     it "points at the item inside the level" $
-      newGame (jsonConfig [withItems [jsonItemOf "Lamp" "Healing"] (jsonLevel validGrid)])
+      newGame testGen (jsonConfig [withItems [jsonItemOf "Lamp" "Healing"] (jsonLevel validGrid)])
         `shouldReport` "level 0: item \"Lamp\": a Healing item must declare"
 
   describe "gridLookup" $ do

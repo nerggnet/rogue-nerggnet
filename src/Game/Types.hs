@@ -8,11 +8,25 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON(toJSON), FromJSON(parseJSON), object, withObject, (.:), (.:?), (.!=), (.=))
 import qualified Data.Aeson.Key as Key
 import Linear.V2 (V2)
+import System.Random (StdGen, mkStdGen)
+import System.Random.Internal (StdGen (..))
+import System.Random.SplitMix (seedSMGen, unseedSMGen)
 import qualified Data.Set as Set
 
 -- Custom JSON instances for V2
 instance ToJSON a => ToJSON (V2 a)
 instance FromJSON a => FromJSON (V2 a)
+
+-- StdGen carries no JSON instances of its own. Its two words are enough to
+-- rebuild the identical stream, so a reloaded game carries on rolling where
+-- it left off rather than starting the sequence again.
+instance ToJSON StdGen where
+  toJSON gen = toJSON (unseedSMGen (unStdGen gen))
+
+instance FromJSON StdGen where
+  parseJSON value = do
+    (seed, gamma) <- parseJSON value
+    pure (StdGen (seedSMGen seed gamma))
 
 data Tile = Wall | Floor | Door | UpStair | DownStair | Start deriving (Eq, Show, Generic)
 
@@ -247,6 +261,7 @@ data GameState = GameState
   , aimingState       :: Maybe AimingState
   , gameOver          :: Bool
   , gameWon           :: Bool
+  , rng               :: StdGen -- Every roll the game makes comes from here
   } deriving (Generic)
 
 instance ToJSON GameState
@@ -272,3 +287,5 @@ instance FromJSON GameState where
       <*> v .:? Key.fromString "aimingState" .!= Nothing
       <*> v .:? Key.fromString "gameOver" .!= False
       <*> v .:? Key.fromString "gameWon" .!= False
+      -- A save from before the game rolled dice has no generator to restore.
+      <*> v .:? Key.fromString "rng" .!= mkStdGen 0

@@ -155,7 +155,13 @@ are drawn dimmed and without their contents.
 * **Fog of war** — you see 5 tiles (Manhattan distance) with line of sight;
   walls and locked doors block sight.
 * **Monsters** — chase you when within 4 tiles. An adjacent monster attacks
-  every other turn. Damage to you is `monster attack − your resistance`.
+  every other turn. Damage to you is based on `monster attack − your
+  resistance`.
+* **Damage is rolled**, landing within a quarter either side of the
+  attacker's strength, so the same fight does not always go the same way. An
+  attack that cannot beat the defender's resistance still does nothing. The
+  average is the attacker's strength, so the numbers in `world.json` mean
+  what they always did.
 * **Combat** — attacking a monster also provokes an immediate counterattack.
   Where a monster falls is marked with `†`, which does not disturb the tile
   underneath.

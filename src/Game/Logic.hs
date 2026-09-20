@@ -4,13 +4,14 @@ module Game.Logic where
 import Game.State
   ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
   , updateVisibility, manhattanDistance, evalTriggerCondition, visibleMonsters
-  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage
+  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom
   )
 import Game.GridUtils (updateTile, gridLookup, keyedInventory)
 import Game.Types
 import Linear.V2 (V2(..))
 import Data.List (find, partition)
 import Data.Maybe (isJust)
+import System.Random (StdGen, uniformR)
 
 handleMovementInternal :: Maybe Char -> GameState -> GameState
 handleMovementInternal key state =
@@ -193,6 +194,20 @@ useItem itm state =
                                : message state }
    in updatedState { inventoryMode = Nothing }
 
+-- Roll the damage an attack of this strength does.
+--
+-- Within a quarter either side of the attacker's strength, so that a fight
+-- is not arithmetic with a knowable answer. The average is the strength
+-- itself, which leaves the balance of the game where it already was. An
+-- attack that cannot get through the defender's resistance still does
+-- nothing at all rather than rolling a point of damage anyway.
+rollDamage :: Int -> StdGen -> (Int, StdGen)
+rollDamage base gen
+  | base <= 0 = (0, gen)
+  | otherwise = uniformR (max 1 (base - spread), base + spread) gen
+  where
+    spread = max 1 (base `div` 4)
+
 -- Find the active monster standing on a tile.
 --
 -- Monsters are one to a tile, so a position identifies a target. Looking the
@@ -263,7 +278,8 @@ executeRangedAttack state targetMonster rangedItem =
   case activeMonsterAt (mPosition targetMonster) world of
     Nothing -> state -- No live monster on that tile any more
     Just target ->
-      let damage = calculateRangedDamage (player state) target rangedItem
+      let (damage, rolled) =
+            withRandom (rollDamage (calculateRangedDamage (player state) target rangedItem)) state
           monsterDefeated = mHealth target - damage <= 0
 
           isTarget m = not (mInactive m) && mPosition m == mPosition target
@@ -285,16 +301,16 @@ executeRangedAttack state targetMonster rangedItem =
           attackMessage = "You hit " ++ mName target ++ " for " ++ show damage ++ " damage!"
           (updatedPlayer, levelUpMessages) =
             if monsterDefeated
-            then levelUp ((player state) { xp = state.player.xp + mXP target })
-                         (xpLevels state)
-            else (player state, [])
+            then levelUp ((player rolled) { xp = rolled.player.xp + mXP target })
+                         (xpLevels rolled)
+            else (player rolled, [])
           completeMessages = levelUpMessages
             ++ filter (not . null) [defeatMessage, xpGainMessage, attackMessage]
           updatedPlayerWithReducedUsesForItem =
             updatedPlayer { inventory = reduceUses rangedItem (inventory updatedPlayer) }
-       in setCurrentWorld updatedWorld $ state
+       in setCurrentWorld updatedWorld $ rolled
             { player = updatedPlayerWithReducedUsesForItem
-            , message = completeMessages ++ message state }
+            , message = completeMessages ++ message rolled }
   where
     world = currentWorld state
 
@@ -408,8 +424,9 @@ combat state mnstr playerGoesFirst =
     Nothing -> state -- No live monster on that tile any more
     Just target ->
       let plyr = player state
-          playerDamage = attack plyr
-          monsterDamage = max 0 (mAttack target - resistance plyr)
+          (playerDamage, rolledOnce) = withRandom (rollDamage (attack plyr)) state
+          (monsterDamage, rolled) =
+            withRandom (rollDamage (mAttack target - resistance plyr)) rolledOnce
           newHealth = max 0 (health plyr - monsterDamage)
           updatedPlayer = plyr { health = newHealth }
           monsterDefeated = mHealth target - playerDamage <= 0
@@ -449,9 +466,9 @@ combat state mnstr playerGoesFirst =
           (updatedPlayerWithXPAndPossibleNewLevel, levelUpMessages) =
               if isDead
               then (updatedPlayerWithXP, [])
-              else levelUp updatedPlayerWithXP (xpLevels state)
-          completeMessage = levelUpMessages ++ combatMessages ++ message state
-       in setCurrentWorld updatedWorld $ state
+              else levelUp updatedPlayerWithXP (xpLevels rolled)
+          completeMessage = levelUpMessages ++ combatMessages ++ message rolled
+       in setCurrentWorld updatedWorld $ rolled
             { player = updatedPlayerWithXPAndPossibleNewLevel
             , message = completeMessage
             , gameOver = isDead }

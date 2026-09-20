@@ -1,14 +1,21 @@
 -- test/Game/LogicSpec.hs
 module Game.LogicSpec (spec) where
 
-import Data.List (isInfixOf, nub)
+import Data.List (isInfixOf, nub, unfoldr)
 import Game.Logic
 import Game.State (currentWorld, helpPages, maxInventorySize, maxLogMessages, visibleMonsters)
 import Game.Types
+import System.Random (mkStdGen)
 import Linear.V2 (V2 (..))
 import Test.Hspec
+import Test.QuickCheck
 
 import Fixtures
+
+-- Damage is rolled, so a test asserts the band rather than one figure.
+onlyBetween :: Int -> Int -> [Int] -> Bool
+onlyBetween lo hi [x] = lo <= x && x <= hi
+onlyBetween _ _ _ = False
 
 -- The most recent line in the message log.
 latest :: GameState -> String
@@ -75,7 +82,7 @@ spec = do
       let goblin = mkMonster "Goblin" (V2 5 3) 100 3
           s = movePlayer East (withWorld (\w -> w {monsters = [goblin]}) baseState)
       position (player s) `shouldBe` V2 4 3
-      map mHealth (monsters (currentWorld s)) `shouldBe` [95]
+      map mHealth (monsters (currentWorld s)) `shouldSatisfy` onlyBetween 94 96
 
     it "updates the visible area after moving" $ do
       let s = movePlayer East baseState
@@ -85,12 +92,12 @@ spec = do
     let goblin = mkMonster "Goblin" (V2 5 3) 100 3
         withGoblin m = withWorld (\w -> w {monsters = [m]}) baseState
 
-    it "damages the monster by the player's effective attack" $
+    it "damages the monster by about the player's attack" $
       map mHealth (monsters (currentWorld (combat (withGoblin goblin) goblin True)))
-        `shouldBe` [95]
+        `shouldSatisfy` onlyBetween 94 96
 
-    it "lets the monster counterattack for its attack minus resistance" $
-      health (player (combat (withGoblin goblin) goblin True)) `shouldBe` 18
+    it "lets the monster counterattack for about its attack minus resistance" $
+      health (player (combat (withGoblin goblin) goblin True)) `shouldSatisfy` onlyBetween 17 19 . pure
 
     it "never deals negative damage to the player" $ do
       let feeble = mkMonster "Kitten" (V2 5 3) 100 0
@@ -181,7 +188,7 @@ spec = do
     it "hits the monster on the tile even when handed a stale copy" $ do
       let hurt = goblin {mHealth = 40} -- no longer matches the world's copy
           s = combat (withGoblin goblin) hurt True
-      map mHealth (monsters (currentWorld s)) `shouldBe` [95]
+      map mHealth (monsters (currentWorld s)) `shouldSatisfy` onlyBetween 94 96
 
     it "keeps landing hits when the same stale copy is reused" $ do
       let rat = mkMonster "Rat" (V2 5 3) 12 1
@@ -197,13 +204,61 @@ spec = do
     it "reports the damage the world's monster deals, not the stale copy's" $ do
       let stale = goblin {mAttack = 99}
           s = combat (withGoblin goblin) stale True
-      health (player s) `shouldBe` 18 -- 20 - (3 - 1), not the stale 99
+      -- 20 less about (3 - 1), nowhere near what the stale 99 would do
+      health (player s) `shouldSatisfy` onlyBetween 17 19 . pure
 
     it "ignores inactive monsters entirely" $ do
       let template = goblin {mInactive = True}
           s = combat (withGoblin template) template True
       health (player s) `shouldBe` 20
       map mHealth (monsters (currentWorld s)) `shouldBe` [100]
+
+  describe "rolling damage" $ do
+    let roll base seed = fst (rollDamage base (mkStdGen seed))
+        rolls base seed n = take n (unfoldr (Just . rollDamage base) (mkStdGen seed))
+
+    it "does nothing when the attack cannot get through" $
+      map (`roll` 1) [0, -1, -50] `shouldBe` [0, 0, 0]
+
+    it "stays within a quarter either side of the attack" $
+      property $ \(Positive base) (NonNegative seed) ->
+        let spread = max 1 (base `div` 4)
+         in roll base seed >= max 1 (base - spread)
+              && roll base seed <= base + spread
+
+    it "averages out at the attack itself, leaving the balance alone" $ do
+      let samples = rolls 20 7 4000
+          mean = fromIntegral (sum samples) / fromIntegral (length samples) :: Double
+      mean `shouldSatisfy` \m -> abs (m - 20) < 0.5
+
+    it "does not keep rolling the same number" $
+      length (nub (rolls 20 7 50)) `shouldSatisfy` (> 3)
+
+    it "gives a different sequence from a different seed" $
+      rolls 20 1 20 `shouldSatisfy` (/= rolls 20 2 20)
+
+    it "always does at least a point when the attack gets through" $
+      map (roll 1) [1 .. 50] `shouldSatisfy` all (>= 1)
+
+  describe "the generator" $ do
+    it "advances when a blow is struck" $ do
+      let start = withWorld (\w -> w {monsters = [mkMonster "Goblin" (V2 5 3) 100 3]}) baseState
+          after' = combat start (mkMonster "Goblin" (V2 5 3) 100 3) True
+      show (rng after') `shouldSatisfy` (/= show (rng start))
+
+    it "advances when an arrow is loosed" $ do
+      let bow = (mkItem "Bow" Range 3 (V2 0 0)) {iUses = Just 5}
+          -- Tough enough to survive, weak enough that the shot gets through:
+          -- a monster resists a tenth of its own health.
+          target = mkMonster "Goblin" (V2 5 3) 30 3
+          start = withPlayer (\p -> p {inventory = [bow]})
+                    (withWorld (\w -> w {monsters = [target]}) baseState)
+          after' = executeRangedAttack start target bow
+      show (rng after') `shouldSatisfy` (/= show (rng start))
+
+    it "does not advance when nothing is struck" $
+      show (rng (combat baseState (mkMonster "Ghost" (V2 5 3) 1 1) True))
+        `shouldBe` show (rng baseState)
 
   describe "levelUp" $ do
     it "does nothing below the next threshold" $ do
@@ -465,7 +520,7 @@ spec = do
 
     it "attacks on the following turn" $ do
       let s2 = monstersAttack (monstersAttack s0)
-      health (player s2) `shouldBe` 16
+      health (player s2) `shouldSatisfy` onlyBetween 15 17 . pure
 
     it "leaves a monster that is not adjacent alone" $ do
       let far = withWorld (\w -> w {monsters = [mkMonster "Goblin" (V2 7 3) 100 5]}) baseState

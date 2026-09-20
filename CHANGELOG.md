@@ -99,6 +99,17 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Damage is rolled rather than calculated. The game had no randomness in it
+  at all, so every fight was arithmetic with an answer you could work out in
+  advance. A blow now lands within a quarter either side of the attacker's
+  strength, in melee and at range alike; an attack that cannot beat the
+  defender's resistance still does nothing rather than scraping a point
+  through. The average is the attacker's strength, so the existing balance
+  is untouched.
+- A generator lives in the game state and is saved with it, restored exactly,
+  so reloading carries the sequence on instead of starting it again. A new
+  game seeds from the system, and tests seed a fixed one so they stay
+  repeatable.
 - The help covers every key the game responds to. `Esc`, `Enter`, `Backspace`,
   the letters that choose an item or a ranged target, and the `:heal` and
   `:super` cheats were all undocumented in game, though the last two were in

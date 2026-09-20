@@ -19,6 +19,7 @@ import Data.Maybe (isJust)
 import Control.Monad.IO.Class (liftIO)
 import System.Directory (doesFileExist)
 import System.Exit (exitFailure)
+import System.Random (initStdGen)
 import System.IO (hPutStrLn, stderr)
 
 saveFile :: FilePath
@@ -53,7 +54,8 @@ startGame = do
       when saveExists $
         report ("Could not read " ++ saveFile ++ ", starting a new game") problems
       config <- loadNewGame
-      pure (config >>= newGame)
+      gen <- initStdGen
+      pure (config >>= newGame gen)
 
   case started of
     Left problems -> do
@@ -117,7 +119,8 @@ executeCommand :: String -> EventM () GameState ()
 executeCommand ":q" = halt -- Quit the game
 executeCommand ":restart" = do -- Restart the game
   config <- liftIO loadNewGame
-  case config >>= newGame of
+  gen <- liftIO initStdGen
+  case config >>= newGame gen of
     Right fresh -> put fresh
     -- The world file has changed since startup and no longer loads. Say so
     -- in the log rather than taking the running game down with it.

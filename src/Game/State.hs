@@ -5,6 +5,7 @@ import Game.Types
 import Game.GridUtils (gridLookup)
 import qualified File.Types as FT
 import Linear.V2 (V2(..))
+import System.Random (StdGen)
 import Data.Bifunctor (first)
 import Data.List (find, intercalate)
 import Data.Maybe (fromMaybe, isNothing, listToMaybe)
@@ -128,8 +129,8 @@ visibleLogMessages = 5
 --
 -- Anything wrong with the configuration is reported rather than thrown, so a
 -- typo in the world file is a message about the world file instead of a crash.
-newGame :: FT.GameConfig -> Either Problems GameState
-newGame config = do
+newGame :: StdGen -> FT.GameConfig -> Either Problems GameState
+newGame gen config = do
   (initialXPLevel, allWorlds) <- checkAll $
     (,) <$> Validation (firstOr "no \"xpLevels\" are defined" allXPLevels)
         <*> Validation (collect
@@ -170,6 +171,7 @@ newGame config = do
         , aimingState = Nothing
         , gameOver = False
         , gameWon = False
+        , rng = gen
         }
       updatedWorld = updateVisibility initialPlayer defaultFogRadius initialWorld
   pure initialState { levels = replaceLevel initialState 0 updatedWorld }
@@ -237,6 +239,12 @@ currentWorld state = levels state !! currentLevel state
 withCurrentWorld :: (World -> World) -> GameState -> GameState
 withCurrentWorld f state =
   state { levels = replaceLevel state (currentLevel state) (f (currentWorld state)) }
+
+-- Draw from the game's generator, keeping the advanced one for next time
+withRandom :: (StdGen -> (a, StdGen)) -> GameState -> (a, GameState)
+withRandom draw state =
+  let (value, gen) = draw (rng state)
+   in (value, state {rng = gen})
 
 -- Swap in a new version of the level the player is standing on
 setCurrentWorld :: World -> GameState -> GameState

@@ -10,7 +10,7 @@ import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KM
 import Control.Monad (when)
 import File.MapIO (deleteSave, loadNewGame, loadSavedGame, persistGame, saveGame)
-import Game.Logic (executeAction)
+import Game.Logic (executeAction, rollDamage)
 import Game.GridUtils (gridLookup)
 import Game.State (currentWorld, newGame)
 import Game.Types
@@ -19,7 +19,7 @@ import System.Directory (doesFileExist, getTemporaryDirectory, removeFile)
 import System.FilePath ((</>))
 import Test.Hspec
 
-import Fixtures (shouldSucceed)
+import Fixtures (shouldSucceed, testGen)
 
 -- | Run an action with a scratch save file, removing it afterwards.
 withTempSave :: (FilePath -> IO a) -> IO a
@@ -32,7 +32,7 @@ withTempSave act = do
 
 -- | A fresh game built from the repository's world.json.
 freshGame :: IO GameState
-freshGame = loadNewGame >>= \config -> shouldSucceed (config >>= newGame)
+freshGame = loadNewGame >>= \config -> shouldSucceed (config >>= newGame testGen)
 
 -- Put a corpse on the current level, as combat would.
 withCorpse :: GameState -> GameState
@@ -197,6 +197,12 @@ spec = do
           let discoveredCount = length . concatMap (filter id) . discovered
           map discoveredCount (levels after')
             `shouldBe` map discoveredCount (levels before')
+
+        it "carries the generator on, rather than restarting it" $ do
+          before' <- freshGame
+          after' <- roundTrip before'
+          -- The reloaded game must roll what the saved one was about to.
+          fst (rollDamage 100 (rng after')) `shouldBe` fst (rollDamage 100 (rng before'))
 
         it "preserves corpses" $ do
           before' <- freshGame

@@ -8,6 +8,7 @@ import Game.State (Problems, charToTile, initializeGrid)
 import Game.Types
 import Data.List (isInfixOf)
 import Linear.V2 (V2 (..))
+import System.Random (StdGen, mkStdGen)
 import Test.Hspec
 import qualified File.Types as FT
 
@@ -81,6 +82,10 @@ testXPLevels =
   , XPLevel {xpLevel = 3, xpThreshold = 250, xpHealth = 60, xpAttack = 11, xpResistance = 3}
   ]
 
+-- | A fixed generator, so that a test rolls the same numbers every run.
+testGen :: StdGen
+testGen = mkStdGen 2026
+
 mkPlayer :: V2 Int -> Player
 mkPlayer pos =
   Player
@@ -116,6 +121,7 @@ mkState world pos =
     , aimingState       = Nothing
     , gameOver          = False
     , gameWon           = False
+    , rng               = testGen
     }
 
 -- | The standard fixture: the open room with the player on the start tile.
