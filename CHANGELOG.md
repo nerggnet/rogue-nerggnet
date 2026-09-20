@@ -135,6 +135,15 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Monsters find their way to the player instead of walking into walls. They
+  used to step in whichever direction shortened the straight line, so a wall
+  between them and the player pinned them against it for as long as the
+  player stayed there. A breadth-first search out from the player gives each
+  one the real distance to follow downhill, so they round corners and take
+  the shortest way. One search serves every monster on the level.
+- Because that distance is the walk rather than the straight line, a monster
+  four tiles away through a wall no longer gives chase, and one behind a
+  locked door waits for it to be opened.
 - A save is read field by field, with everything to do with what is on
   screen defaulting when absent. Adding the help page counter would
   otherwise have made saves from earlier versions unreadable, as the

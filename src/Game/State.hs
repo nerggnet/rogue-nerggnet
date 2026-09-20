@@ -104,6 +104,10 @@ nextHelpPage page
   | otherwise = page + 1
 
 -- Default values for monster, fog radius, and inventory size
+
+-- How far a monster will follow the player, counted in steps it would
+-- actually have to walk rather than as the crow flies, so one on the far
+-- side of a wall stays where it is.
 defaultMonsterRadius :: Int
 defaultMonsterRadius = 4
 

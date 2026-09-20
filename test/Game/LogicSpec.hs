@@ -656,6 +656,61 @@ spec = do
           s = moveMonsters (withWorld (\w -> w {monsters = [template]}) baseState)
       map mPosition (monsters (currentWorld s)) `shouldBe` [V2 7 3]
 
+  describe "finding a way to the player" $ do
+    -- A wall between the two. Straight-line movement walks into it and
+    -- stays there for as long as the player stands still.
+    --
+    --   01234
+    -- 0 #####
+    -- 1 #M#P#
+    -- 2 #...#
+    -- 3 #####
+    let detourMap = ["#####", "#.#.#", "#...#", "#####"]
+        chase grid monsterAt playerAt tweak =
+          let st = tweak (withWorld (\w -> w {monsters = [mkMonster "Goblin" monsterAt 10 2]})
+                            (mkState (mkWorld grid) playerAt))
+           in map mPosition (monsters (currentWorld (moveMonsters st)))
+
+    it "goes around a wall rather than pressing against it" $
+      chase detourMap (V2 1 1) (V2 3 1) id `shouldBe` [V2 1 2]
+
+    it "keeps going around on the following turn" $ do
+      let st = withWorld (\w -> w {monsters = [mkMonster "Goblin" (V2 1 1) 10 2]})
+                 (mkState (mkWorld detourMap) (V2 3 1))
+          twice = moveMonsters (moveMonsters st)
+      map mPosition (monsters (currentWorld twice)) `shouldBe` [V2 2 2]
+
+    it "still walks straight at the player across open ground" $
+      chase ["#####", "#...#", "#####"] (V2 3 1) (V2 1 1) id `shouldBe` [V2 2 1]
+
+    it "stays put when the player is sealed away" $ do
+      let sealed = ["#####", "#.#.#", "#.#.#", "#####"]
+      chase sealed (V2 1 1) (V2 3 1) id `shouldBe` [V2 1 1]
+
+    it "does not come through a locked door" $
+      chase ["#####", "#...#", "#####"] (V2 1 1) (V2 3 1)
+        (withWorld (\w -> w {doors = [mkDoor (V2 2 1) True "Iron Key"]}))
+        `shouldBe` [V2 1 1]
+
+    it "comes through a door that is unlocked" $
+      chase ["#####", "#...#", "#####"] (V2 1 1) (V2 3 1)
+        (withWorld (\w -> w {doors = [mkDoor (V2 2 1) False "Iron Key"]}))
+        `shouldBe` [V2 2 1]
+
+    it "ignores a player who is close by but a long way round" $ do
+      -- Two tiles apart, but the way between them is far longer than the
+      -- distance a monster will bother to travel.
+      let horseshoe =
+            [ "#########"
+            , "#.......#"
+            , "#.#####.#"
+            , "#.#M#P#.#"
+            , "#.#.#.#.#"
+            , "#.......#"
+            , "#########"
+            ]
+      chase horseshoe (V2 3 3) (V2 5 3) id `shouldBe` [V2 3 3]
+
   describe "monstersAttack" $ do
     let goblin = mkMonster "Goblin" (V2 5 3) 100 5
         s0 = withWorld (\w -> w {monsters = [goblin]}) baseState

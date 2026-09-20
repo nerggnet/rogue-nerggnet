@@ -3,13 +3,14 @@ module Game.Logic where
 
 import Game.State
   ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
-  , updateVisibility, manhattanDistance, evalTriggerCondition, visibleMonsters
+  , updateVisibility, evalTriggerCondition, visibleMonsters
   , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid
   )
 import Game.GridUtils (updateTile, gridLookup, keyedInventory)
 import Game.Types
 import Linear.V2 (V2(..))
-import Data.List (find, partition)
+import Data.List (find, partition, sortOn)
+import qualified Data.Map.Strict as Map
 import Data.Maybe (isJust)
 import System.Random (StdGen, uniformR)
 
@@ -665,11 +666,45 @@ monsterAttackOrWait state mnstr =
       then updatedState
       else combat updatedState mnstrUpdated False
 
+-- The four tiles sharing an edge with this one
+orthogonal :: V2 Int -> [V2 Int]
+orthogonal pos = [pos + V2 0 (-1), pos + V2 0 1, pos + V2 (-1) 0, pos + V2 1 0]
+
+-- Can anything walk over this tile, leaving aside who is standing on it?
+isWalkable :: World -> V2 Int -> Bool
+isWalkable world pos =
+  gridLookup (mapGrid world) pos `notElem` [Nothing, Just Wall]
+    && not (any (\d -> dePosition d == pos && deLocked d) (doors world))
+
+-- How many steps each tile is from the player, out to a limit.
+--
+-- Monsters used to step in whichever direction shortened the straight line
+-- to the player, which walks them into a wall and holds them there for as
+-- long as the player stays behind it. Searching outwards from the player
+-- instead gives every monster the real distance, so they can follow it
+-- downhill and round the corner. One search serves the whole level.
+approachField :: World -> V2 Int -> Int -> Map.Map (V2 Int) Int
+approachField world from limit = spread (Map.singleton from 0) [from] 0
+  where
+    spread known frontier depth
+      | depth >= limit || null frontier = known
+      | otherwise =
+          let found =
+                [ next
+                | pos <- frontier
+                , next <- orthogonal pos
+                , isWalkable world next
+                , not (Map.member next known)
+                ]
+              fresh = Map.fromList [(pos, depth + 1) | pos <- found]
+           in spread (Map.union known fresh) (Map.keys fresh) (depth + 1)
+
 -- Move monsters in the current level
 moveMonsters :: GameState -> GameState
 moveMonsters state =
   let world = currentWorld state
       playerPos = state.player.position
+      field = approachField world playerPos defaultMonsterRadius
       (inactiveMonsters, activeMonsters) = partition mInactive (monsters world)
       monsterPositions = map mPosition activeMonsters
       npcPositions = map npcPosition (npcs world)
@@ -678,7 +713,7 @@ moveMonsters state =
         foldl
           (\(moved, occupied) monster ->
              let orgMonsterPos = mPosition monster
-                 newMonster = moveMonsterWithOccupied world playerPos occupied monster
+                 newMonster = moveMonsterWithOccupied field playerPos occupied monster
                  newOccupied = replaceFirst orgMonsterPos (mPosition newMonster) occupied
              in (moved ++ [newMonster], newOccupied))
           ([], initialOccupiedPositions)
@@ -697,26 +732,30 @@ replaceFirst old new (x:xs)
   | old == x  = new:xs
   | otherwise = x:replaceFirst old new xs
 
-moveMonsterWithOccupied :: World -> V2 Int -> [V2 Int] -> Monster -> Monster
-moveMonsterWithOccupied world playerPos occupiedPositions monster =
-  let monsterPos = mPosition monster
-      distance = manhattanDistance playerPos monsterPos
-      potentialMoves =
-        filter (\pos -> isValidMove world playerPos pos && pos `notElem` occupiedPositions)
-               [V2 (x+dx) (y+dy) | (dx, dy) <- moveDirections]
-        where V2 x y = monsterPos
-      moveDirections =
-        if distance <= defaultMonsterRadius
-        then prioritizeTowardsPlayer playerPos monsterPos
-        else [(0, 0)] -- Stay in place if out of range
-  in if isAdjacent monsterPos playerPos
-     then monster -- Stay if adjacent to player
-     else
-       case potentialMoves of
-         (newPos:_) ->
-             let newAttackWaiting = isAdjacent newPos playerPos
-              in monster { mPosition = newPos, mAttackWait = newAttackWaiting } -- Move to the first valid position
-         _ -> monster -- Stay in place if no valid moves
+-- Take one step along the shortest way to the player.
+--
+-- A monster outside the field is either too far off or walled away from the
+-- player entirely, and in both cases has no business giving chase.
+moveMonsterWithOccupied :: Map.Map (V2 Int) Int -> V2 Int -> [V2 Int] -> Monster -> Monster
+moveMonsterWithOccupied field playerPos occupiedPositions monster
+  | isAdjacent monsterPos playerPos = monster -- close enough to swing
+  | otherwise = case closer of
+      [] -> monster -- nowhere better to be
+      (step : _) -> monster {mPosition = step, mAttackWait = isAdjacent step playerPos}
+  where
+    monsterPos = mPosition monster
+    -- Ties break the same way every time, so a level plays out repeatably.
+    closer = case Map.lookup monsterPos field of
+      Nothing -> []
+      Just here ->
+        map snd $
+          sortOn fst
+            [ (there, next)
+            | next <- orthogonal monsterPos
+            , next `notElem` occupiedPositions
+            , Just there <- [Map.lookup next field]
+            , there < here
+            ]
 
 moveNPCs :: GameState -> GameState
 moveNPCs state =
@@ -763,17 +802,6 @@ isValidMove world playerPos pos =
      case doorAt of
        Just door -> not (deLocked door) -- Locked doors block movement
        Nothing   -> True -- No door, movement is allowed
-
--- Prioritize movement directions towards the player
-prioritizeTowardsPlayer :: V2 Int -> V2 Int -> [(Int, Int)]
-prioritizeTowardsPlayer (V2 px py) (V2 mx my) =
-  let dx = px - mx -- Horizontal distance to player
-      dy = py - my -- Vertical distance to player
-      horizontalFirst = [(signum dx, 0), (0, signum dy)]
-      verticalFirst = [(0, signum dy), (signum dx, 0)]
-  in if abs dx >= abs dy
-     then horizontalFirst ++ [(signum dx, signum dy), (-signum dx, 0), (0, -signum dy)]
-     else verticalFirst ++ [(signum dx, signum dy), (0, -signum dy), (-signum dx, 0)]
 
 processTriggers :: GameState -> GameState
 processTriggers state =

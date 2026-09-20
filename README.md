@@ -156,8 +156,10 @@ are drawn dimmed and without their contents.
 
 * **Fog of war** — you see 5 tiles (Manhattan distance) with line of sight;
   walls and locked doors block sight.
-* **Monsters** — chase you when within 4 tiles. An adjacent monster attacks
-  every other turn. Damage to you is based on `monster attack − your
+* **Monsters** — chase you when they are within 4 steps of you, counted
+  along the way they would have to walk, so one behind a wall or a locked
+  door stays put. They follow the shortest route and go round corners. An
+  adjacent monster attacks every other turn. Damage to you is based on `monster attack − your
   resistance`.
 * **Damage is rolled**, landing within a quarter either side of the
   attacker's strength, so the same fight does not always go the same way. An
