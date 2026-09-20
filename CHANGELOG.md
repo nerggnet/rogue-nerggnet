@@ -11,6 +11,14 @@ All notable changes to this project are documented in this file.
 - A `spec` test-suite covering grid utilities, visibility and line of
   sight, world construction, trigger serialization, turn logic, combat,
   inventory handling and the save/load round-trip.
+- The world validator now checks what each trigger action reaches for:
+  `spawnMonster` must name an inactive monster of that level and aim at a
+  tile that is not a wall, `spawnItem` must name an item the level places at
+  exactly that position, `addToInventory` and `consumeItem` must name items
+  that exist, `unlockDoor` must point at a door, `transportPlayer` must land
+  the player on floor, and `shiftTile` must stay on the map. Every one of
+  these fails silently at run time — a misspelled monster name simply never
+  spawns anything — so the mistake used to survive all the way into play.
 
 ### Changed
 

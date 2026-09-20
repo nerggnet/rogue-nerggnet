@@ -197,6 +197,70 @@ spec = do
         }
       length (levels st) `shouldBe` 1
 
+  describe "checking what a trigger reaches for is there" $ do
+    let room = ["#####", "#S..#", "#####"]
+        firing acts = baseJSONTrigger {FT.triggerType = "position", FT.target = Just (2, 1), FT.actions = acts}
+        doing t = newGame testGen (jsonConfig [(jsonLevel room) {FT.triggers = [firing [t]]}])
+        action k = FT.JSONTriggerAction
+          { FT.actionType = k, FT.actionPosition = Nothing, FT.actionItemName = Nothing
+          , FT.actionMonsterName = Nothing, FT.actionTileType = Nothing
+          , FT.actionMessage = Nothing, FT.actionAmount = Nothing }
+
+    it "reports a spawn that names no monster the level has" $
+      doing (action "spawnMonster") {FT.actionMonsterName = Just "Ghost", FT.actionPosition = Just (2, 1)}
+        `shouldReport` "no inactive monster of that name"
+
+    it "accepts a spawn that names a sleeping one" $ do
+      let sleeping = (jsonMonsterAt "Ghost" (2, 1)) {FT.inactive = Just True}
+          lvl = (jsonLevel room)
+            { FT.monsters = [sleeping]
+            , FT.triggers = [firing [(action "spawnMonster")
+                {FT.actionMonsterName = Just "Ghost", FT.actionPosition = Just (2, 1)}]]
+            }
+      st <- shouldSucceed (newGame testGen (jsonConfig [lvl]))
+      length (levels st) `shouldBe` 1
+
+    it "reports a spawn aimed into a wall" $ do
+      let sleeping = (jsonMonsterAt "Ghost" (2, 1)) {FT.inactive = Just True}
+          lvl = (jsonLevel room)
+            { FT.monsters = [sleeping]
+            , FT.triggers = [firing [(action "spawnMonster")
+                {FT.actionMonsterName = Just "Ghost", FT.actionPosition = Just (0, 0)}]]
+            }
+      newGame testGen (jsonConfig [lvl]) `shouldReport` "inside a wall"
+
+    it "reports an item spawn where no such item is placed" $
+      doing (action "spawnItem") {FT.actionItemName = Just "Lamp", FT.actionPosition = Just (2, 1)}
+        `shouldReport` "places no such item"
+
+    it "minds where the item spawn points, not just its name" $ do
+      let lvl = (jsonLevel room)
+            { FT.items = [(jsonItemOf "Lamp" "Weapon") {FT.itemPosition = (3, 1), FT.itemInactive = True}]
+            , FT.triggers = [firing [(action "spawnItem")
+                {FT.actionItemName = Just "Lamp", FT.actionPosition = Just (2, 1)}]]
+            }
+      newGame testGen (jsonConfig [lvl]) `shouldReport` "places no such item"
+
+    it "reports handing over something the level does not hold" $
+      doing (action "addToInventory") {FT.actionItemName = Just "Ghost Relic"}
+        `shouldReport` "no inactive item of that name"
+
+    it "reports unlocking a door that is not there" $
+      doing (action "unlockDoor") {FT.actionPosition = Just (1, 1)}
+        `shouldReport` "where there is no door"
+
+    it "reports a teleport into a wall" $
+      doing (action "transportPlayer") {FT.actionPosition = Just (0, 0)}
+        `shouldReport` "inside a wall"
+
+    it "reports shifting a tile off the map" $
+      doing (action "shiftTile") {FT.actionPosition = Just (99, 99), FT.actionTileType = Just '.'}
+        `shouldReport` "off the map"
+
+    it "reports consuming something nothing in the dungeon provides" $
+      doing (action "consumeItem") {FT.actionItemName = Just "Ghost Relic"}
+        `shouldReport` "nothing down to here provides"
+
   describe "checking the levels join up" $ do
     it "accepts stairs that meet" $ do
       st <- shouldSucceed $ newGame testGen $ jsonConfig

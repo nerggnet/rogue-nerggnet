@@ -225,7 +225,15 @@ They also check that a level can actually be played:
   changes which level that is, so level 2's `<` has to be exactly where
   level 1's `>` was;
 * every locked door has a key that can be found on that level or an earlier
-  one, or a trigger that opens it.
+  one, or a trigger that opens it;
+* every trigger action reaches for something that is really there: a
+  `spawnMonster` names an inactive monster of that level and aims at floor,
+  a `spawnItem` names an item the level places at exactly that spot, an
+  `addToInventory` or `consumeItem` names an item that exists, an
+  `unlockDoor` points at a door, a `transportPlayer` lands the player on
+  floor, and a `shiftTile` stays on the map. These are silent failures at
+  run time — a misspelled monster name simply never spawns anything — so
+  they are worth catching before the game starts.
 
 This is what makes drawing a map by hand safe: one wall in the wrong place
 otherwise seals off a room and nobody notices.

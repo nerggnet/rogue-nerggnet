@@ -147,7 +147,9 @@ newGame gen config = do
   -- hide the faults on the others, or in the joins between them.
   checkAll $
     Validation (void (collect
-      [ inContext ("level " ++ show ix) (checkLevelReachable world)
+      [ inContext ("level " ++ show ix)
+          (checkAll (Validation (checkLevelReachable world)
+                       *> Validation (checkTriggerActions world)))
       | (ix, world) <- zip [0 :: Int ..] allWorlds
       ]))
       *> Validation (checkStairsMeet allWorlds)
@@ -604,7 +606,11 @@ reachableFrom world start = walk (Set.singleton start) [start]
     walk seen (pos : rest) =
       let found = [next | next <- orthogonal pos, walkable next, not (Set.member next seen)]
        in walk (foldr Set.insert seen found) (found ++ rest)
-    walkable pos = gridLookup (mapGrid world) pos `notElem` [Nothing, Just Wall]
+    walkable = standable world
+
+-- Somewhere something could stand: on the map, and not inside a wall.
+standable :: World -> V2 Int -> Bool
+standable world pos = gridLookup (mapGrid world) pos `notElem` [Nothing, Just Wall]
 
 -- Everything placed on a level has to be somewhere the player can get to.
 --
@@ -631,6 +637,49 @@ checkLevelReachable world = case entryTile world of
           , [ "the door at " ++ showPos (dePosition d) ++ " is inside a wall"
             | d <- doors world, gridLookup (mapGrid world) (dePosition d) == Just Wall ]
           ]
+
+-- What a trigger's actions reach for has to be there.
+--
+-- These fail quietly at the moment the player springs them: a spawn with no
+-- template writes a line to the log and carries on, and one that names a
+-- position nothing is placed at does not even do that. Either way the
+-- author finds out years later, if at all.
+checkTriggerActions :: World -> Either Problems ()
+checkTriggerActions world = noProblems
+  [ "trigger " ++ show n ++ ", action " ++ show k ++ ": " ++ complaint
+  | (n, t) <- zip [0 :: Int ..] (triggers world)
+  , (k, a) <- zip [0 :: Int ..] (triggerActions t)
+  , complaint <- wrongWith a
+  ]
+  where
+    inactiveMonsters = [mName m | m <- monsters world, mInactive m]
+    dormantItems = [iName i | i <- items world, iInactive i]
+
+    wrongWith action = case action of
+      SpawnItem name pos
+        | not (any (\i -> iName i == name && iPosition i == pos) (items world)) ->
+            [ "spawns " ++ show name ++ " at " ++ showPos pos
+              ++ ", where the level places no such item" ]
+      SpawnMonster name pos
+        | name `notElem` inactiveMonsters ->
+            [ "calls up " ++ show name
+              ++ ", and the level has no inactive monster of that name to call" ]
+        | not (standable world pos) ->
+            ["would put " ++ show name ++ " inside a wall at " ++ showPos pos]
+      AddToInventory name
+        | name `notElem` dormantItems ->
+            [ "hands over " ++ show name
+              ++ ", and the level has no inactive item of that name to hand over" ]
+      UnlockDoor pos
+        | not (any ((== pos) . dePosition) (doors world)) ->
+            ["unlocks the door at " ++ showPos pos ++ ", where there is no door"]
+      TransportPlayer pos
+        | not (standable world pos) ->
+            ["would drop the player inside a wall at " ++ showPos pos]
+      ShiftTile pos _
+        | isNothing (gridLookup (mapGrid world) pos) ->
+            ["changes the tile at " ++ showPos pos ++ ", which is off the map"]
+      _ -> []
 
 -- The stairs between two levels have to be at the same place.
 --
@@ -665,7 +714,9 @@ checkTriggerItems worlds = noProblems (concat (zipWith missing [0 :: Int ..] wor
         ++ intercalate ", " (map show absent)
         ++ ", which nothing down to here provides"
       | (n, t) <- zip [0 :: Int ..] (triggers world)
-      , let absent = filter (`Set.notMember` carriedBy ix) (itemsAskedFor (triggerCondition t))
+      , let asked = itemsAskedFor (triggerCondition t)
+                      ++ [name | ConsumeItem name <- triggerActions t]
+      , let absent = filter (`Set.notMember` carriedBy ix) asked
       , not (null absent)
       ]
     itemsAskedFor condition = case condition of
