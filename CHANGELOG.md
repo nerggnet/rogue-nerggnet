@@ -99,6 +99,13 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Loading checks that a level can be played, not just that it parses. Every
+  monster, item and NPC has to be reachable from where the player arrives,
+  and so do the stairs down; no door may be drawn inside a wall; the stairs
+  between levels have to line up, since going down leaves the player where
+  they are; and every locked door needs a key findable by then, or a trigger
+  that opens it. A map drawn by hand is one wall away from sealing off a
+  room, and nothing used to say so.
 - Special items do something. All eleven of them printed "Its effect is
   mysterious." and stopped, and several carried an `itemEffectValue` that
   nothing read. They now declare an `itemEffect` in `world.json`, so a new
@@ -135,6 +142,10 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- `world.json`: a corridor on the third level was sealed by a single wall,
+  stranding the Silver Key and the Tome of Arcane Knowledge where no route
+  could reach them. One character opens it. This is the bug the new checks
+  were written to catch, and the first thing they caught.
 - Monsters find their way to the player instead of walking into walls. They
   used to step in whichever direction shortened the straight line, so a wall
   between them and the player pinned them against it for as long as the

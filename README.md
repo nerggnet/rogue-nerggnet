@@ -191,6 +191,22 @@ required fields, consumables with no use count, maps whose rows are not all
 the same length, a first level with no `S` tile, and triggers naming items or
 NPCs the level does not define.
 
+They also check that a level can actually be played:
+
+* every monster, item and NPC can be walked to from where the player arrives,
+  and so can the stairs down. Locked doors count as open, since a key opens
+  them; only walls strand things. Inactive items are left out, because a
+  trigger may hand one straight to the player wherever it sits;
+* no door is drawn inside a wall;
+* the stairs line up. Going up or down leaves you where you are and only
+  changes which level that is, so level 2's `<` has to be exactly where
+  level 1's `>` was;
+* every locked door has a key that can be found on that level or an earlier
+  one, or a trigger that opens it.
+
+This is what makes drawing a map by hand safe: one wall in the wrong place
+otherwise seals off a room and nobody notices.
+
 ## Designing your own dungeon
 
 Everything lives in `world.json`:

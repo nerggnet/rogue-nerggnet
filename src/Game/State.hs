@@ -2,13 +2,15 @@
 module Game.State where
 
 import Game.Types
-import Game.GridUtils (gridLookup)
+import Game.GridUtils (gridLookup, orthogonal)
 import qualified File.Types as FT
 import Linear.V2 (V2(..))
 import System.Random (StdGen)
+import Control.Monad (void)
 import Data.Bifunctor (first)
 import Data.List (find, intercalate)
 import Data.Maybe (fromMaybe, isNothing, listToMaybe)
+import qualified Data.Set as Set
 
 -- | Everything wrong with a configuration file.
 --
@@ -141,6 +143,15 @@ newGame gen config = do
               [ inContext ("level " ++ show ix) (transformFileWorld fileWorld)
               | (ix, fileWorld) <- zip [0 :: Int ..] (FT.levels config)
               ])
+  -- Every level is built before any is judged, so a fault on one does not
+  -- hide the faults on the others, or in the joins between them.
+  checkAll $
+    Validation (void (collect
+      [ inContext ("level " ++ show ix) (checkLevelReachable world)
+      | (ix, world) <- zip [0 :: Int ..] allWorlds
+      ]))
+      *> Validation (checkStairsMeet allWorlds)
+      *> Validation (checkDoorsOpenable allWorlds)
   initialWorld <- firstOr "no \"levels\" are defined" allWorlds
   startingPosition <- inContext "level 0" $
     maybe (problem "the map grid has no \"S\" tile for the player to start on")
@@ -271,21 +282,22 @@ transformFileWorld fileWorld = do
             ])
   -- This one genuinely depends on the triggers above having been built.
   checked <- validateTriggers trggrs (FT.items fileWorld) (FT.npcs fileWorld)
-  pure World
-    { mapGrid = map (map charToTile) grid
-    , mapRows = rows
-    , mapCols = cols
-    , monsters = map transformMonster (FT.monsters fileWorld)
-    , npcs = map transformNPC (FT.npcs fileWorld)
-    , items = itms
-    , doors = map transformDoorEntity (FT.doors fileWorld)
-    , triggers = checked
-    , visibility = initializeGrid False rows cols
-    , discovered = initializeGrid False rows cols
-    , discoveredCoords = []
-    , tileOverrides = []
-    , corpses = []
-    }
+  let built = World
+        { mapGrid = map (map charToTile) grid
+        , mapRows = rows
+        , mapCols = cols
+        , monsters = map transformMonster (FT.monsters fileWorld)
+        , npcs = map transformNPC (FT.npcs fileWorld)
+        , items = itms
+        , doors = map transformDoorEntity (FT.doors fileWorld)
+        , triggers = checked
+        , visibility = initializeGrid False rows cols
+        , discovered = initializeGrid False rows cols
+        , discoveredCoords = []
+        , tileOverrides = []
+        , corpses = []
+        }
+  pure built
   where
     grid = FT.mapGrid fileWorld
 
@@ -532,6 +544,105 @@ validateTriggers trggrs triggerItems triggerNpcs =
         | nName `notElem` npcNames ->
             problem $ "refers to NPC " ++ show nName ++ ", which this level does not define"
       _ -> Right trigger
+
+-- Fail with all of these at once, or succeed
+noProblems :: Problems -> Either Problems ()
+noProblems [] = Right ()
+noProblems problems = Left problems
+
+showPos :: V2 Int -> String
+showPos (V2 x y) = "(" ++ show x ++ ", " ++ show y ++ ")"
+
+-- Where a given tile appears on the map
+tilesOf :: Tile -> World -> [V2 Int]
+tilesOf wanted world =
+  [ V2 x y
+  | (y, row) <- zip [0 ..] (mapGrid world)
+  , (x, tile) <- zip [0 ..] row
+  , tile == wanted
+  ]
+
+-- Where the player arrives on a level: the start tile, or the stairs up
+entryTile :: World -> Maybe (V2 Int)
+entryTile world = listToMaybe (tilesOf Start world ++ tilesOf UpStair world)
+
+-- Every tile that can be walked to from here.
+--
+-- Doors count as open, locked or not: a locked door is a puzzle to be solved
+-- with a key, not a wall. Only walls and the edge of the map stop the walk.
+reachableFrom :: World -> V2 Int -> Set.Set (V2 Int)
+reachableFrom world start = walk (Set.singleton start) [start]
+  where
+    walk seen [] = seen
+    walk seen (pos : rest) =
+      let found = [next | next <- orthogonal pos, walkable next, not (Set.member next seen)]
+       in walk (foldr Set.insert seen found) (found ++ rest)
+    walkable pos = gridLookup (mapGrid world) pos `notElem` [Nothing, Just Wall]
+
+-- Everything placed on a level has to be somewhere the player can get to.
+--
+-- A map is drawn by hand, and one wall in the wrong place quietly strands a
+-- room full of things nobody will ever see. Inactive items are left out: a
+-- trigger may put one straight into the player's pack, so where it sits on
+-- the map means nothing.
+checkLevelReachable :: World -> Either Problems ()
+checkLevelReachable world = case entryTile world of
+  Nothing ->
+    problem "there is no \"S\" start tile and no \"<\" stairs up, so the player could never arrive"
+  Just entry ->
+    let reached = reachableFrom world entry
+        stranded pos = not (Set.member pos reached)
+     in noProblems $ concat
+          [ [ "the stairs down at " ++ showPos pos ++ " cannot be reached"
+            | pos <- tilesOf DownStair world, stranded pos ]
+          , [ "the monster " ++ show (mName m) ++ " at " ++ showPos (mPosition m) ++ " cannot be reached"
+            | m <- monsters world, not (mInactive m), stranded (mPosition m) ]
+          , [ "the item " ++ show (iName i) ++ " at " ++ showPos (iPosition i) ++ " cannot be reached"
+            | i <- items world, not (iInactive i), stranded (iPosition i) ]
+          , [ "the NPC " ++ show (npcName n) ++ " at " ++ showPos (npcPosition n) ++ " cannot be reached"
+            | n <- npcs world, stranded (npcPosition n) ]
+          , [ "the door at " ++ showPos (dePosition d) ++ " is inside a wall"
+            | d <- doors world, gridLookup (mapGrid world) (dePosition d) == Just Wall ]
+          ]
+
+-- The stairs between two levels have to be at the same place.
+--
+-- Going up or down leaves the player where they are and only changes which
+-- level that is, so stairs that do not line up drop them into a wall.
+checkStairsMeet :: [World] -> Either Problems ()
+checkStairsMeet worlds =
+  noProblems (concat (zipWith3 between [0 :: Int ..] worlds (drop 1 worlds)))
+  where
+    between ix above below =
+      case (tilesOf DownStair above, tilesOf UpStair below) of
+        ([], _) -> ["level " ++ show ix ++ " has no \">\" stairs down, but a level follows it"]
+        (_, []) -> ["level " ++ show (ix + 1) ++ " has no \"<\" stairs up"]
+        (down : _, up : _)
+          | down == up -> []
+          | otherwise ->
+              [ "level " ++ show ix ++ " goes down at " ++ showPos down
+                ++ " but level " ++ show (ix + 1) ++ " comes up at " ++ showPos up
+              ]
+
+-- A locked door needs a key the player can already have, or a trigger that
+-- opens it. Keys carry between levels, so anything found on the way down
+-- counts.
+checkDoorsOpenable :: [World] -> Either Problems ()
+checkDoorsOpenable worlds = noProblems (concat (zipWith shut [0 :: Int ..] worlds))
+  where
+    keysDownTo ix =
+      Set.fromList [iName i | world <- take (ix + 1) worlds, i <- items world, iCategory i == Key]
+    openedBy world =
+      Set.fromList [pos | t <- triggers world, UnlockDoor pos <- triggerActions t]
+    shut ix world =
+      [ "level " ++ show ix ++ ": the door at " ++ showPos (dePosition d)
+        ++ " needs " ++ show (deKeyName d)
+        ++ ", which no level down to here provides, and no trigger opens it"
+      | d <- doors world
+      , deLocked d
+      , not (Set.member (deKeyName d) (keysDownTo ix))
+      , not (Set.member (dePosition d) (openedBy world))
+      ]
 
 -- Is a position currently lit for the player? Out of bounds counts as unseen.
 isVisibleAt :: World -> V2 Int -> Bool

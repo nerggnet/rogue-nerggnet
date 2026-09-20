@@ -6,7 +6,7 @@ import Game.State
   , updateVisibility, evalTriggerCondition, visibleMonsters
   , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid
   )
-import Game.GridUtils (updateTile, gridLookup, keyedInventory)
+import Game.GridUtils (updateTile, gridLookup, orthogonal, keyedInventory)
 import Game.Types
 import Linear.V2 (V2(..))
 import Data.List (find, partition, sortOn)
@@ -665,10 +665,6 @@ monsterAttackOrWait state mnstr =
    in if mAttackWait mnstr
       then updatedState
       else combat updatedState mnstrUpdated False
-
--- The four tiles sharing an edge with this one
-orthogonal :: V2 Int -> [V2 Int]
-orthogonal pos = [pos + V2 0 (-1), pos + V2 0 1, pos + V2 (-1) 0, pos + V2 1 0]
 
 -- Can anything walk over this tile, leaving aside who is standing on it?
 isWalkable :: World -> V2 Int -> Bool

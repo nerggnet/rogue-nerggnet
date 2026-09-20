@@ -153,6 +153,113 @@ spec = do
       newGame testGen (jsonConfig [withItems [jsonItemOf "Lamp" "Healing"] (jsonLevel validGrid)])
         `shouldReport` "level 0: item \"Lamp\": a Healing item must declare"
 
+  describe "checking a level can be played" $ do
+    --   01234
+    -- 0 #####
+    -- 1 #S#.#   the right-hand cell is sealed off
+    -- 2 #####
+    let sealed = ["#####", "#S#.#", "#####"]
+        open = ["#####", "#S..#", "#####"]
+        levelOf rows f = f (jsonLevel rows)
+        oneLevel rows f = newGame testGen (jsonConfig [levelOf rows f])
+
+    it "accepts a level where everything can be reached" $ do
+      st <- shouldSucceed (oneLevel open (\l -> l {FT.monsters = [jsonMonsterAt "Rat" (3, 1)]}))
+      length (levels st) `shouldBe` 1
+
+    it "reports a monster nobody could reach" $
+      oneLevel sealed (\l -> l {FT.monsters = [jsonMonsterAt "Rat" (3, 1)]})
+        `shouldReport` "the monster \"Rat\" at (3, 1) cannot be reached"
+
+    it "reports an item nobody could reach" $
+      oneLevel sealed
+        (\l -> l {FT.items = [(jsonItemOf "Lost Ring" "Weapon") {FT.itemPosition = (3, 1)}]})
+        `shouldReport` "the item \"Lost Ring\" at (3, 1) cannot be reached"
+
+    it "reports an NPC nobody could reach" $
+      oneLevel sealed (\l -> l {FT.npcs = [jsonNpcAt "Hermit" (3, 1)]})
+        `shouldReport` "the NPC \"Hermit\" at (3, 1) cannot be reached"
+
+    it "reports a door drawn inside a wall" $
+      oneLevel open (\l -> l {FT.doors = [jsonDoorAt (2, 0) False "Iron Key"]})
+        `shouldReport` "the door at (2, 0) is inside a wall"
+
+    it "reports a level the player could never arrive on" $
+      newGame testGen (jsonConfig [jsonLevel ["###", "#.#", "###"]])
+        `shouldReport` "could never arrive"
+
+    it "counts a locked door as passable, since a key opens it" $ do
+      let behindADoor = ["#####", "#S..#", "#####"]
+      st <- shouldSucceed $ oneLevel behindADoor $ \l -> l
+        { FT.doors = [jsonDoorAt (2, 1) True "Iron Key"]
+        , FT.monsters = [jsonMonsterAt "Rat" (3, 1)]
+        , FT.items = [(jsonItemOf "Iron Key" "Key") {FT.itemUses = Just 1}]
+        }
+      length (levels st) `shouldBe` 1
+
+  describe "checking the levels join up" $ do
+    it "accepts stairs that meet" $ do
+      st <- shouldSucceed $ newGame testGen $ jsonConfig
+        [ jsonLevel ["#####", "#S.>#", "#####"]
+        , jsonLevel ["#####", "#..<#", "#####"]
+        ]
+      length (levels st) `shouldBe` 2
+
+    it "reports stairs that do not meet" $
+      newGame testGen (jsonConfig
+        [ jsonLevel ["#####", "#S.>#", "#####"]
+        , jsonLevel ["#####", "#<..#", "#####"]
+        ])
+        `shouldReport` "goes down at (3, 1) but level 1 comes up at (1, 1)"
+
+    it "reports a level with no way down though another follows" $
+      newGame testGen (jsonConfig [jsonLevel ["#####", "#S..#", "#####"], jsonLevel ["#####", "#..<#", "#####"]])
+        `shouldReport` "has no \">\" stairs down"
+
+    -- A level with neither stairs up nor a start tile fails the earlier,
+    -- more direct check: there is no way onto it at all.
+    it "reports a level below that cannot be arrived on" $
+      newGame testGen (jsonConfig [jsonLevel ["#####", "#S.>#", "#####"], jsonLevel ["#####", "#...#", "#####"]])
+        `shouldReport` "could never arrive"
+
+    it "reports a level that can be entered but not from above" $
+      newGame testGen (jsonConfig [jsonLevel ["#####", "#S.>#", "#####"], jsonLevel ["#####", "#S..#", "#####"]])
+        `shouldReport` "has no \"<\" stairs up"
+
+  describe "checking locked doors can be opened" $ do
+    let room = ["#####", "#S..#", "#####"]
+
+    it "reports a door whose key is nowhere to be found" $
+      newGame testGen (jsonConfig [(jsonLevel room) {FT.doors = [jsonDoorAt (2, 1) True "Brass Key"]}])
+        `shouldReport` "needs \"Brass Key\""
+
+    it "accepts a door whose key is on the same level" $ do
+      st <- shouldSucceed $ newGame testGen $ jsonConfig
+        [ (jsonLevel room)
+            { FT.doors = [jsonDoorAt (2, 1) True "Iron Key"]
+            , FT.items = [(jsonItemOf "Iron Key" "Key") {FT.itemUses = Just 1}]
+            }
+        ]
+      length (levels st) `shouldBe` 1
+
+    it "accepts a door whose key was found on the way down" $ do
+      st <- shouldSucceed $ newGame testGen $ jsonConfig
+        [ (jsonLevel ["#####", "#S.>#", "#####"])
+            {FT.items = [(jsonItemOf "Iron Key" "Key") {FT.itemUses = Just 1}]}
+        , (jsonLevel ["#####", "#..<#", "#####"])
+            {FT.doors = [jsonDoorAt (2, 1) True "Iron Key"]}
+        ]
+      length (levels st) `shouldBe` 2
+
+    it "reports a key that only turns up later" $
+      newGame testGen (jsonConfig
+        [ (jsonLevel ["#####", "#S.>#", "#####"])
+            {FT.doors = [jsonDoorAt (2, 1) True "Iron Key"]}
+        , (jsonLevel ["#####", "#..<#", "#####"])
+            {FT.items = [(jsonItemOf "Iron Key" "Key") {FT.itemUses = Just 1}]}
+        ])
+        `shouldReport` "no level down to here provides"
+
   describe "gridLookup" $ do
     let grid = [[1 :: Int, 2, 3], [4, 5, 6]] -- 3 wide, 2 tall
 

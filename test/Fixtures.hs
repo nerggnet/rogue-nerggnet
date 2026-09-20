@@ -257,6 +257,21 @@ jsonConfig lvls =
     , FT.levels = lvls
     }
 
+-- | A monster standing at a position.
+jsonMonsterAt :: String -> (Int, Int) -> FT.JSONMonster
+jsonMonsterAt n pos =
+  FT.JSONMonster
+    {FT.name = n, FT.position = pos, FT.attack = 2, FT.health = 5, FT.xp = 1, FT.inactive = Just False}
+
+-- | An NPC standing at a position.
+jsonNpcAt :: String -> (Int, Int) -> FT.JSONNPC
+jsonNpcAt n pos = FT.JSONNPC {FT.npcName = n, FT.npcPosition = pos, FT.npcMessage = "hello"}
+
+-- | A door at a position.
+jsonDoorAt :: (Int, Int) -> Bool -> String -> FT.JSONDoorEntity
+jsonDoorAt pos locked keyName =
+  FT.JSONDoorEntity {FT.doorPosition = pos, FT.doorLocked = locked, FT.doorKeyName = keyName}
+
 -- | A floor item with the given name and category string.
 jsonItemOf :: String -> String -> FT.JSONItem
 jsonItemOf n cat =

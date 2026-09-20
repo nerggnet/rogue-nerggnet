@@ -1,5 +1,5 @@
 -- src/Game/GridUtils.hs
-module Game.GridUtils (updateTile, gridLookup, keyedInventory) where
+module Game.GridUtils (updateTile, gridLookup, orthogonal, keyedInventory) where
 
 import Game.Types (Tile, Item)
 import Linear.V2 (V2(..))
@@ -21,6 +21,10 @@ gridLookup grid (V2 x y)
         (cell:_) -> Just cell
         []       -> Nothing
       [] -> Nothing
+
+-- The four tiles sharing an edge with this one
+orthogonal :: V2 Int -> [V2 Int]
+orthogonal pos = [pos + V2 0 (-1), pos + V2 0 1, pos + V2 (-1) 0, pos + V2 1 0]
 
 -- Generate a list of (key, item) pairs with equipped items on top
 keyedInventory :: [Item] -> Maybe Item -> Maybe Item -> [(Char, Item)]
