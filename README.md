@@ -95,7 +95,7 @@ game rather than failing.
 | `g` | Pick up the item you are standing on |
 | `u` | Use / equip an item from the inventory |
 | `x` | Drop an item from the inventory |
-| `?` | Toggle the help popup |
+| `?` | Open the help, then step through its pages and close it |
 | `:` | Enter command mode |
 | `Esc` | Cancel inventory selection, aiming, or command mode |
 
@@ -109,6 +109,9 @@ Moving into a monster attacks it. Moving into an NPC talks to it.
 | `:restart` | Start a new game from `world.json` |
 | `:heal` | Cheat: restore full health |
 | `:super` | Cheat: 1000 HP, 100 attack, 100 resistance |
+
+While typing a command, `Enter` runs it, `Backspace` rubs out a character and
+`Esc` abandons it. All of this is in the in-game help under `?`.
 
 ### Using items
 

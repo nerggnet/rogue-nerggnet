@@ -99,6 +99,11 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- The help covers every key the game responds to. `Esc`, `Enter`, `Backspace`,
+  the letters that choose an item or a ranged target, and the `:heal` and
+  `:super` cheats were all undocumented in game, though the last two were in
+  the README. That does not fit an 80x24 screen in one popup, so `?` now
+  steps through three pages and then closes.
 - Dying shows a screen, as winning already did. It previously only wrote a
   line to the log, which scrolls away, leaving no hint as to why the keys
   had stopped responding.
@@ -109,6 +114,10 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- A save is read field by field, with everything to do with what is on
+  screen defaulting when absent. Adding the help page counter would
+  otherwise have made saves from earlier versions unreadable, as the
+  trigger rewrite did.
 - Escape now closes the item chooser rather than only leaving command mode,
   which used to leave the game believing a choice was still pending.
 - The message pane is always the same height, blank rows included. It used to

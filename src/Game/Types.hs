@@ -241,7 +241,7 @@ data GameState = GameState
   , commandMode       :: Bool
   , commandToExecute  :: Bool
   , inventoryMode     :: Maybe InventoryMode
-  , showLegend        :: Bool
+  , legendPage        :: Int -- 0 when the help is closed
   , keyPressCount     :: Int
   , lastInteractedNpc :: Maybe String
   , aimingState       :: Maybe AimingState
@@ -250,4 +250,25 @@ data GameState = GameState
   } deriving (Generic)
 
 instance ToJSON GameState
-instance FromJSON GameState
+
+-- Only the durable parts of a game are required. Everything to do with what
+-- is on screen right now defaults, so a save written by a version that did
+-- not have a field, or that had a different one, still loads.
+instance FromJSON GameState where
+  parseJSON = withObject "GameState" $ \v ->
+    GameState
+      <$> v .:  Key.fromString "player"
+      <*> v .:  Key.fromString "xpLevels"
+      <*> v .:  Key.fromString "levels"
+      <*> v .:  Key.fromString "currentLevel"
+      <*> v .:? Key.fromString "message" .!= []
+      <*> v .:? Key.fromString "commandBuffer" .!= ""
+      <*> v .:? Key.fromString "commandMode" .!= False
+      <*> v .:? Key.fromString "commandToExecute" .!= False
+      <*> v .:? Key.fromString "inventoryMode" .!= Nothing
+      <*> v .:? Key.fromString "legendPage" .!= 0
+      <*> v .:? Key.fromString "keyPressCount" .!= 0
+      <*> v .:? Key.fromString "lastInteractedNpc" .!= Nothing
+      <*> v .:? Key.fromString "aimingState" .!= Nothing
+      <*> v .:? Key.fromString "gameOver" .!= False
+      <*> v .:? Key.fromString "gameWon" .!= False

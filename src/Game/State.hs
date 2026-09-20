@@ -50,6 +50,58 @@ collect = checkAll . traverse Validation
 inContext :: String -> Either Problems a -> Either Problems a
 inContext what = first (map ((what ++ ": ") ++))
 
+-- | The help, a page at a time.
+--
+-- Split up so that it fits a small terminal: every key the game responds to
+-- belongs on one of these pages, and all of them together do not fit an
+-- 80x24 screen at once. Blank separators are a space, not "", which has no
+-- height to render.
+helpPages :: [(String, [String])]
+helpPages =
+  [ ( "Moving and acting"
+    , [ "w or k     Move up"
+      , "s or j     Move down"
+      , "a or h     Move left"
+      , "d or l     Move right"
+      , "<          Ascend the stairs you are on"
+      , ">          Descend the stairs you are on"
+      , "g          Pick up what you are standing on"
+      , "u          Use or equip an item"
+      , "x          Drop an item"
+      , " "
+      , "Walk into a monster to attack it,"
+      , "or into an NPC to talk to them."
+      ]
+    )
+  , ( "Choosing and aiming"
+    , [ "a b c ...  Choose the item with that letter"
+      , "Esc        Cancel without choosing"
+      , " "
+      , "Using a Range item starts aiming. Monsters"
+      , "you can see are lettered on the map; press"
+      , "a letter to shoot that one, or Esc to stop."
+      ]
+    )
+  , ( "Commands"
+    , [ ":          Start typing a command"
+      , "Enter      Run it"
+      , "Backspace  Rub out a character"
+      , "Esc        Abandon it"
+      , " "
+      , ":q         Save and quit"
+      , ":restart   Start a new dungeon"
+      , ":heal      Cheat: back to full health"
+      , ":super     Cheat: become very strong"
+      ]
+    )
+  ]
+
+-- Move to the next help page, closing the help after the last one
+nextHelpPage :: Int -> Int
+nextHelpPage page
+  | page >= length helpPages = 0
+  | otherwise = page + 1
+
 -- Default values for monster, fog radius, and inventory size
 defaultMonsterRadius :: Int
 defaultMonsterRadius = 4
@@ -112,7 +164,7 @@ newGame config = do
         , commandMode = False
         , commandToExecute = False
         , inventoryMode = Nothing
-        , showLegend = False
+        , legendPage = 0
         , keyPressCount = 0
         , lastInteractedNpc = Nothing
         , aimingState = Nothing

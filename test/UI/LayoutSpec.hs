@@ -8,7 +8,7 @@ module UI.LayoutSpec (spec) where
 
 import Control.Monad (forM_)
 import Data.List (isInfixOf, isPrefixOf)
-import Game.State (defaultFogRadius, updateVisibility, withCurrentWorld)
+import Game.State (defaultFogRadius, helpPages, updateVisibility, withCurrentWorld)
 import Game.Types
 import Linear.V2 (V2 (..))
 import Test.Hspec
@@ -141,6 +141,27 @@ spec = describe "the game screen" $ do
       forM_ corners $ \p ->
         screen (100, 30) (at p)
           `shouldSatisfy` any (("Command:" `isPrefixOf`) . dropWhile (== ' '))
+
+  describe "the help" $ do
+    -- All the keys together do not fit an 80x24 screen, which is why the
+    -- help is paged. Each page has to fit on its own.
+    forM_ (zip [1 :: Int ..] helpPages) $ \(page, (title, entries)) ->
+      describe ("page " ++ show page ++ ", " ++ title) $ do
+        let shown = screen (80, 24) onItem {legendPage = page}
+
+        it "shows its title" $
+          shown `shouldSatisfy` any (title `isInfixOf`)
+
+        it "shows every line" $
+          forM_ (filter (any (/= ' ')) entries) $ \line ->
+            shown `shouldSatisfy` any (line `isInfixOf`)
+
+        it "says how to move on" $
+          shown `shouldSatisfy` any ("?" `isInfixOf`)
+
+    it "closes back to the game" $
+      screen (80, 24) onItem {legendPage = 0}
+        `shouldSatisfy` (not . any ("Move up" `isInfixOf`))
 
   describe "a large map" $ do
     -- The map must not be able to push the rest of the screen off the bottom,

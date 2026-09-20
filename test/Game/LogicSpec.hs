@@ -3,7 +3,7 @@ module Game.LogicSpec (spec) where
 
 import Data.List (isInfixOf, nub)
 import Game.Logic
-import Game.State (currentWorld, maxInventorySize, maxLogMessages, visibleMonsters)
+import Game.State (currentWorld, helpPages, maxInventorySize, maxLogMessages, visibleMonsters)
 import Game.Types
 import Linear.V2 (V2 (..))
 import Test.Hspec
@@ -262,6 +262,29 @@ spec = do
       length (inventory (player s)) `shouldBe` maxInventorySize
       items (currentWorld s) `shouldBe` [sword]
       latest s `shouldSatisfy` ("full" `isInfixOf`)
+
+  describe "the help" $ do
+    let press n = iterate (handleMovementInternal (Just '?')) baseState !! n
+
+    it "is closed to begin with" $
+      legendPage baseState `shouldBe` 0
+
+    it "steps through every page and then closes" $
+      map (legendPage . press) [0 .. length helpPages + 1]
+        `shouldBe` ([0 .. length helpPages] ++ [0])
+
+    it "documents every key the game responds to" $ do
+      let documented = unlines (concatMap snd helpPages)
+      mapM_
+        (\k -> documented `shouldSatisfy` (k `isInfixOf`))
+        [ "w or k", "s or j", "a or h", "d or l"
+        , "<", ">", "g", "u", "x"
+        , "a b c ...", "Esc", ":", "Enter", "Backspace"
+        , ":q", ":restart", ":heal", ":super"
+        ]
+
+    it "gives every page a title" $
+      map fst helpPages `shouldSatisfy` notElem ""
 
   describe "the item chooser" $ do
     let carrying = withPlayer (\p -> p {inventory = [mkItem "Sword" Weapon 4 (V2 0 0)]}) baseState
@@ -577,9 +600,9 @@ spec = do
       monsterPositions s `shouldBe` [V2 6 3]
       keyPressCount s `shouldBe` 1
 
-    it "spends no turn toggling the legend" $ do
+    it "spends no turn opening the help" $ do
       let s = handleMovementInternal (Just '?') withMonster
-      showLegend s `shouldBe` True
+      legendPage s `shouldBe` 1
       monsterPositions s `shouldBe` [V2 7 3]
       keyPressCount s `shouldBe` 0
 
@@ -590,7 +613,7 @@ spec = do
       monsterPositions s `shouldBe` [V2 7 3]
       keyPressCount s `shouldBe` 0
 
-    it "still shows the legend once the game is over" $ do
+    it "still opens the help once the game is over" $ do
       let s = handleMovementInternal (Just '?') withMonster {gameOver = True}
-      showLegend s `shouldBe` True
+      legendPage s `shouldBe` 1
       monsterPositions s `shouldBe` [V2 7 3]

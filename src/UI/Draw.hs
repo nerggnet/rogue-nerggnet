@@ -11,7 +11,7 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import Game.Types
-import Game.State (maxInventorySize, visibleLogMessages, visibleMonsters, currentWorld)
+import Game.State (helpPages, maxInventorySize, visibleLogMessages, visibleMonsters, currentWorld)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
 import Data.List (zip4)
@@ -22,7 +22,7 @@ import qualified Data.Set as Set
 -- Draw the UI
 drawUI :: GameState -> [Widget ()]
 drawUI state =
-  [ drawLegendPopup | showLegend state ] ++
+  [ drawLegendPopup (legendPage state) | legendPage state > 0 ] ++
   [ drawInventoryPopup mode (player state) | Just mode <- [inventoryMode state] ] ++
   [ drawVictoryScreen | gameWon state ] ++
   [ drawGameOverScreen | gameOver state && not (gameWon state) ] ++
@@ -193,27 +193,22 @@ drawInventoryPopup mode plyr =
           map (inventoryEntry eqpdWeapon eqpdArmor) (keyedInventory inv eqpdWeapon eqpdArmor)
     width = maximum (length title : map length entries)
 
--- Draw the legend as a popup
-drawLegendPopup :: Widget ()
-drawLegendPopup =
-  C.centerLayer $ -- Centered popup
-    B.borderWithLabel (str "Commands") $
-      padAll 1 $ vBox $ map str
-        [ "Commands:"
-        , "w or k - Move up"
-        , "s or j - Move down"
-        , "a or h - Move left"
-        , "d or l - Move right"
-        , "< - Ascend stairs/ladder"
-        , "> - Descend stairs/ladder"
-        , "g - Pick up item"
-        , "u - Use an item from inventory"
-        , "x - Drop an item from inventory"
-        , ": - Enter command mode"
-        , ":q - Quit the game"
-        , ":restart - Restart the game"
-        , "? - Toggle this help popup"
-        ]
+-- Draw one page of the help as a popup
+drawLegendPopup :: Int -> Widget ()
+drawLegendPopup page =
+  case drop (page - 1) helpPages of
+    [] -> emptyWidget
+    ((title, entries) : _) ->
+      let label = title ++ " (" ++ show page ++ "/" ++ show (length helpPages) ++ ")"
+          footer
+            | page < length helpPages = "? for the next page"
+            | otherwise = "? to close"
+          body = entries ++ [" ", footer]
+          -- Wide enough for the title too, or the border label is clipped.
+          width = maximum (length label : map length body)
+       in C.centerLayer $
+            B.borderWithLabel (str label) $
+              padAll 1 $ hLimit width $ padRight Max $ vBox (map str body)
 
 -- Draw the stats box with Health, Attack, and Resistance
 drawStatsBox :: Player -> Widget ()

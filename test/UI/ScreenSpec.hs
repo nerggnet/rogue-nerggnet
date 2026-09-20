@@ -154,9 +154,9 @@ spec = do
       showsText room "Command:" `shouldBe` True
 
   describe "popups" $ do
-    it "shows the legend only when it is toggled on" $ do
-      showsText room "Toggle this help" `shouldBe` False
-      showsText room {showLegend = True} "Toggle this help" `shouldBe` True
+    it "shows the help only once it is opened" $ do
+      showsText room "Move up" `shouldBe` False
+      showsText room {legendPage = 1} "Move up" `shouldBe` True
 
     it "shows the victory screen only after winning" $ do
       showsText room "You have won the game!" `shouldBe` False

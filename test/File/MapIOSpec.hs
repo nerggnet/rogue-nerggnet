@@ -5,6 +5,9 @@
 module File.MapIOSpec (spec) where
 
 import Control.Exception (evaluate, finally)
+import Data.Aeson (Result (..), Value (Object), fromJSON, toJSON)
+import qualified Data.Aeson.Key as Key
+import qualified Data.Aeson.KeyMap as KM
 import Control.Monad (when)
 import File.MapIO (deleteSave, loadNewGame, loadSavedGame, persistGame, saveGame)
 import Game.Logic (executeAction)
@@ -81,6 +84,28 @@ spec = do
         state <- freshGame
         playerXPLevel (player state) `shouldBe` 1
         health (player state) `shouldSatisfy` (> 0)
+
+      describe "loading an older save" $
+        it "fills in on-screen fields the save does not have" $ do
+          state <- freshGame
+          let transient =
+                [ "legendPage", "commandBuffer", "commandMode", "commandToExecute"
+                , "inventoryMode", "keyPressCount", "lastInteractedNpc"
+                , "aimingState", "gameOver", "gameWon", "message"
+                ]
+          slim <- case toJSON state of
+            Object o -> pure (Object (foldr (KM.delete . Key.fromString) o transient))
+            other -> other <$ expectationFailure "a game state should encode as an object"
+          case fromJSON slim of
+            Error err -> expectationFailure err
+            Success reloaded -> do
+              legendPage reloaded `shouldBe` 0
+              commandMode reloaded `shouldBe` False
+              gameOver reloaded `shouldBe` False
+              message reloaded `shouldBe` []
+              -- and the durable half survived
+              position (player reloaded) `shouldBe` position (player state)
+              length (levels reloaded) `shouldBe` length (levels state)
 
       describe "persistGame" $ do
         it "writes a save while the run is still going" $

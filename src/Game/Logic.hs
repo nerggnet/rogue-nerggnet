@@ -4,7 +4,7 @@ module Game.Logic where
 import Game.State
   ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
   , updateVisibility, manhattanDistance, evalTriggerCondition, visibleMonsters
-  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval
+  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage
   )
 import Game.GridUtils (updateTile, gridLookup, keyedInventory)
 import Game.Types
@@ -34,7 +34,7 @@ handleMovementInternal key state =
       in case key of
            -- Toggling the legend and opening command mode are not turns, so
            -- they must not move monsters or advance the NPC clock.
-           Just '?' -> state { showLegend = not (showLegend state) }
+           Just '?' -> state { legendPage = nextHelpPage (legendPage state) }
            Just ':' -> state { commandMode = True, commandBuffer = ":" }
            _ | isGameOverOrWon -> acted
            _ -> processTurn acted
