@@ -99,6 +99,19 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- The dungeon goes twelve floors down. The first level is untouched except
+  that finding the Gold Coin and the Magic Ring no longer ends the game; the
+  way out is at the bottom now. Below it are eleven new floors with 24 kinds
+  of monster, 34 items, four sorts of key, traps, shrines, and escape shafts
+  on the third, sixth and ninth floors for anyone who would rather bank what
+  they are carrying than go deeper. At the bottom the Dungeon Lord stands in
+  front of a vault holding 7000 in treasure, and the sigil that opens it is
+  what falls when the Lord does.
+- `Game.Autoplay`, which plays the dungeon through the same functions the
+  keyboard drives, so a hand-drawn dungeon can be checked for being
+  finishable at all. The test-suite plays the shipped one on several seeds
+  and fails if it cannot be beaten, or if it is beaten without the player
+  ever being brought into danger.
 - `harmPlayer` and `healPlayer` trigger actions, for traps and for fountains.
   A trap can kill, so it is a real cost rather than scenery.
 - A run has a score. Items carry an `itemValue`, the sidebar shows what is
@@ -113,6 +126,10 @@ All notable changes to this project are documented in this file.
   template: "none alive" would otherwise be true before the boss ever
   appeared. Melee, ranged attacks and Firestorm all record a kill, and a
   trigger may name a template the level has not yet called up.
+- An item a trigger asks the player to carry is now looked for across every
+  level at or above it, rather than only the one the trigger is on. A rope
+  found on the second floor is what opens the way out of the sixth, and the
+  old rule called that an error.
 - Loading checks that a level can be played, not just that it parses. Every
   monster, item and NPC has to be reachable from where the player arrives,
   and so do the stairs down; no door may be drawn inside a wall; the stairs

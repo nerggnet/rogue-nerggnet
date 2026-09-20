@@ -584,68 +584,82 @@ spec = do
       decode (encode awkward) `shouldBe` Just awkward
 
   describe "validateTriggers" $ do
-    let itemNamed n =
-          FT.JSONItem
-            { FT.itemName = n
-            , FT.itemPosition = (0, 0)
-            , FT.itemDescription = ""
-            , FT.itemCategory = "Special"
-            , FT.itemEffectValue = 0
-            , FT.itemHidden = False
-            , FT.itemInactive = False
-            , FT.itemUses = Nothing
-            , FT.itemEffect = Nothing
-            , FT.itemValue = Nothing
-            }
-        npcNamed n = FT.JSONNPC {FT.npcName = n, FT.npcPosition = (0, 0), FT.npcMessage = ""}
+    let npcNamed n = FT.JSONNPC {FT.npcName = n, FT.npcPosition = (0, 0), FT.npcMessage = ""}
         monsterNamed n = jsonMonsterAt n (1, 1)
         trigger c = Trigger {triggerCondition = c, triggerActions = [], triggerRecurring = False}
 
-    it "accepts a trigger whose item exists" $
+    it "accepts a trigger whose NPC is on the level" $
       fmap (map triggerCondition)
-        (validateTriggers [trigger (HasItem "Gold Coin")] [itemNamed "Gold Coin"] [] [])
-        `shouldBe` Right [HasItem "Gold Coin"]
+        (validateTriggers [trigger (TalkedToNpc "Bob")] [npcNamed "Bob"] [])
+        `shouldBe` Right [TalkedToNpc "Bob"]
 
-    it "names an item the level does not define" $
-      validateTriggers [trigger (HasItem "No Such Item")] [] [] []
-        `shouldReport` "No Such Item"
-
-    it "names every missing item of a posAndItems trigger" $ do
-      let r = validateTriggers
-                [trigger (AtPositionWithItems (V2 0 0) ["Gold Coin", "Ghost Item"])]
-                [itemNamed "Gold Coin"]
-                []
-                []
-      r `shouldReport` "Ghost Item"
+    it "names an NPC the level does not define" $
+      validateTriggers [trigger (TalkedToNpc "Nobody")] [npcNamed "Bob"] []
+        `shouldReport` "Nobody"
 
     it "names a monster the level does not define" $
-      validateTriggers [trigger (MonsterDefeated "Nobody")] [] [] []
+      validateTriggers [trigger (MonsterDefeated "Nobody")] [] []
         `shouldReport` "Nobody"
 
     it "accepts a monster that is only a spawn template" $ do
       let sleeping = (monsterNamed "Dungeon Lord") {FT.inactive = Just True}
       fmap (map triggerCondition)
-        (validateTriggers [trigger (MonsterDefeated "Dungeon Lord")] [] [] [sleeping])
+        (validateTriggers [trigger (MonsterDefeated "Dungeon Lord")] [] [sleeping])
         `shouldBe` Right [MonsterDefeated "Dungeon Lord"]
-
-    it "names an NPC the level does not define" $
-      validateTriggers [trigger (TalkedToNpc "Nobody")] [] [npcNamed "Bob"] []
-        `shouldReport` "Nobody"
 
     it "reports every bad trigger, not just the first" $ do
       let r = validateTriggers
-                [trigger (HasItem "Ghost A"), trigger (TalkedToNpc "Ghost B")] [] [] []
+                [trigger (TalkedToNpc "Ghost A"), trigger (MonsterDefeated "Ghost B")] [] []
       r `shouldReport` "Ghost A"
       r `shouldReport` "Ghost B"
       either length (const 0) r `shouldBe` 2
 
     it "says which trigger is at fault" $
-      validateTriggers [trigger AllMonstersDefeated, trigger (HasItem "Ghost")] [] [] []
+      validateTriggers [trigger AllMonstersDefeated, trigger (TalkedToNpc "Ghost")] [] []
         `shouldReport` "trigger 1"
 
-    it "does not look at items for an allMonstersDefeated trigger" $
-      fmap (map triggerCondition) (validateTriggers [trigger AllMonstersDefeated] [] [] [])
+    it "does not look at NPCs for an allMonstersDefeated trigger" $
+      fmap (map triggerCondition) (validateTriggers [trigger AllMonstersDefeated] [] [])
         `shouldBe` Right [AllMonstersDefeated]
+
+  describe "checking a trigger can ask for an item" $ do
+    let room = ["#####", "#S..#", "#####"]
+        withTrigger t l = l {FT.triggers = [t]}
+        needing names = baseJSONTrigger
+          { FT.triggerType = "posAndItems"
+          , FT.target = Just (2, 1)
+          , FT.requiredItems = Just names
+          , FT.actions = []
+          }
+
+    it "reports an item nothing in the dungeon provides" $
+      newGame testGen (jsonConfig [withTrigger (needing ["Ghost Relic"]) (jsonLevel room)])
+        `shouldReport` "Ghost Relic"
+
+    it "accepts an item found on the same level" $ do
+      st <- shouldSucceed $ newGame testGen $ jsonConfig
+        [ (jsonLevel room)
+            { FT.triggers = [needing ["Lamp"]]
+            , FT.items = [jsonItemOf "Lamp" "Weapon"]
+            }
+        ]
+      length (levels st) `shouldBe` 1
+
+    -- The player carries what they pick up, so a rope found on the way down
+    -- is what opens the way out further below.
+    it "accepts an item carried down from an earlier level" $ do
+      st <- shouldSucceed $ newGame testGen $ jsonConfig
+        [ (jsonLevel ["#####", "#S.>#", "#####"]) {FT.items = [jsonItemOf "Rope" "Weapon"]}
+        , (jsonLevel ["#####", "#..<#", "#####"]) {FT.triggers = [needing ["Rope"]]}
+        ]
+      length (levels st) `shouldBe` 2
+
+    it "reports an item that only turns up further down" $
+      newGame testGen (jsonConfig
+        [ (jsonLevel ["#####", "#S.>#", "#####"]) {FT.triggers = [needing ["Rope"]]}
+        , (jsonLevel ["#####", "#..<#", "#####"]) {FT.items = [jsonItemOf "Rope" "Weapon"]}
+        ])
+        `shouldReport` "nothing down to here provides"
 
   describe "transformJSONAction" $ do
     let action t = baseAction {FT.actionType = t}

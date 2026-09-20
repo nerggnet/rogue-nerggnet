@@ -30,6 +30,7 @@ library
     import:           warnings
     hs-source-dirs:   src
     exposed-modules:  Game.Types
+                      Game.Autoplay
                       Game.State
                       Game.Logic
                       Game.GridUtils
@@ -69,6 +70,7 @@ test-suite spec
                       Game.GridUtilsSpec
                       Game.StateSpec
                       Game.LogicSpec
+                      Game.AutoplaySpec
                       File.MapIOSpec
                       UI.DrawSpec
                       Render

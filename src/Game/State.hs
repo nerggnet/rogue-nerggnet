@@ -152,6 +152,7 @@ newGame gen config = do
       ]))
       *> Validation (checkStairsMeet allWorlds)
       *> Validation (checkDoorsOpenable allWorlds)
+      *> Validation (checkTriggerItems allWorlds)
   initialWorld <- firstOr "no \"levels\" are defined" allWorlds
   startingPosition <- inContext "level 0" $
     maybe (problem "the map grid has no \"S\" tile for the player to start on")
@@ -283,7 +284,7 @@ transformFileWorld fileWorld = do
             | (ix, t) <- zip [0 :: Int ..] (FT.triggers fileWorld)
             ])
   -- This one genuinely depends on the triggers above having been built.
-  checked <- validateTriggers trggrs (FT.items fileWorld) (FT.npcs fileWorld) (FT.monsters fileWorld)
+  checked <- validateTriggers trggrs (FT.npcs fileWorld) (FT.monsters fileWorld)
   let built = World
         { mapGrid = map (map charToTile) grid
         , mapRows = rows
@@ -540,26 +541,21 @@ transformJSONAction jsonAction = case FT.actionType jsonAction of
                 ++ intercalate " and " (map show fields)
 
 -- Reject triggers that refer to items or NPCs the level does not define
-validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> [FT.JSONMonster] -> Either Problems [Trigger]
-validateTriggers trggrs triggerItems triggerNpcs triggerMonsters =
+-- An NPC or a monster a trigger names has to be on the level with it: you
+-- talk to one and kill the other where it stands. Items are checked across
+-- levels instead, by checkTriggerItems, since the player carries them down.
+validateTriggers :: [Trigger] -> [FT.JSONNPC] -> [FT.JSONMonster] -> Either Problems [Trigger]
+validateTriggers trggrs triggerNpcs triggerMonsters =
   collect [ inContext ("trigger " ++ show ix) (validateTrigger t)
           | (ix, t) <- zip [0 :: Int ..] trggrs
           ]
   where
-    itemNames = map FT.itemName triggerItems
     npcNames  = map FT.npcName triggerNpcs
     -- Spawn templates count: a boss is usually inactive until a trigger
     -- calls it up, and a trigger may well wait on that same boss dying.
     monsterNames = map FT.name triggerMonsters
 
     validateTrigger trigger = case triggerCondition trigger of
-      HasItem itemName
-        | itemName `notElem` itemNames ->
-            problem $ "needs item " ++ show itemName ++ ", which this level does not define"
-      AtPositionWithItems _ required
-        | missing@(_:_) <- filter (`notElem` itemNames) required ->
-            problem $ "needs item(s) " ++ intercalate ", " (map show missing)
-                      ++ ", which this level does not define"
       TalkedToNpc nName
         | nName `notElem` npcNames ->
             problem $ "refers to NPC " ++ show nName ++ ", which this level does not define"
@@ -654,6 +650,28 @@ checkStairsMeet worlds =
               [ "level " ++ show ix ++ " goes down at " ++ showPos down
                 ++ " but level " ++ show (ix + 1) ++ " comes up at " ++ showPos up
               ]
+
+-- An item a trigger asks the player to be carrying has to exist by then.
+--
+-- Anywhere at or above that level counts, because the player carries what
+-- they pick up: a rope found on the second floor is what opens the way out
+-- of the sixth.
+checkTriggerItems :: [World] -> Either Problems ()
+checkTriggerItems worlds = noProblems (concat (zipWith missing [0 :: Int ..] worlds))
+  where
+    carriedBy ix = Set.fromList [iName i | world <- take (ix + 1) worlds, i <- items world]
+    missing ix world =
+      [ "level " ++ show ix ++ ": trigger " ++ show n ++ " needs item(s) "
+        ++ intercalate ", " (map show absent)
+        ++ ", which nothing down to here provides"
+      | (n, t) <- zip [0 :: Int ..] (triggers world)
+      , let absent = filter (`Set.notMember` carriedBy ix) (itemsAskedFor (triggerCondition t))
+      , not (null absent)
+      ]
+    itemsAskedFor condition = case condition of
+      HasItem name -> [name]
+      AtPositionWithItems _ required -> required
+      _ -> []
 
 -- A locked door needs a key the player can already have, or a trigger that
 -- opens it. Keys carry between levels, so anything found on the way down

@@ -10,6 +10,9 @@ The dungeon is **entirely data-driven**: maps, monsters, items, NPCs, locked
 doors and scripted events all live in `world.json`, so you can build your own
 dungeon without touching a line of Haskell.
 
+Twelve floors deep. The way out is at the bottom, past the Dungeon Lord, and
+a run is judged on how far down it got and what it carried back up.
+
 ```
                     Rogue nerggnet (press ? for help)
 
@@ -178,6 +181,20 @@ are drawn dimmed and without their contents.
   Getting out is what turns treasure carried into treasure kept: dying loses
   the lot, and both endings show the same summary so two runs can be set
   against each other.
+
+## Playing it through by machine
+
+`Game.Autoplay` plays the dungeon with the same functions the keyboard
+drives. It heals when hurt, wears the best thing it is carrying, fights what
+is in the way, picks up what it passes, unlocks what it can, walks down, and
+takes a way out once there is nowhere deeper to go. It is deliberately
+unclever, and it never runs away, so a dungeon it beats is beatable.
+
+The test-suite plays the shipped dungeon through on several seeds and
+checks that it gets to the bottom and back out alive, with the treasure,
+having been brought below 60% health somewhere on the way. That is what
+keeps a hand-drawn dungeon honest: an impossible level, or a trivial one,
+fails the build.
 
 ## When the dungeon file is wrong
 
