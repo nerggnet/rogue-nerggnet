@@ -11,7 +11,7 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import Game.Types
-import Game.State (maxInventorySize, visibleMonsters, currentWorld)
+import Game.State (maxInventorySize, visibleLogMessages, visibleMonsters, currentWorld)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
 import Data.List (zip4)
@@ -206,10 +206,11 @@ drawInventory plyr =
       in str [key, ')', ' '] <+> str (iName itm ++ usesText ++ equippedMarker)
 
 -- Draw messages/log
+-- Draw the most recent log lines, oldest at the top
 drawMessages :: [String] -> Widget ()
 drawMessages msgs =
-      vLimit 5 $ -- Limit to 3 rows
-        vBox $ map str (reverse . take 5 $ msgs)
+      vLimit visibleLogMessages $
+        vBox $ map str (reverse . take visibleLogMessages $ msgs)
 
 -- Draw the command input bar
 drawCommandInput :: GameState -> Widget ()

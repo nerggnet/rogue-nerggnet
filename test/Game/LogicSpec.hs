@@ -3,7 +3,7 @@ module Game.LogicSpec (spec) where
 
 import Data.List (isInfixOf, nub)
 import Game.Logic
-import Game.State (currentWorld, maxInventorySize, visibleMonsters)
+import Game.State (currentWorld, maxInventorySize, maxLogMessages, visibleMonsters)
 import Game.Types
 import Linear.V2 (V2 (..))
 import Test.Hspec
@@ -36,12 +36,12 @@ spec = do
     it "drops the last element" $
       initSafe [1, 2, 3 :: Int] `shouldBe` [1, 2]
 
-  describe "replace" $ do
+  describe "replaceFirst" $ do
     it "swaps only the first matching element" $
-      replace 1 9 [1, 2, 1 :: Int] `shouldBe` [9, 2, 1]
+      replaceFirst 1 9 [1, 2, 1 :: Int] `shouldBe` [9, 2, 1]
 
     it "leaves a list without a match alone" $
-      replace 7 9 [1, 2, 3 :: Int] `shouldBe` [1, 2, 3]
+      replaceFirst 7 9 [1, 2, 3 :: Int] `shouldBe` [1, 2, 3]
 
   describe "movePlayer" $ do
     it "steps onto an adjacent floor tile" $
@@ -135,6 +135,13 @@ spec = do
           s = combat (withGoblin rat) rat True
       monsters (currentWorld s) `shouldBe` []
       xp (player s) `shouldBe` 10
+
+    -- Messages for things that did not happen used to be added as empty
+    -- strings, taking up lines the message pane could have shown.
+    it "writes no blank lines to the log" $ do
+      let rat = mkMonster "Rat" (V2 5 3) 3 1
+      message (combat (withGoblin goblin) goblin True) `shouldSatisfy` notElem ""
+      message (combat (withGoblin rat) rat True) `shouldSatisfy` notElem ""
 
     it "records a corpse where the monster fell" $ do
       let rat = mkMonster "Rat" (V2 5 3) 3 1
@@ -526,7 +533,39 @@ spec = do
         (mkItem "Bow" Range 6 (V2 0 0))
         `shouldBe` 6 -- 5 attack + 6 bonus - 5 resistance
 
-  describe "processTurn" $
-    it "trims the message log to ten lines" $ do
+  describe "processTurn" $ do
+    it "trims the message log" $ do
       let noisy = baseState {message = map show [1 .. 30 :: Int]}
-      length (message (processTurn noisy)) `shouldBe` 10
+      length (message (processTurn noisy)) `shouldBe` maxLogMessages
+
+    it "cycles the turn clock so NPCs step every third turn" $
+      map keyPressCount (take 4 (iterate processTurn baseState))
+        `shouldBe` [0, 1, 2, 0]
+
+  describe "what counts as a turn" $ do
+    let withMonster =
+          withWorld (\w -> w {monsters = [mkMonster "Goblin" (V2 7 3) 10 2]}) baseState
+        monsterPositions st = map mPosition (monsters (currentWorld st))
+
+    it "spends a turn on a move, so monsters act" $ do
+      let s = handleMovementInternal (Just 'd') withMonster
+      monsterPositions s `shouldBe` [V2 6 3]
+      keyPressCount s `shouldBe` 1
+
+    it "spends no turn toggling the legend" $ do
+      let s = handleMovementInternal (Just '?') withMonster
+      showLegend s `shouldBe` True
+      monsterPositions s `shouldBe` [V2 7 3]
+      keyPressCount s `shouldBe` 0
+
+    it "spends no turn opening command mode" $ do
+      let s = handleMovementInternal (Just ':') withMonster
+      commandMode s `shouldBe` True
+      commandBuffer s `shouldBe` ":"
+      monsterPositions s `shouldBe` [V2 7 3]
+      keyPressCount s `shouldBe` 0
+
+    it "still shows the legend once the game is over" $ do
+      let s = handleMovementInternal (Just '?') withMonster {gameOver = True}
+      showLegend s `shouldBe` True
+      monsterPositions s `shouldBe` [V2 7 3]

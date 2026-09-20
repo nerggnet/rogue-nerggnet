@@ -81,6 +81,20 @@ All notable changes to this project are documented in this file.
   `restoreWorld`, which could only ever return its argument unchanged
   because the map grid is empty at the point it ran.
 
+### Fixed
+
+- Toggling the legend with `?` or opening command mode with `:` no longer
+  spends a turn. Both used to let monsters move and attack, and every
+  keystroke typed in command mode advanced the clock that decides when NPCs
+  step, so typing `:q` moved the world three times. The clock now ticks in
+  `processTurn`, where a turn actually happens.
+- Combat no longer writes blank lines to the message log. Messages for
+  things that did not happen were added as empty strings, taking up lines
+  out of the five the pane shows.
+- The player's maximum health is found by XP level number rather than by
+  indexing the level table, which silently assumed it was ordered and
+  started at one.
+
 ### Internal
 
 - `Game.State` gained `currentWorld`, `setCurrentWorld` and `withCurrentWorld`.
@@ -90,12 +104,21 @@ All notable changes to this project are documented in this file.
   instead of `Game.Logic`, `File.MapIO` and `UI.MainUI` writing `Game.` in
   front of roughly every other identifier. `OverloadedRecordDot` is on, so
   nested reads are `state.player.health` rather than `health (player state)`.
+- The attributes `wall`, `floor` and `log` were defined but never drawn
+  with; the message-log line counts are named constants rather than two
+  magic numbers with a comment giving a third; and `replace` is now called
+  `replaceFirst`, which is what it does.
 - `processTriggers` applies its bookkeeping to the state the trigger actions
   produced rather than rebasing on the state from before them. Nothing
   currently writes to another level from a trigger, so this changes no
   behaviour, but the old form would have silently discarded it.
 
 ### Performance
+
+- Rebuilding the discovered-tiles grid on load puts the coordinates in a
+  `Set` instead of scanning a list once per cell. For a level the size of
+  the first one, with a mid-game amount explored, that is 6.1 ms down to
+  0.1 ms, and it happens for every level on every load.
 
 - Drawing a tile no longer rescans the level. `UI.Draw` builds one `MapView`
   per frame holding the monster, item, NPC and corpse positions as sets and

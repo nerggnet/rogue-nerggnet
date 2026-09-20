@@ -5,7 +5,7 @@ import Game.Types
 import Game.GridUtils (gridLookup)
 import qualified File.Types as FT
 import Linear.V2 (V2(..))
-import Data.List (intercalate)
+import Data.List (find, intercalate)
 import Data.Maybe (fromMaybe, isNothing)
 
 -- Default values for monster, fog radius, and inventory size
@@ -15,8 +15,19 @@ defaultMonsterRadius = 4
 defaultFogRadius :: Int
 defaultFogRadius = 5
 
+-- NPCs take a step every this many turns
+npcMoveInterval :: Int
+npcMoveInterval = 3
+
 maxInventorySize :: Int
 maxInventorySize = 15
+
+-- How many log lines are kept, and how many of those the message pane shows
+maxLogMessages :: Int
+maxLogMessages = 10
+
+visibleLogMessages :: Int
+visibleLogMessages = 5
 
 -- Initialize the game state
 initGame :: Either FT.GameConfig GameState -> GameState
@@ -345,6 +356,17 @@ visibleMonsters world =
   zip ['a'..] (filter onScreen (filter (not . mInactive) (monsters world)))
   where
     onScreen = isVisibleAt world . mPosition
+
+-- The XP level entry the player is currently at. The table is looked up by
+-- level number rather than indexed, so it need not be contiguous or ordered.
+currentXPLevel :: GameState -> Maybe XPLevel
+currentXPLevel state =
+  find ((== playerXPLevel (player state)) . xpLevel) (xpLevels state)
+
+-- Maximum health at the player's current XP level. Falls back to the health
+-- they already have, so a missing entry can never heal them.
+maxHealth :: GameState -> Int
+maxHealth state = maybe (health (player state)) xpHealth (currentXPLevel state)
 
 -- Helper function to now if all monsters on a level have been defeated
 allMonstersDefeated :: GameState -> Bool

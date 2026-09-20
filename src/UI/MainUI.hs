@@ -4,12 +4,12 @@ module UI.MainUI (startGame) where
 import Brick
 import Graphics.Vty
   ( Event(..), Key(..), rgbColor, withBackColor, withForeColor, defAttr
-  , black, white, yellow, green, red, blue, magenta, cyan
+  , black, yellow, green, red, blue, magenta, cyan
   )
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 import File.MapIO (loadNewGame, loadSavedGame, saveGame)
-import Game.State (initGame)
+import Game.State (initGame, maxHealth)
 import Game.Logic
 import UI.Draw
 import Game.Types
@@ -66,7 +66,6 @@ runGame initialState = do
 handleEvent :: BrickEvent () e -> EventM () GameState ()
 handleEvent (VtyEvent (EvKey key [])) = do
   isCommandMode <- gets commandMode
-  modify $ \s -> s { keyPressCount = (keyPressCount s + 1) `mod` 3 }
   if isCommandMode
   then handleCommandInput key
   else handleMovement key
@@ -109,8 +108,7 @@ executeCommand ":restart" = do -- Restart the game
 executeCommand ":heal" = do -- Cheat
     state <- get
     let plyr = player state
-        playerCurrentMaxHealth = xpHealth (xpLevels state !! (playerXPLevel plyr - 1))
-    modify (\s -> s { player = plyr { health = playerCurrentMaxHealth }, gameOver = False, commandToExecute = False } )
+    modify (\s -> s { player = plyr { health = maxHealth state }, gameOver = False, commandToExecute = False } )
 executeCommand ":super" = do -- Cheat a lot
     state <- get
     let plyr = player state
@@ -121,8 +119,6 @@ defaultAttrMap :: AttrMap
 defaultAttrMap = attrMap defAttr
   [ (attrName "fog", withBackColor defAttr black)
   , (attrName "discovered", withBackColor defAttr (rgbColor (40 :: Int) 40 40)) -- Dimly lit
-  , (attrName "wall", withForeColor (withBackColor defAttr black) white)
-  , (attrName "floor", withBackColor defAttr white)
   , (attrName "door", withForeColor defAttr yellow)
   , (attrName "upStair", withForeColor defAttr green)
   , (attrName "downStair", withForeColor defAttr green)
@@ -132,5 +128,4 @@ defaultAttrMap = attrMap defAttr
   , (attrName "corpse", withForeColor defAttr red)
   , (attrName "npc", withForeColor defAttr cyan)
   , (attrName "item", withForeColor defAttr magenta)
-  , (attrName "log", withForeColor defAttr yellow)
   ]

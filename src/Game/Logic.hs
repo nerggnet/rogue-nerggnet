@@ -4,7 +4,7 @@ module Game.Logic where
 import Game.State
   ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
   , updateVisibility, manhattanDistance, evalTriggerCondition, visibleMonsters
-  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel
+  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval
   )
 import Game.GridUtils (updateTile, gridLookup, keyedInventory)
 import Game.Types
@@ -19,9 +19,7 @@ handleMovementInternal key state =
     Just _ -> let aim = handleCommandInputInternal key False state in aim state
     Nothing ->
       let isGameOverOrWon = gameOver state || gameWon state
-          newState = case key of
-            Just '?' -> state { showLegend = not (showLegend state) }
-            Just ':' -> state { commandMode = True, commandBuffer = ":" }
+          acted = case key of
             _ | isGameOverOrWon -> state -- Prevent movement if game is won/over (except '?' and ':')
             Just c | c == 'w' || c == 'k' -> movePlayer North state
             Just c | c == 's' || c == 'j' -> movePlayer South state
@@ -33,16 +31,24 @@ handleMovementInternal key state =
             Just 'u' -> promptUseItem state
             Just 'x' -> promptDropItem state
             _ -> state
-      in if isGameOverOrWon then newState else processTurn newState
+      in case key of
+           -- Toggling the legend and opening command mode are not turns, so
+           -- they must not move monsters or advance the NPC clock.
+           Just '?' -> state { showLegend = not (showLegend state) }
+           Just ':' -> state { commandMode = True, commandBuffer = ":" }
+           _ | isGameOverOrWon -> acted
+           _ -> processTurn acted
 
+-- One turn: the clock ticks, then monsters move and attack, triggers fire,
+-- and the NPCs take a step every npcMoveInterval turns.
 processTurn :: GameState -> GameState
 processTurn state =
-  let state' = moveMonsters state
+  let ticked = state { keyPressCount = (keyPressCount state + 1) `mod` npcMoveInterval }
+      state' = moveMonsters ticked
       state'' = monstersAttack state'
       state''' = processTriggers state''
-      kyprssCnt = keyPressCount state'''
-      state'''' = if kyprssCnt == 0 then moveNPCs state''' else state'''
-  in state'''' { message = take 10 (message state'''') }
+      state'''' = if keyPressCount state''' == 0 then moveNPCs state''' else state'''
+  in state'''' { message = take maxLogMessages (message state'''') }
 
 -- Go up stairs
 goUp :: GameState -> GameState
@@ -144,7 +150,7 @@ useItem itm state =
 
       updatedState = case iCategory itm of
         Healing ->
-          let playerCurrentMaxHealth = xpHealth (xpLevels state !! (playerXPLevel plyr - 1))
+          let playerCurrentMaxHealth = maxHealth state
               healedHealth = min playerCurrentMaxHealth (health plyr + iEffectValue itm)
            in state { player = plyr { health = healedHealth
                                         , inventory = reduceUses itm (inventory plyr) }
@@ -282,7 +288,8 @@ executeRangedAttack state targetMonster rangedItem =
             then levelUp ((player state) { xp = state.player.xp + mXP target })
                          (xpLevels state)
             else (player state, [])
-          completeMessages = levelUpMessages ++ [defeatMessage, xpGainMessage, attackMessage]
+          completeMessages = levelUpMessages
+            ++ filter (not . null) [defeatMessage, xpGainMessage, attackMessage]
           updatedPlayerWithReducedUsesForItem =
             updatedPlayer { inventory = reduceUses rangedItem (inventory updatedPlayer) }
        in setCurrentWorld updatedWorld $ state
@@ -430,7 +437,10 @@ combat state mnstr playerGoesFirst =
                                  then "The " ++ mName target ++ " counterattacked you for " ++ show monsterDamage ++ " damage!"
                                  else "You counterattacked " ++ mName target ++ " for " ++ show playerDamage ++ " damage!"
           deadMessage = if isDead then "You have died! Game Over." else ""
-          combatMessages = [deadMessage, defeatMessage, counterattackMessage, attackMessage]
+          -- Events that did not happen contribute "", which would otherwise
+          -- take up one of the few lines the message pane shows.
+          combatMessages = filter (not . null)
+            [deadMessage, defeatMessage, counterattackMessage, attackMessage]
           updatedPlayerWithXP = if monsterDefeated
                                 then updatedPlayer { xp = xp updatedPlayer + mXP target }
                                 else updatedPlayer
@@ -488,7 +498,7 @@ monsterAttackOrWait :: GameState -> Monster -> GameState
 monsterAttackOrWait state mnstr =
   let world = currentWorld state
       mnstrUpdated = mnstr { mAttackWait = not (mAttackWait mnstr) }
-      updatedMonsters = replace mnstr mnstrUpdated (monsters world)
+      updatedMonsters = replaceFirst mnstr mnstrUpdated (monsters world)
       updatedWorld = world { monsters = updatedMonsters }
       updatedState = setCurrentWorld updatedWorld state
    in if mAttackWait mnstr
@@ -509,7 +519,7 @@ moveMonsters state =
           (\(moved, occupied) monster ->
              let orgMonsterPos = mPosition monster
                  newMonster = moveMonsterWithOccupied world playerPos occupied monster
-                 newOccupied = replace orgMonsterPos (mPosition newMonster) occupied
+                 newOccupied = replaceFirst orgMonsterPos (mPosition newMonster) occupied
              in (moved ++ [newMonster], newOccupied))
           ([], initialOccupiedPositions)
           activeMonsters
@@ -517,12 +527,13 @@ moveMonsters state =
       updatedWorld = world { monsters = updatedMonsters ++ inactiveMonsters }
   in setCurrentWorld updatedWorld state
 
--- Helper function to replace an item in a list
-replace :: Eq a => a -> a -> [a] -> [a]
-replace _ _ [] = []
-replace old new (x:xs)
+-- Replace the first occurrence of a value in a list, leaving any later
+-- occurrences alone
+replaceFirst :: Eq a => a -> a -> [a] -> [a]
+replaceFirst _ _ [] = []
+replaceFirst old new (x:xs)
   | old == x  = new:xs
-  | otherwise = x:replace old new xs
+  | otherwise = x:replaceFirst old new xs
 
 moveMonsterWithOccupied :: World -> V2 Int -> [V2 Int] -> Monster -> Monster
 moveMonsterWithOccupied world playerPos occupiedPositions monster =

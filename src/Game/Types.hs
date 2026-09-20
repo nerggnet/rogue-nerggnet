@@ -8,6 +8,7 @@ import GHC.Generics (Generic)
 import Data.Aeson (ToJSON(toJSON), FromJSON(parseJSON), object, withObject, (.:), (.:?), (.!=), (.=))
 import qualified Data.Aeson.Key as Key
 import Linear.V2 (V2)
+import qualified Data.Set as Set
 
 -- Custom JSON instances for V2
 instance ToJSON a => ToJSON (V2 a)
@@ -214,9 +215,14 @@ instance FromJSON World where
       , corpses = crpses
       }
 
--- Convert a list of discovered coordinates back to a 2D grid
+-- Convert a list of discovered coordinates back to a 2D grid.
+-- The coordinates go into a Set first: a level with a few hundred discovered
+-- tiles would otherwise scan the whole list once per cell of the grid.
 coordsToGrid :: [(Int, Int)] -> Int -> Int -> [[Bool]]
-coordsToGrid coords rows cols = [ [ (x, y) `elem` coords | x <- [0 .. cols - 1] ] | y <- [0 .. rows - 1] ]
+coordsToGrid coords rows cols =
+  [ [ (x, y) `Set.member` seen | x <- [0 .. cols - 1] ] | y <- [0 .. rows - 1] ]
+  where
+    seen = Set.fromList coords
 
 newtype AimingState = AimingState
   { aimingItem :: Item -- The ranged item being used

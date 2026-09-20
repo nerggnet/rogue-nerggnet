@@ -215,6 +215,22 @@ spec = do
       forAll (vectorOf 5 (vector 7)) $ \grid ->
         coordsToGrid (gridToCoords grid) 5 7 === grid
 
+  describe "maxHealth" $ do
+    it "reads the table by level number rather than by position" $ do
+      -- The same levels, listed in the wrong order: indexing would read level 3.
+      let shuffled = baseState {xpLevels = reverse testXPLevels}
+      maxHealth (withPlayer (\p -> p {playerXPLevel = 1}) shuffled) `shouldBe` 20
+      maxHealth (withPlayer (\p -> p {playerXPLevel = 2}) shuffled) `shouldBe` 40
+      maxHealth (withPlayer (\p -> p {playerXPLevel = 3}) shuffled) `shouldBe` 60
+
+    it "handles a table that skips level numbers" $ do
+      let sparse = baseState {xpLevels = [XPLevel 1 0 20 5 1, XPLevel 7 100 99 9 9]}
+      maxHealth (withPlayer (\p -> p {playerXPLevel = 7}) sparse) `shouldBe` 99
+
+    it "falls back to current health when the level is missing" $
+      maxHealth (withPlayer (\p -> p {playerXPLevel = 99, health = 7}) baseState)
+        `shouldBe` 7
+
   describe "allMonstersDefeated" $ do
     it "holds when the level has no monsters" $
       allMonstersDefeated baseState `shouldBe` True
