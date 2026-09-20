@@ -15,7 +15,7 @@ jobs:
       matrix:
         # Add newer GHC versions here once they have been tried locally.
         os: [ubuntu-latest, macos-latest]
-        ghc: ['9.12.2']
+        ghc: ['9.12.2', '9.14.1']
 
     steps:
       - uses: actions/checkout@v4

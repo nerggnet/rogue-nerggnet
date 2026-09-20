@@ -34,7 +34,7 @@ Command:
 
 ## Requirements
 
-* GHC (tested with 9.12.2) and `cabal` — easiest via [ghcup](https://www.haskell.org/ghcup/)
+* GHC 9.12 or 9.14 and `cabal` — easiest via [ghcup](https://www.haskell.org/ghcup/)
 * A terminal that supports 24-bit colour
 
 ## Build and run

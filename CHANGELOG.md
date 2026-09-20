@@ -57,6 +57,9 @@ All notable changes to this project are documented in this file.
 
 ### Tooling
 
+- Builds and tests on GHC 9.14.1 as well as 9.12.2; both are in the CI
+  matrix and in `tested-with`. No source change was needed.
+
 - A GitHub Actions workflow builds and tests on Linux and macOS with
   `-Werror`, checks the package metadata, and runs hlint over the sources.
 - Dependency version bounds, a `maintainer`, a `homepage` and a
