@@ -8,6 +8,7 @@ import qualified Game.GridUtilsSpec
 import qualified Game.LogicSpec
 import qualified Game.StateSpec
 import qualified UI.DrawSpec
+import qualified UI.LayoutSpec
 
 main :: IO ()
 main = hspec $ do
@@ -16,3 +17,4 @@ main = hspec $ do
   describe "Game.Logic"     Game.LogicSpec.spec
   describe "File.MapIO"     File.MapIOSpec.spec
   describe "UI.Draw"        UI.DrawSpec.spec
+  describe "UI.Layout"      UI.LayoutSpec.spec

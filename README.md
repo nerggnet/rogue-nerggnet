@@ -37,6 +37,9 @@ Command:
 * GHC 9.12 or 9.14 and `cabal` — easiest via [ghcup](https://www.haskell.org/ghcup/)
 * A terminal that supports 24-bit colour
 
+The map scrolls to follow the player, so the window does not need to be tall
+enough to show a whole dungeon level at once.
+
 ## Build and run
 
 ```bash

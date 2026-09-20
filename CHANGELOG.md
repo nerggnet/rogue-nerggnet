@@ -99,6 +99,18 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- The map is drawn in a viewport that scrolls to follow the player, so the
+  screen fits the terminal. It previously laid the whole dungeon out at full
+  size, which needed a window 38 to 40 rows tall depending on how full the
+  message log was. Anything shorter had its bottom rows quietly cut off, and
+  the bottom is where the command prompt and the newest log line are, so the
+  symptoms looked like three separate bugs:
+    - the prompt was missing entirely;
+    - "You see: ..." for the item underfoot never appeared, leaving an older
+      line such as "There is nothing to pick up here." as the last one
+      visible;
+    - "You picked up: ..." only showed up after the next keypress had pushed
+      it up a row into view.
 - Dying or winning now clears the save file instead of writing it. The game
   saved unconditionally on exit, so a death was stored and every later launch
   dropped the player straight back onto the game over screen, needing

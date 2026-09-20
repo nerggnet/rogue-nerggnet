@@ -84,10 +84,17 @@ mapView world plyr amngState =
     }
 
 -- Draw the map
+--
+-- The grid goes in a viewport so that the screen fits the terminal whatever
+-- size the dungeon is. Without one, a map taller than the window pushes the
+-- message log and the command prompt off the bottom, where they are silently
+-- cut off rather than scrolled to. The player's own tile is marked visible,
+-- so the viewport follows them around a map bigger than the window.
 drawMap :: World -> Player -> Maybe AimingState -> Widget ()
 drawMap wrld plyr amngState =
   B.border $
-    vBox $ zipWith3 drawRow [0..] (mapGrid wrld) (zip (visibility wrld) (discovered wrld))
+    viewport () Both $
+      vBox $ zipWith3 drawRow [0..] (mapGrid wrld) (zip (visibility wrld) (discovered wrld))
   where
     view = mapView wrld plyr amngState
     drawRow y tiles (visRow, seenRow) =
@@ -101,7 +108,7 @@ drawTileWithFog view pos tile lit seen
   | not lit =
       withAttr (attrName "discovered") $ drawTileHidden tile
   | viewPlayer view == pos =
-      withAttr (attrName "player") $ str "@"
+      visible $ withAttr (attrName "player") $ str "@"
   | viewAiming view
   , Just monsterChar <- Map.lookup pos (viewLetters view) =
       withAttr (attrName "aimingMonster") $ str [monsterChar]
