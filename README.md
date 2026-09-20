@@ -65,7 +65,10 @@ CI builds and tests on Linux and macOS with `-Werror`, and runs
 * On exit the full game state is written to `save.json`.
 * On startup, if `save.json` exists it is loaded and you resume where you left
   off; otherwise a new game is started from `world.json`.
-* To start over, either type `:restart` in-game or delete `save.json`.
+* **Death is permanent.** Dying or winning clears `save.json`, so the next
+  launch begins a new dungeon. You cannot undo a death by quitting.
+* To start over at any other time, type `:restart` in-game or delete
+  `save.json`.
 
 `save.json` stores only what cannot be recovered from `world.json` (player,
 entity state, discovered tiles, tile overrides); the map grid itself is

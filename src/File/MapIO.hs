@@ -1,5 +1,5 @@
 -- src/File/MapIO.hs
-module File.MapIO (loadNewGame, loadSavedGame, saveGame) where
+module File.MapIO (loadNewGame, loadSavedGame, saveGame, persistGame, deleteSave) where
 
 import qualified File.Types as FT
 import Game.Types
@@ -8,6 +8,8 @@ import Game.GridUtils (updateTile)
 import Data.Aeson (eitherDecode, eitherDecodeFileStrict, encode)
 import qualified Data.ByteString.Lazy as B
 import Data.List (nub)
+import Control.Monad (when)
+import System.Directory (doesFileExist, removeFile)
 
 defaultWorldFile :: FilePath
 defaultWorldFile = "world.json"
@@ -52,6 +54,23 @@ loadMapLevels path = do
 saveGame :: FilePath -> GameState -> IO ()
 saveGame savePath state =
   B.writeFile savePath (encode (trimGameStateForSaving state))
+
+-- Persist the game at the end of a session.
+--
+-- A finished run must not leave a save behind. Writing one would drop the
+-- player straight back into the game over screen every time they started the
+-- game, and leaving an older one in place would let them undo the death by
+-- quitting. Either way the run is over, so the save goes.
+persistGame :: FilePath -> GameState -> IO ()
+persistGame savePath state
+  | gameOver state || gameWon state = deleteSave savePath
+  | otherwise                       = saveGame savePath state
+
+-- Remove a save file, if there is one
+deleteSave :: FilePath -> IO ()
+deleteSave savePath = do
+  exists <- doesFileExist savePath
+  when exists (removeFile savePath)
 
 -- Before saving, trim unnecessary fields like visibility
 trimWorldForSaving :: World -> World

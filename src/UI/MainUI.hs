@@ -8,7 +8,7 @@ import Graphics.Vty
   )
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
-import File.MapIO (loadNewGame, loadSavedGame, saveGame)
+import File.MapIO (loadNewGame, loadSavedGame, persistGame)
 import Game.State (initGame, maxHealth)
 import Game.Logic
 import UI.Draw
@@ -53,8 +53,11 @@ startGame = do
     else loadNewGame
 
   finalState <- runGame $ initGame gameState
-  saveGame saveFile finalState
-  putStrLn $ if gameOver finalState then "Game Over!" else "Saving progress..."
+  persistGame saveFile finalState
+  putStrLn $ case (gameWon finalState, gameOver finalState) of
+    (True, _) -> "You won! Cleared the save, so next time starts a new dungeon."
+    (_, True) -> "Game Over! Cleared the save, so next time starts a new dungeon."
+    _         -> "Saving progress..."
 
 runGame :: GameState -> IO GameState
 runGame initialState = do

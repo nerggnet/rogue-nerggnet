@@ -6,7 +6,7 @@ module File.MapIOSpec (spec) where
 
 import Control.Exception (evaluate, finally)
 import Control.Monad (when)
-import File.MapIO (loadNewGame, loadSavedGame, saveGame)
+import File.MapIO (deleteSave, loadNewGame, loadSavedGame, persistGame, saveGame)
 import Game.Logic (executeAction)
 import Game.GridUtils (gridLookup)
 import Game.State (currentWorld, initGame)
@@ -81,6 +81,56 @@ spec = do
         state <- freshGame
         playerXPLevel (player state) `shouldBe` 1
         health (player state) `shouldSatisfy` (> 0)
+
+      describe "persistGame" $ do
+        it "writes a save while the run is still going" $
+          withTempSave $ \path -> do
+            state <- freshGame
+            persistGame path state
+            doesFileExist path `shouldReturn` True
+
+        it "removes the save when the player has died" $
+          withTempSave $ \path -> do
+            state <- freshGame
+            saveGame path state
+            doesFileExist path `shouldReturn` True
+            persistGame path state {gameOver = True}
+            doesFileExist path `shouldReturn` False
+
+        it "removes the save when the player has won" $
+          withTempSave $ \path -> do
+            state <- freshGame
+            saveGame path state
+            persistGame path state {gameWon = True}
+            doesFileExist path `shouldReturn` False
+
+        -- Dying on the very first run means there is nothing to delete.
+        it "does not mind when there is no save to remove" $
+          withTempSave $ \path -> do
+            state <- freshGame
+            doesFileExist path `shouldReturn` False
+            persistGame path state {gameOver = True}
+            doesFileExist path `shouldReturn` False
+
+        it "leaves no save an old one could be resumed from" $
+          withTempSave $ \path -> do
+            state <- freshGame
+            -- an earlier, healthy checkpoint
+            persistGame path state
+            doesFileExist path `shouldReturn` True
+            -- the player then dies later in the same run
+            persistGame path state {gameOver = True}
+            doesFileExist path `shouldReturn` False
+
+      describe "deleteSave" $ do
+        it "removes an existing file" $
+          withTempSave $ \path -> do
+            writeFile path "{}"
+            deleteSave path
+            doesFileExist path `shouldReturn` False
+
+        it "is a no-op for a file that is not there" $
+          withTempSave $ \path -> deleteSave path
 
       describe "the save/load round trip" $ do
         it "preserves the player" $ do

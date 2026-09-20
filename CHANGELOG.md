@@ -83,6 +83,12 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Dying or winning now clears the save file instead of writing it. The game
+  saved unconditionally on exit, so a death was stored and every later launch
+  dropped the player straight back onto the game over screen, needing
+  `:restart` to escape. Not writing would have been worse than it sounds:
+  the save from earlier in the run would still be there, so quitting after a
+  death would have undone it.
 - Toggling the legend with `?` or opening command mode with `:` no longer
   spends a turn. Both used to let monsters move and attack, and every
   keystroke typed in command mode advanced the clock that decides when NPCs
