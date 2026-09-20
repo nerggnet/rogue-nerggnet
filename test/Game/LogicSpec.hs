@@ -263,6 +263,31 @@ spec = do
       items (currentWorld s) `shouldBe` [sword]
       latest s `shouldSatisfy` ("full" `isInfixOf`)
 
+  describe "the item chooser" $ do
+    let carrying = withPlayer (\p -> p {inventory = [mkItem "Sword" Weapon 4 (V2 0 0)]}) baseState
+
+    it "opens when the player asks to use an item" $ do
+      let s = promptUseItem carrying
+      inventoryMode s `shouldBe` Just UseMode
+      commandMode s `shouldBe` True
+
+    it "opens in drop mode when the player asks to drop one" $
+      inventoryMode (promptDropItem carrying) `shouldBe` Just DropMode
+
+    it "does not open when there is nothing to choose from" $
+      inventoryMode (promptUseItem baseState) `shouldBe` Nothing
+
+    it "closes on escape" $ do
+      let opened = promptUseItem carrying
+          escaped = handleCommandInputInternal Nothing True opened opened
+      inventoryMode escaped `shouldBe` Nothing
+      commandMode escaped `shouldBe` False
+
+    it "closes once an item has been chosen" $ do
+      let opened = promptUseItem carrying
+          chosen = handleCommandInputInternal (Just 'a') False opened opened
+      inventoryMode chosen `shouldBe` Nothing
+
   describe "dropItem" $ do
     let sword = mkItem "Sword" Weapon 4 (V2 0 0)
         carrying = withPlayer (\p -> p {inventory = [sword]}) baseState

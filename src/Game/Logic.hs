@@ -329,7 +329,9 @@ handleCommandInputInternal key esc state =
           Nothing -> id
   where
     exitAimingMode s = s { aimingState = Nothing, commandMode = False }
-    exitCommandMode s = s { commandMode = False }
+    -- Leaving command mode also abandons any pending item choice; otherwise
+    -- the chooser stays open with nothing listening for a key.
+    exitCommandMode s = s { commandMode = False, inventoryMode = Nothing }
     exitCommandModeAndClearBuffer s = s { commandMode = False, commandBuffer = "" }
     appendToCommandBuffer c s = s { commandBuffer = commandBuffer s ++ [c] }
     removeLastCommandChar s = s { commandBuffer = initSafe (commandBuffer s) }

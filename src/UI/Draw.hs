@@ -23,7 +23,9 @@ import qualified Data.Set as Set
 drawUI :: GameState -> [Widget ()]
 drawUI state =
   [ drawLegendPopup | showLegend state ] ++
+  [ drawInventoryPopup mode (player state) | Just mode <- [inventoryMode state] ] ++
   [ drawVictoryScreen | gameWon state ] ++
+  [ drawGameOverScreen | gameOver state && not (gameWon state) ] ++
   [ vBox
       [ drawTitleBar
       , hBox
@@ -152,6 +154,45 @@ drawVictoryScreen =
         , C.hCenter $ str "Press :q to exit."
         ]
 
+-- Draw the death screen as a popup.
+--
+-- Winning has always had one. Dying only wrote a line to the log, which
+-- scrolls away, so it was easy to miss why the keys had stopped working.
+drawGameOverScreen :: Widget ()
+drawGameOverScreen =
+  C.centerLayer $
+    B.borderWithLabel (str "Game Over") $
+      padAll 2 $ vBox
+        [ C.hCenter $ str "You have died."
+        , C.hCenter $ str " "
+        , C.hCenter $ str "Press :restart for a new dungeon, or :q to quit."
+        ]
+
+-- Draw the item chooser as a popup.
+--
+-- The sidebar cannot list a full inventory on a short terminal, and the keys
+-- are exactly what the player is about to press, so they are shown centred
+-- while a choice is pending.
+drawInventoryPopup :: InventoryMode -> Player -> Widget ()
+drawInventoryPopup mode plyr =
+  C.centerLayer $
+    B.borderWithLabel (str title) $
+      padAll 1 $
+        -- Wide enough for the title too, or the border label is clipped.
+        hLimit width $ padRight Max $ vBox (map str entries)
+  where
+    title = case mode of
+      UseMode  -> "Use which item?"
+      DropMode -> "Drop which item?"
+    inv = inventory plyr
+    eqpdWeapon = equippedWeapon plyr
+    eqpdArmor = equippedArmor plyr
+    entries
+      | null inv = ["No items collected"]
+      | otherwise =
+          map (inventoryEntry eqpdWeapon eqpdArmor) (keyedInventory inv eqpdWeapon eqpdArmor)
+    width = maximum (length title : map length entries)
+
 -- Draw the legend as a popup
 drawLegendPopup :: Widget ()
 drawLegendPopup =
@@ -202,15 +243,19 @@ drawInventory plyr =
     eqpdWeapon = equippedWeapon plyr
     eqpdArmor = equippedArmor plyr
 
-    renderItem (key, itm) =
-      let equippedMarker
-            | Just itm == eqpdWeapon = " (W)" -- Weapon marker
-            | Just itm == eqpdArmor  = " (A)" -- Armor marker
-            | otherwise              = ""
-          usesText = case iUses itm of
-                       Just uses -> " (" ++ show uses ++ ")"
-                       Nothing   -> ""
-      in str [key, ')', ' '] <+> str (iName itm ++ usesText ++ equippedMarker)
+    renderItem = str . inventoryEntry eqpdWeapon eqpdArmor
+
+-- One inventory line: the key that selects it, the name, the uses left and
+-- whether it is equipped.
+inventoryEntry :: Maybe Item -> Maybe Item -> (Char, Item) -> String
+inventoryEntry eqpdWeapon eqpdArmor (key, itm) =
+  [key, ')', ' '] ++ iName itm ++ usesText ++ equippedMarker
+  where
+    equippedMarker
+      | Just itm == eqpdWeapon = " (W)" -- Weapon marker
+      | Just itm == eqpdArmor  = " (A)" -- Armor marker
+      | otherwise              = ""
+    usesText = maybe "" (\uses -> " (" ++ show uses ++ ")") (iUses itm)
 
 -- Draw messages/log
 -- Draw the most recent log lines, oldest at the top.

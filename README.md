@@ -69,7 +69,8 @@ CI builds and tests on Linux and macOS with `-Werror`, and runs
 * On startup, if `save.json` exists it is loaded and you resume where you left
   off; otherwise a new game is started from `world.json`.
 * **Death is permanent.** Dying or winning clears `save.json`, so the next
-  launch begins a new dungeon. You cannot undo a death by quitting.
+  launch begins a new dungeon. You cannot undo a death by quitting. Both ends
+  of a run show a screen saying so.
 * To start over at any other time, type `:restart` in-game or delete
   `save.json`.
 
@@ -111,7 +112,10 @@ Moving into a monster attacks it. Moving into an NPC talks to it.
 
 ### Using items
 
-`u` lists the inventory by letter (equipped items first) and waits for a key:
+`u` opens a chooser listing the inventory by letter (equipped items first)
+and waits for a key. `Esc` closes it without using anything. The same list is
+always in the sidebar, but the chooser is shown over the map so the keys are
+readable even on a small terminal.
 
 * **Weapon** / **Armor** — toggles equipping it; its effect value is added to
   your base attack / resistance.

@@ -6,6 +6,7 @@
 module UI.ScreenSpec (spec) where
 
 import Data.List (isInfixOf)
+import Game.GridUtils (keyedInventory)
 import Game.Logic (getVisibleMonsters)
 import Game.State (withCurrentWorld)
 import Game.Types
@@ -160,6 +161,53 @@ spec = do
     it "shows the victory screen only after winning" $ do
       showsText room "You have won the game!" `shouldBe` False
       showsText room {gameWon = True} "You have won the game!" `shouldBe` True
+
+  describe "the end of a run" $ do
+    it "shows nothing special while the player is alive" $ do
+      showsText room "You have died" `shouldBe` False
+      showsText room "Game Over" `shouldBe` False
+
+    it "shows a banner once the player has died" $
+      showsText room {gameOver = True} "You have died" `shouldBe` True
+
+    it "says how to get out of it" $ do
+      let dead = room {gameOver = True}
+      showsText dead ":restart" `shouldBe` True
+      showsText dead ":q" `shouldBe` True
+
+    it "shows the victory screen rather than the death one after winning" $ do
+      showsText room {gameWon = True} "You have won the game!" `shouldBe` True
+      showsText room {gameWon = True} "You have died" `shouldBe` False
+
+  describe "choosing an item" $ do
+    let stocked =
+          withPlayer (\p -> p {inventory = [mkItem ("Item" ++ show i) Special 0 (V2 0 0) | i <- [1 .. 15 :: Int]]}) room
+        choosing m = stocked {inventoryMode = Just m}
+        keysOn sz st =
+          [ k
+          | k <- take 15 ['a' ..]
+          , any ((k : ") Item") `isInfixOf`) (renderRows sz (drawUI st))
+          ]
+
+    -- The sidebar cannot show fifteen items on a short terminal: it needs 27
+    -- rows and there are only 13 to give it. The keys have to be reachable
+    -- anyway, because they are what the player is about to press.
+    it "shows every key on a small terminal while choosing" $
+      keysOn (80, 24) (choosing UseMode) `shouldBe` take 15 ['a' ..]
+
+    it "shows every key on a large terminal while choosing" $
+      keysOn (120, 40) (choosing UseMode) `shouldBe` take 15 ['a' ..]
+
+    it "says whether the item is being used or dropped" $ do
+      showsText (choosing UseMode) "Use which item?" `shouldBe` True
+      showsText (choosing DropMode) "Drop which item?" `shouldBe` True
+
+    it "shows no chooser when the player is not choosing" $
+      showsText stocked "which item?" `shouldBe` False
+
+    it "keys the chooser the same way the selection logic does" $
+      map fst (keyedInventory (inventory (player stocked)) Nothing Nothing)
+        `shouldBe` keysOn (120, 40) (choosing UseMode)
 
   describe "what the player is standing on" $ do
     it "names an item underfoot" $ do

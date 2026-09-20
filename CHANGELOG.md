@@ -97,8 +97,20 @@ All notable changes to this project are documented in this file.
 - `:restart` reports a world file that no longer loads in the message log
   instead of taking the running game down with it.
 
+### Added
+
+- Dying shows a screen, as winning already did. It previously only wrote a
+  line to the log, which scrolls away, leaving no hint as to why the keys
+  had stopped responding.
+- Choosing an item to use or drop shows the inventory over the map. The
+  sidebar cannot list a full inventory on a short terminal (it needs 27 rows
+  and an 80x24 screen has 13 to spare), so the later keys were unreachable
+  at exactly the moment the player needed to press one.
+
 ### Fixed
 
+- Escape now closes the item chooser rather than only leaving command mode,
+  which used to leave the game believing a choice was still pending.
 - The message pane is always the same height, blank rows included. It used to
   be as tall as the log was long, and since the map takes whatever vertical
   space is left, the map shrank by up to seven rows as messages arrived and
