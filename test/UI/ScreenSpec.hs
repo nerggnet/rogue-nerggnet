@@ -109,7 +109,7 @@ spec = do
       map (glyphAt aiming) [V2 1 1, V2 2 2] `shouldBe` "ab"
 
     it "labels them the same way the attack logic does" $
-      map (glyphAt aiming) (map (mPosition . snd) (getVisibleMonsters aiming))
+      map (glyphAt aiming . mPosition . snd) (getVisibleMonsters aiming)
         `shouldBe` map fst (getVisibleMonsters aiming)
 
     it "goes back to M when not aiming" $
