@@ -439,6 +439,15 @@ spec = do
           {FT.triggerType = "npcTalked", FT.triggerNpcName = Just "Friendly NPC"}
         `shouldReturn` TalkedToNpc "Friendly NPC"
 
+    it "builds a monsterDefeated condition" $
+      conditionFrom baseJSONTrigger
+          {FT.triggerType = "monsterDefeated", FT.triggerMonsterName = Just "Dungeon Lord"}
+        `shouldReturn` MonsterDefeated "Dungeon Lord"
+
+    it "says which field a monsterDefeated trigger is missing" $
+      transformJSONTrigger baseJSONTrigger {FT.triggerType = "monsterDefeated"}
+        `shouldReport` "triggerMonsterName"
+
     it "builds an allMonstersDefeated condition" $
       conditionFrom baseJSONTrigger {FT.triggerType = "allMonstersDefeated"}
         `shouldReturn` AllMonstersDefeated
@@ -508,6 +517,15 @@ spec = do
         `shouldBe` False
       evalTriggerCondition (TalkedToNpc "Bob") baseState `shouldBe` False
 
+    it "MonsterDefeated holds only once that monster has been beaten" $ do
+      evalTriggerCondition (MonsterDefeated "Dungeon Lord") baseState `shouldBe` False
+      evalTriggerCondition (MonsterDefeated "Dungeon Lord")
+        baseState {defeatedMonsters = ["Dungeon Lord"]} `shouldBe` True
+
+    it "MonsterDefeated does not answer for a different monster" $
+      evalTriggerCondition (MonsterDefeated "Dungeon Lord")
+        baseState {defeatedMonsters = ["Goblin", "Rat"]} `shouldBe` False
+
     it "AllMonstersDefeated ignores inactive templates" $ do
       let template = (mkMonster "Dragon" (V2 1 1) 5 1) {mInactive = True}
       evalTriggerCondition AllMonstersDefeated baseState `shouldBe` True
@@ -525,6 +543,7 @@ spec = do
           , AtPositionWithItems (V2 49 14) ["Gold Coin", "Magic Ring"]
           , HasItem "Gold Coin"
           , TalkedToNpc "Friendly NPC"
+          , MonsterDefeated "Dungeon Lord"
           , AllMonstersDefeated
           ]
 
@@ -558,15 +577,16 @@ spec = do
             , FT.itemEffect = Nothing
             }
         npcNamed n = FT.JSONNPC {FT.npcName = n, FT.npcPosition = (0, 0), FT.npcMessage = ""}
+        monsterNamed n = jsonMonsterAt n (1, 1)
         trigger c = Trigger {triggerCondition = c, triggerActions = [], triggerRecurring = False}
 
     it "accepts a trigger whose item exists" $
       fmap (map triggerCondition)
-        (validateTriggers [trigger (HasItem "Gold Coin")] [itemNamed "Gold Coin"] [])
+        (validateTriggers [trigger (HasItem "Gold Coin")] [itemNamed "Gold Coin"] [] [])
         `shouldBe` Right [HasItem "Gold Coin"]
 
     it "names an item the level does not define" $
-      validateTriggers [trigger (HasItem "No Such Item")] [] []
+      validateTriggers [trigger (HasItem "No Such Item")] [] [] []
         `shouldReport` "No Such Item"
 
     it "names every missing item of a posAndItems trigger" $ do
@@ -574,25 +594,36 @@ spec = do
                 [trigger (AtPositionWithItems (V2 0 0) ["Gold Coin", "Ghost Item"])]
                 [itemNamed "Gold Coin"]
                 []
+                []
       r `shouldReport` "Ghost Item"
 
+    it "names a monster the level does not define" $
+      validateTriggers [trigger (MonsterDefeated "Nobody")] [] [] []
+        `shouldReport` "Nobody"
+
+    it "accepts a monster that is only a spawn template" $ do
+      let sleeping = (monsterNamed "Dungeon Lord") {FT.inactive = Just True}
+      fmap (map triggerCondition)
+        (validateTriggers [trigger (MonsterDefeated "Dungeon Lord")] [] [] [sleeping])
+        `shouldBe` Right [MonsterDefeated "Dungeon Lord"]
+
     it "names an NPC the level does not define" $
-      validateTriggers [trigger (TalkedToNpc "Nobody")] [] [npcNamed "Bob"]
+      validateTriggers [trigger (TalkedToNpc "Nobody")] [] [npcNamed "Bob"] []
         `shouldReport` "Nobody"
 
     it "reports every bad trigger, not just the first" $ do
       let r = validateTriggers
-                [trigger (HasItem "Ghost A"), trigger (TalkedToNpc "Ghost B")] [] []
+                [trigger (HasItem "Ghost A"), trigger (TalkedToNpc "Ghost B")] [] [] []
       r `shouldReport` "Ghost A"
       r `shouldReport` "Ghost B"
       either length (const 0) r `shouldBe` 2
 
     it "says which trigger is at fault" $
-      validateTriggers [trigger AllMonstersDefeated, trigger (HasItem "Ghost")] [] []
+      validateTriggers [trigger AllMonstersDefeated, trigger (HasItem "Ghost")] [] [] []
         `shouldReport` "trigger 1"
 
     it "does not look at items for an allMonstersDefeated trigger" $
-      fmap (map triggerCondition) (validateTriggers [trigger AllMonstersDefeated] [] [])
+      fmap (map triggerCondition) (validateTriggers [trigger AllMonstersDefeated] [] [] [])
         `shouldBe` Right [AllMonstersDefeated]
 
   describe "transformJSONAction" $ do

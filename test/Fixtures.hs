@@ -123,6 +123,7 @@ mkState world pos =
     , gameWon           = False
     , rng               = testGen
     , hiddenTurns       = 0
+    , defeatedMonsters  = []
     }
 
 -- | The standard fixture: the open room with the player on the start tile.
@@ -191,6 +192,7 @@ baseJSONTrigger =
     , FT.requiredItems   = Nothing
     , FT.triggerItemName = Nothing
     , FT.triggerNpcName  = Nothing
+    , FT.triggerMonsterName = Nothing
     , FT.actions         = []
     , FT.message         = ""
     , FT.recurring       = False

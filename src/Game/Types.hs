@@ -157,6 +157,7 @@ data TriggerCondition
   | AtPositionWithItems (V2 Int) [String] -- ^ ...and is carrying all of these
   | HasItem String                        -- ^ The item is in the inventory
   | TalkedToNpc String                    -- ^ The player just talked to this NPC
+  | MonsterDefeated String                -- ^ A monster of this name has been beaten
   | AllMonstersDefeated                   -- ^ No active monsters are left
   deriving (Show, Eq, Generic)
 
@@ -289,6 +290,7 @@ data GameState = GameState
   , gameWon           :: Bool
   , rng               :: StdGen -- Every roll the game makes comes from here
   , hiddenTurns       :: Int -- Turns left before monsters notice the player again
+  , defeatedMonsters  :: [String] -- Names of monsters beaten so far
   } deriving (Generic)
 
 instance ToJSON GameState
@@ -317,3 +319,4 @@ instance FromJSON GameState where
       -- A save from before the game rolled dice has no generator to restore.
       <*> v .:? Key.fromString "rng" .!= mkStdGen 0
       <*> v .:? Key.fromString "hiddenTurns" .!= 0
+      <*> v .:? Key.fromString "defeatedMonsters" .!= []

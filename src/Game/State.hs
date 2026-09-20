@@ -188,6 +188,7 @@ newGame gen config = do
         , gameWon = False
         , rng = gen
         , hiddenTurns = 0
+        , defeatedMonsters = []
         }
       updatedWorld = updateVisibility initialPlayer defaultFogRadius initialWorld
   pure initialState { levels = replaceLevel initialState 0 updatedWorld }
@@ -281,7 +282,7 @@ transformFileWorld fileWorld = do
             | (ix, t) <- zip [0 :: Int ..] (FT.triggers fileWorld)
             ])
   -- This one genuinely depends on the triggers above having been built.
-  checked <- validateTriggers trggrs (FT.items fileWorld) (FT.npcs fileWorld)
+  checked <- validateTriggers trggrs (FT.items fileWorld) (FT.npcs fileWorld) (FT.monsters fileWorld)
   let built = World
         { mapGrid = map (map charToTile) grid
         , mapRows = rows
@@ -460,10 +461,14 @@ conditionOf jsonTrigger = case FT.triggerType jsonTrigger of
     case FT.triggerNpcName jsonTrigger of
       Just nName -> Right (TalkedToNpc nName)
       Nothing    -> problem "an \"npcTalked\" trigger needs a \"triggerNpcName\""
+  "monsterDefeated" ->
+    case FT.triggerMonsterName jsonTrigger of
+      Just mname -> Right (MonsterDefeated mname)
+      Nothing    -> problem "a \"monsterDefeated\" trigger needs a \"triggerMonsterName\""
   "allMonstersDefeated" -> Right AllMonstersDefeated
   other -> problem $ "unknown \"triggerType\" " ++ show other
              ++ "; expected one of \"position\", \"posAndItems\", \"itemPickup\", "
-             ++ "\"npcTalked\", \"allMonstersDefeated\""
+             ++ "\"npcTalked\", \"monsterDefeated\", \"allMonstersDefeated\""
 
 -- Interpret a trigger condition against the current game state
 evalTriggerCondition :: TriggerCondition -> GameState -> Bool
@@ -477,6 +482,8 @@ evalTriggerCondition (HasItem itemName) state =
   any ((== itemName) . iName) (inventory (player state))
 evalTriggerCondition (TalkedToNpc nName) state =
   lastInteractedNpc state == Just nName
+evalTriggerCondition (MonsterDefeated mname) state =
+  mname `elem` defeatedMonsters state
 evalTriggerCondition AllMonstersDefeated state =
   allMonstersDefeated state
 
@@ -523,14 +530,17 @@ transformJSONAction jsonAction = case FT.actionType jsonAction of
                 ++ intercalate " and " (map show fields)
 
 -- Reject triggers that refer to items or NPCs the level does not define
-validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> Either Problems [Trigger]
-validateTriggers trggrs triggerItems triggerNpcs =
+validateTriggers :: [Trigger] -> [FT.JSONItem] -> [FT.JSONNPC] -> [FT.JSONMonster] -> Either Problems [Trigger]
+validateTriggers trggrs triggerItems triggerNpcs triggerMonsters =
   collect [ inContext ("trigger " ++ show ix) (validateTrigger t)
           | (ix, t) <- zip [0 :: Int ..] trggrs
           ]
   where
     itemNames = map FT.itemName triggerItems
     npcNames  = map FT.npcName triggerNpcs
+    -- Spawn templates count: a boss is usually inactive until a trigger
+    -- calls it up, and a trigger may well wait on that same boss dying.
+    monsterNames = map FT.name triggerMonsters
 
     validateTrigger trigger = case triggerCondition trigger of
       HasItem itemName
@@ -543,6 +553,10 @@ validateTriggers trggrs triggerItems triggerNpcs =
       TalkedToNpc nName
         | nName `notElem` npcNames ->
             problem $ "refers to NPC " ++ show nName ++ ", which this level does not define"
+      MonsterDefeated mname
+        | mname `notElem` monsterNames ->
+            problem $ "waits on the monster " ++ show mname
+                      ++ ", which this level does not define"
       _ -> Right trigger
 
 -- Fail with all of these at once, or succeed

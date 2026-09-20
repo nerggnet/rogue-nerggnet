@@ -303,8 +303,9 @@ firestorm power state =
             ("Fire washes over " ++ show (length targets) ++ " of them!")
               : [ "You defeated " ++ mName m ++ "!" | m <- felled ]
               ++ [ "You gained " ++ show gained ++ " XP!" | gained > 0 ]
+      noted = foldr recordDefeat rolled felled
    in setCurrentWorld updatedWorld
-        rolled {player = grown, message = reverse told ++ levelUpMessages ++ message rolled}
+        noted {player = grown, message = reverse told ++ levelUpMessages ++ message rolled}
 
 -- The first item in the pack with this effect, if there is one
 carrying :: ItemEffect -> GameState -> Maybe Item
@@ -338,6 +339,14 @@ rollDamage base gen
 activeMonsterAt :: V2 Int -> World -> Maybe Monster
 activeMonsterAt pos world =
   find (\m -> not (mInactive m) && mPosition m == pos) (monsters world)
+
+-- Remember that a monster of this name has been beaten, so that a trigger
+-- can wait on it. Names rather than positions, because that is what a world
+-- file has to refer to.
+recordDefeat :: Monster -> GameState -> GameState
+recordDefeat monster state
+  | mName monster `elem` defeatedMonsters state = state
+  | otherwise = state {defeatedMonsters = mName monster : defeatedMonsters state}
 
 -- Record where a monster fell, without duplicating a position
 addCorpse :: V2 Int -> [V2 Int] -> [V2 Int]
@@ -428,7 +437,8 @@ executeRangedAttack state targetMonster rangedItem =
             ++ filter (not . null) [defeatMessage, xpGainMessage, attackMessage]
           updatedPlayerWithReducedUsesForItem =
             updatedPlayer { inventory = reduceUses rangedItem (inventory updatedPlayer) }
-       in setCurrentWorld updatedWorld $ rolled
+          noted = if monsterDefeated then recordDefeat target rolled else rolled
+       in setCurrentWorld updatedWorld $ noted
             { player = updatedPlayerWithReducedUsesForItem
             , message = completeMessages ++ message rolled }
   where
@@ -608,7 +618,8 @@ combat state mnstr playerGoesFirst =
               then (updatedPlayerWithXP, [])
               else levelUp updatedPlayerWithXP (xpLevels rolled)
           completeMessage = levelUpMessages ++ combatMessages ++ message rolled
-       in setCurrentWorld updatedWorld $ rolled
+          noted = if monsterDefeated then recordDefeat target rolled else rolled
+       in setCurrentWorld updatedWorld $ noted
             { player = updatedPlayerWithXPAndPossibleNewLevel
             , message = completeMessage
             , gameOver = isDead }

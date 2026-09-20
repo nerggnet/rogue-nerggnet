@@ -1,9 +1,9 @@
 -- test/Game/LogicSpec.hs
 module Game.LogicSpec (spec) where
 
-import Data.List (isInfixOf, nub, unfoldr)
+import Data.List (isInfixOf, nub, unfoldr, (\\))
 import Game.Logic
-import Game.State (currentWorld, helpPages, maxInventorySize, maxLogMessages, visibleMonsters)
+import Game.State (currentWorld, evalTriggerCondition, helpPages, maxInventorySize, maxLogMessages, visibleMonsters)
 import Game.Types
 import System.Random (mkStdGen)
 import Linear.V2 (V2 (..))
@@ -259,6 +259,56 @@ spec = do
     it "does not advance when nothing is struck" $
       show (rng (combat baseState (mkMonster "Ghost" (V2 5 3) 1 1) True))
         `shouldBe` show (rng baseState)
+
+  describe "remembering what has been beaten" $ do
+    let rat = mkMonster "Rat" (V2 5 3) 3 1
+        withRat = withWorld (\w -> w {monsters = [rat]}) baseState
+
+    it "notes nothing before a fight" $
+      defeatedMonsters baseState `shouldBe` []
+
+    it "notes a monster cut down in melee" $
+      defeatedMonsters (combat withRat rat True) `shouldBe` ["Rat"]
+
+    it "notes nothing while the monster is still standing" $ do
+      let troll = mkMonster "Troll" (V2 5 3) 500 1
+      defeatedMonsters (combat (withWorld (\w -> w {monsters = [troll]}) baseState) troll True)
+        `shouldBe` []
+
+    it "notes a monster shot at range" $ do
+      let bow = (mkItem "Bow" Range 20 (V2 0 0)) {iUses = Just 2}
+          s = executeRangedAttack (withPlayer (\p -> p {inventory = [bow]}) withRat) rat bow
+      defeatedMonsters s `shouldBe` ["Rat"]
+
+    it "notes everything burned by a firestorm" $ do
+      let scroll = mkSpecial "Scroll" Firestorm 40
+          lit w = w {visibility = replicate 7 (replicate 9 True)}
+          crowd = withPlayer (\p -> p {inventory = [scroll]})
+                    (withWorld (lit . (\w -> w {monsters =
+                      [mkMonster "Goblin" (V2 1 1) 5 1, mkMonster "Rat" (V2 2 2) 5 1]})) baseState)
+      defeatedMonsters (useItem scroll crowd) `shouldSatisfy` \ns ->
+        null (["Goblin", "Rat"] \\ ns)
+
+    it "records a name only once" $ do
+      let two n = mkMonster n (V2 5 3) 3 1
+          s = combat (combat withRat rat True) (two "Rat") True
+      defeatedMonsters s `shouldBe` ["Rat"]
+
+    -- The point of recording defeats rather than asking whether any monster
+    -- of that name is alive: a boss waits as a spawn template, so "none
+    -- alive" would be true before it ever appeared.
+    it "does not count a boss that has yet to be called up" $ do
+      let sleeping = (mkMonster "Dungeon Lord" (V2 1 1) 99 9) {mInactive = True}
+          waiting = withWorld (\w -> w {monsters = [sleeping]}) baseState
+      evalTriggerCondition (MonsterDefeated "Dungeon Lord") waiting `shouldBe` False
+
+    it "fires a trigger once the boss is beaten" $ do
+      let boss = mkMonster "Dungeon Lord" (V2 5 3) 3 9
+          reward = mkTrigger (MonsterDefeated "Dungeon Lord") [DisplayMessage "The vault grinds open."] False
+          arena = withWorld (\w -> w {monsters = [boss], triggers = [reward]}) baseState
+      latest (processTriggers arena) `shouldSatisfy` (not . ("vault" `isInfixOf`))
+      latest (processTriggers (combat arena boss True))
+        `shouldSatisfy` ("The vault grinds open." `isInfixOf`)
 
   describe "levelUp" $ do
     it "does nothing below the next threshold" $ do

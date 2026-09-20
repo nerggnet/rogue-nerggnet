@@ -99,6 +99,12 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- A `monsterDefeated` trigger, which fires once a monster of the given name
+  has been beaten. It remembers defeats rather than asking whether one is
+  currently alive, so it works for a boss that waits as an `inactive`
+  template: "none alive" would otherwise be true before the boss ever
+  appeared. Melee, ranged attacks and Firestorm all record a kill, and a
+  trigger may name a template the level has not yet called up.
 - Loading checks that a level can be played, not just that it parses. Every
   monster, item and NPC has to be reachable from where the player arrives,
   and so do the stairs down; no door may be drawn inside a wall; the stairs

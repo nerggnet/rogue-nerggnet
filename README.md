@@ -348,9 +348,29 @@ actions in order. `"recurring": false` means it fires only once.
 | `posAndItems` | The player stands on `target` **and** carries every item in `requiredItems` | `target`, `requiredItems` |
 | `itemPickup` | `triggerItemName` is in the player's inventory | `triggerItemName` |
 | `npcTalked` | The player last talked to `triggerNpcName` | `triggerNpcName` |
+| `monsterDefeated` | A monster called `triggerMonsterName` has been beaten | `triggerMonsterName` |
 | `allMonstersDefeated` | No active monsters remain on the level | — |
 
 All fields must be present; set the unused ones to `null`.
+
+`monsterDefeated` remembers an actual defeat rather than asking whether any
+monster of that name is currently alive, so it works for a boss that starts
+as an `inactive` template and is called up later by a `spawnMonster` action.
+It may name such a template. Between them, `position` to raise the boss and
+`monsterDefeated` to reward beating it are enough to script an end fight:
+
+```json
+{ "triggerType": "monsterDefeated", "triggerMonsterName": "Dungeon Lord",
+  "target": null, "requiredItems": null, "triggerItemName": null,
+  "triggerNpcName": null, "message": "", "recurring": false,
+  "actions": [
+    { "actionType": "addToInventory", "actionItemName": "Vault Sigil", "actionPosition": null,
+      "actionMonsterName": null, "actionTileType": null, "actionMessage": null },
+    { "actionType": "unlockDoor", "actionPosition": [5, 2], "actionItemName": null,
+      "actionMonsterName": null, "actionTileType": null, "actionMessage": null }
+  ]
+}
+```
 
 #### Trigger actions
 

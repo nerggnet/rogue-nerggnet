@@ -87,6 +87,7 @@ data JSONTrigger = JSONTrigger
   , requiredItems   :: Maybe [String]      -- List of required items for (for posAndItems triggers)
   , triggerItemName :: Maybe String        -- Item name (for itemPickup triggers)
   , triggerNpcName  :: Maybe String        -- NPC name (for npcTalked triggers)
+  , triggerMonsterName :: Maybe String     -- Monster name (for monsterDefeated triggers)
   , actions         :: [JSONTriggerAction] -- List of actions to execute
   , message         :: String              -- Message to display when triggered
   , recurring       :: Bool                -- Is the trigger recurring or not
