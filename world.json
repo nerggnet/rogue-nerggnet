@@ -886,6 +886,17 @@
      "attack": 12,
      "xp": 14,
      "inactive": false
+    },
+    {
+     "name": "Maze Lurker",
+     "position": [
+      3,
+      1
+     ],
+     "health": 30,
+     "attack": 11,
+     "xp": 22,
+     "inactive": true
     }
    ],
    "doors": [
@@ -1104,6 +1115,21 @@
      "itemUses": null,
      "itemValue": 150,
      "itemEffect": "Keepsake"
+    },
+    {
+     "itemName": "Bundle of Candles",
+     "itemPosition": [
+      4,
+      19
+     ],
+     "itemDescription": "Tallow, and still dry.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": true,
+     "itemUses": null,
+     "itemValue": 60,
+     "itemEffect": "Keepsake"
     }
    ],
    "triggers": [
@@ -1172,9 +1198,147 @@
        "actionAmount": null
       }
      ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      4,
+      1
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnMonster",
+       "actionPosition": [
+        3,
+        1
+       ],
+       "actionItemName": null,
+       "actionMonsterName": "Maze Lurker",
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "Something unfolds itself from the ceiling.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      4,
+      20
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnItem",
+       "actionPosition": [
+        4,
+        19
+       ],
+       "actionItemName": "Bundle of Candles",
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A loose stone gives, and something is wedged behind it.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "npcTalked",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": "Lost Prospector",
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "He points back the way you came, and will not say why.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      40,
+      18
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "unlockDoor",
+       "actionPosition": [
+        39,
+        19
+       ],
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A counterweight drops behind the wall, and a bolt slides.",
+       "actionAmount": null
+      }
+     ]
     }
    ],
-   "npcs": []
+   "npcs": [
+    {
+     "npcName": "Lost Prospector",
+     "npcPosition": [
+      36,
+      17
+     ],
+     "npcMessage": "Three ways out of here and I found none of them. Mind the doors -- iron opens iron."
+    }
+   ]
   },
   {
    "levelNumber": 3,
@@ -1468,6 +1632,93 @@
        "actionAmount": null
       }
      ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      42,
+      6
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "shiftTile",
+       "actionPosition": [
+        41,
+        6
+       ],
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": ".",
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "Rubble settles, and the gallery opens a little further.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "allMonstersDefeated",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "healPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 40
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "Nothing else is moving down here. You sit a while.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "itemPickup",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": "Miner's Lantern",
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The lantern gutters, catches, and holds.",
+       "actionAmount": null
+      }
+     ]
     }
    ],
    "npcs": []
@@ -1602,6 +1853,17 @@
      "attack": 13,
      "xp": 40,
      "inactive": false
+    },
+    {
+     "name": "Blade's Keeper",
+     "position": [
+      42,
+      23
+     ],
+     "health": 70,
+     "attack": 16,
+     "xp": 40,
+     "inactive": true
     }
    ],
    "doors": [
@@ -1659,6 +1921,21 @@
      "itemUses": 1,
      "itemValue": 0,
      "itemEffect": null
+    },
+    {
+     "itemName": "Sapper's Charm",
+     "itemPosition": [
+      22,
+      18
+     ],
+     "itemDescription": "Iron filings in a twist of cloth.",
+     "itemCategory": "Special",
+     "itemEffectValue": 2,
+     "itemHidden": false,
+     "itemInactive": true,
+     "itemUses": null,
+     "itemValue": 80,
+     "itemEffect": "Fortify"
     }
    ],
    "triggers": [
@@ -1760,9 +2037,126 @@
        "actionAmount": null
       }
      ]
+    },
+    {
+     "triggerType": "npcTalked",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": "Chained Sapper",
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "addToInventory",
+       "actionPosition": null,
+       "actionItemName": "Sapper's Charm",
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "He presses something into your hand.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "itemPickup",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": "Runed Blade",
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnMonster",
+       "actionPosition": [
+        42,
+        23
+       ],
+       "actionItemName": null,
+       "actionMonsterName": "Blade's Keeper",
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The blade was being watched.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      46,
+      18
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "transportPlayer",
+       "actionPosition": [
+        33,
+        22
+       ],
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 12
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The floor gives way and you land badly, somewhere else.",
+       "actionAmount": null
+      }
+     ]
     }
    ],
-   "npcs": []
+   "npcs": [
+    {
+     "npcName": "Chained Sapper",
+     "npcPosition": [
+      22,
+      20
+     ],
+     "npcMessage": "I cut these galleries. Take this -- it is no use to me now."
+    }
+   ]
   },
   {
    "levelNumber": 5,
@@ -1905,6 +2299,17 @@
      "attack": 22,
      "xp": 110,
      "inactive": false
+    },
+    {
+     "name": "Lockward",
+     "position": [
+      38,
+      10
+     ],
+     "health": 150,
+     "attack": 24,
+     "xp": 40,
+     "inactive": true
     }
    ],
    "doors": [
@@ -1992,6 +2397,21 @@
      "itemUses": null,
      "itemValue": 40,
      "itemEffect": "Escape"
+    },
+    {
+     "itemName": "Sunken Purse",
+     "itemPosition": [
+      5,
+      5
+     ],
+     "itemDescription": "Swollen leather, and heavy.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": true,
+     "itemUses": null,
+     "itemValue": 190,
+     "itemEffect": "Keepsake"
     }
    ],
    "triggers": [
@@ -2093,9 +2513,141 @@
        "actionAmount": null
       }
      ]
+    },
+    {
+     "triggerType": "itemPickup",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": "Silver Key",
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnMonster",
+       "actionPosition": [
+        38,
+        10
+       ],
+       "actionItemName": null,
+       "actionMonsterName": "Lockward",
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "Something rises to stand between you and the lock.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      10,
+      22
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "shiftTile",
+       "actionPosition": [
+        9,
+        22
+       ],
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": ".",
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A sluice grinds open, and the water finds somewhere to go.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "allMonstersDefeated",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnItem",
+       "actionPosition": [
+        5,
+        5
+       ],
+       "actionItemName": "Sunken Purse",
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "With the floor quiet, the silt gives up a purse.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "npcTalked",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": "Drowned Watchman",
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "He will not come with you, and will not say why not.",
+       "actionAmount": null
+      }
+     ]
     }
    ],
-   "npcs": []
+   "npcs": [
+    {
+     "npcName": "Drowned Watchman",
+     "npcPosition": [
+      26,
+      6
+     ],
+     "npcMessage": "The sentinels do not sleep and do not tire. Go around them."
+    }
+   ]
   },
   {
    "levelNumber": 6,
@@ -2306,6 +2858,21 @@
      "itemUses": 1,
      "itemValue": 0,
      "itemEffect": null
+    },
+    {
+     "itemName": "Votive Nail",
+     "itemPosition": [
+      40,
+      22
+     ],
+     "itemDescription": "Driven through a scrap of prayer.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": true,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 120,
+     "itemEffect": "Keepsake"
     }
    ],
    "triggers": [
@@ -2470,6 +3037,93 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": "Still water, and you drink your fill.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      46,
+      16
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "unlockDoor",
+       "actionPosition": [
+        45,
+        15
+       ],
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The shrine keeps its bargain. A bolt draws back.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "allMonstersDefeated",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "healPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 70
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The shrine is yours to sit at now.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "itemPickup",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": "Votive Nail",
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "It is warm, which nothing down here should be.",
        "actionAmount": null
       }
      ]
@@ -2640,6 +3294,39 @@
      "attack": 34,
      "xp": 220,
      "inactive": false
+    },
+    {
+     "name": "Kennel Hound",
+     "position": [
+      30,
+      18
+     ],
+     "health": 190,
+     "attack": 33,
+     "xp": 70,
+     "inactive": true
+    },
+    {
+     "name": "Kennel Hound",
+     "position": [
+      33,
+      18
+     ],
+     "health": 190,
+     "attack": 33,
+     "xp": 70,
+     "inactive": true
+    },
+    {
+     "name": "Kennelmaster",
+     "position": [
+      2,
+      23
+     ],
+     "health": 260,
+     "attack": 40,
+     "xp": 160,
+     "inactive": false
     }
    ],
    "doors": [],
@@ -2688,6 +3375,21 @@
      "itemUses": null,
      "itemValue": 380,
      "itemEffect": "Fortify"
+    },
+    {
+     "itemName": "Iron Whistle",
+     "itemPosition": [
+      3,
+      22
+     ],
+     "itemDescription": "Notched, and worn smooth by a thumb.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": true,
+     "itemUses": null,
+     "itemValue": 150,
+     "itemEffect": "Keepsake"
     }
    ],
    "triggers": [
@@ -2852,6 +3554,123 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": "Still water, and you drink your fill.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      29,
+      18
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnMonster",
+       "actionPosition": [
+        30,
+        18
+       ],
+       "actionItemName": null,
+       "actionMonsterName": "Kennel Hound",
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "spawnMonster",
+       "actionPosition": [
+        33,
+        18
+       ],
+       "actionItemName": null,
+       "actionMonsterName": "Kennel Hound",
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "Two chains go slack at once.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "monsterDefeated",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": "Kennelmaster",
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnItem",
+       "actionPosition": [
+        3,
+        22
+       ],
+       "actionItemName": "Iron Whistle",
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A whistle falls from what is left of him.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      3,
+      23
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "transportPlayer",
+       "actionPosition": [
+        24,
+        7
+       ],
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A hatch swings under your weight and shuts overhead.",
        "actionAmount": null
       }
      ]
@@ -3105,6 +3924,21 @@
      "itemUses": null,
      "itemValue": 40,
      "itemEffect": "Escape"
+    },
+    {
+     "itemName": "Cold Ingot",
+     "itemPosition": [
+      46,
+      8
+     ],
+     "itemDescription": "It does not warm in the hand.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": true,
+     "itemUses": null,
+     "itemValue": 170,
+     "itemEffect": "Keepsake"
     }
    ],
    "triggers": [
@@ -3272,9 +4106,114 @@
        "actionAmount": null
       }
      ]
+    },
+    {
+     "triggerType": "npcTalked",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": "The Vaultwright",
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "unlockDoor",
+       "actionPosition": [
+        41,
+        7
+       ],
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "He does something to the door you do not quite see.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "itemPickup",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": "Voidsteel Edge",
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 30
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The edge finds your hand before it finds anything else.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "allMonstersDefeated",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnItem",
+       "actionPosition": [
+        46,
+        8
+       ],
+       "actionItemName": "Cold Ingot",
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The forge is cold, and nobody is left to mind it.",
+       "actionAmount": null
+      }
+     ]
     }
    ],
-   "npcs": []
+   "npcs": [
+    {
+     "npcName": "The Vaultwright",
+     "npcPosition": [
+      26,
+      7
+     ],
+     "npcMessage": "I cut that lock. I can uncut it, if you have walked far enough."
+    }
+   ]
   },
   {
    "levelNumber": 9,
@@ -3461,6 +4400,17 @@
      "attack": 46,
      "xp": 360,
      "inactive": false
+    },
+    {
+     "name": "Thing in the Dark",
+     "position": [
+      31,
+      4
+     ],
+     "health": 330,
+     "attack": 50,
+     "xp": 130,
+     "inactive": true
     }
    ],
    "doors": [
@@ -3733,6 +4683,111 @@
        "actionAmount": null
       }
      ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      2,
+      3
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "transportPlayer",
+       "actionPosition": [
+        22,
+        19
+       ],
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The floor is not floor. You go through it.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      31,
+      3
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnMonster",
+       "actionPosition": [
+        31,
+        4
+       ],
+       "actionItemName": null,
+       "actionMonsterName": "Thing in the Dark",
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "You are not the first thing to come down this passage.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "allMonstersDefeated",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "unlockDoor",
+       "actionPosition": [
+        31,
+        7
+       ],
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "With nothing left to guard it, the bronze door gives.",
+       "actionAmount": null
+      }
+     ]
     }
    ],
    "npcs": []
@@ -3933,6 +4988,17 @@
      "attack": 52,
      "xp": 360,
      "inactive": false
+    },
+    {
+     "name": "Larder Warden",
+     "position": [
+      47,
+      14
+     ],
+     "health": 430,
+     "attack": 62,
+     "xp": 210,
+     "inactive": false
     }
    ],
    "doors": [],
@@ -3996,6 +5062,21 @@
      "itemUses": null,
      "itemValue": 300,
      "itemEffect": "Vanish"
+    },
+    {
+     "itemName": "Gilded Rib",
+     "itemPosition": [
+      47,
+      12
+     ],
+     "itemDescription": "Somebody gilded it, a long time ago.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": true,
+     "itemUses": null,
+     "itemValue": 230,
+     "itemEffect": "Keepsake"
     }
    ],
    "triggers": [
@@ -4193,6 +5274,96 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": "Still water, and you drink your fill.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "monsterDefeated",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": "Larder Warden",
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnItem",
+       "actionPosition": [
+        47,
+        12
+       ],
+       "actionItemName": "Gilded Rib",
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "It falls across its own hoard.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      43,
+      12
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "shiftTile",
+       "actionPosition": [
+        43,
+        11
+       ],
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": ".",
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A shelf of rock slides, and there is a way past.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "itemPickup",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": "Wyrmfang",
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The fang is still warm. Something noticed you take it.",
        "actionAmount": null
       }
      ]
@@ -4485,6 +5656,36 @@
      "itemUses": null,
      "itemValue": 40,
      "itemEffect": "Escape"
+    },
+    {
+     "itemName": "Watchman's Token",
+     "itemPosition": [
+      30,
+      23
+     ],
+     "itemDescription": "A tally-stick, cut halfway through.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": true,
+     "itemUses": null,
+     "itemValue": 0,
+     "itemEffect": "Keepsake"
+    },
+    {
+     "itemName": "Sealed Reliquary",
+     "itemPosition": [
+      20,
+      22
+     ],
+     "itemDescription": "Whatever is inside has not been opened.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": true,
+     "itemUses": null,
+     "itemValue": 420,
+     "itemEffect": "Keepsake"
     }
    ],
    "triggers": [
@@ -4685,9 +5886,125 @@
        "actionAmount": null
       }
      ]
+    },
+    {
+     "triggerType": "npcTalked",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": "The Last Watchman",
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "addToInventory",
+       "actionPosition": null,
+       "actionItemName": "Watchman's Token",
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "He gives you half a tally-stick and stops speaking.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "posAndItems",
+     "target": [
+      22,
+      22
+     ],
+     "requiredItems": [
+      "Watchman's Token"
+     ],
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "consumeItem",
+       "actionPosition": null,
+       "actionItemName": "Watchman's Token",
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "spawnItem",
+       "actionPosition": [
+        20,
+        22
+       ],
+       "actionItemName": "Sealed Reliquary",
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The tally burns out, and the shrine gives up what it kept.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "allMonstersDefeated",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "healPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 70
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The antechamber is quiet. Below it, something is not.",
+       "actionAmount": null
+      }
+     ]
     }
    ],
-   "npcs": []
+   "npcs": [
+    {
+     "npcName": "The Last Watchman",
+     "npcPosition": [
+      30,
+      21
+     ],
+     "npcMessage": "Lay my tally at the shrine below and I am done here. The thing past it does not tire, and does not miss twice."
+    }
+   ]
   },
   {
    "levelNumber": 12,
@@ -4915,9 +6232,20 @@
       19
      ],
      "health": 1500,
-     "attack": 138,
+     "attack": 118,
      "xp": 14000,
      "inactive": false
+    },
+    {
+     "name": "Sigil Guard",
+     "position": [
+      28,
+      4
+     ],
+     "health": 380,
+     "attack": 62,
+     "xp": 180,
+     "inactive": true
     }
    ],
    "doors": [
@@ -5020,6 +6348,21 @@
      "itemUses": null,
      "itemValue": 1800,
      "itemEffect": "Keepsake"
+    },
+    {
+     "itemName": "Elixir of the Deep",
+     "itemPosition": [
+      14,
+      20
+     ],
+     "itemDescription": "Thick, and very old.",
+     "itemCategory": "Healing",
+     "itemEffectValue": 200,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": 1,
+     "itemValue": 200,
+     "itemEffect": null
     }
    ],
    "triggers": [
@@ -5337,6 +6680,63 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      27,
+      4
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "spawnMonster",
+       "actionPosition": [
+        28,
+        4
+       ],
+       "actionItemName": null,
+       "actionMonsterName": "Sigil Guard",
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "One of the statues along the wall is not a statue.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "allMonstersDefeated",
+     "target": null,
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "Nothing moves in the deep now. Only you.",
        "actionAmount": null
       }
      ]

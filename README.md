@@ -102,7 +102,8 @@ game rather than failing.
 | `:` | Enter command mode |
 | `Esc` | Cancel inventory selection, aiming, or command mode |
 
-Moving into a monster attacks it. Moving into an NPC talks to it.
+Moving into a monster attacks it. Moving into an NPC talks to it and swaps
+places with it.
 
 ### Commands
 
@@ -369,7 +370,8 @@ destroy it before the trigger fires.
 { "npcName": "Friendly NPC", "npcPosition": [2, 2], "npcMessage": "Welcome to the dungeon!" }
 ```
 
-NPCs wander the level and repeat their message when you walk into them.
+NPCs wander the level. Walking into one talks to them and changes places
+with them, so an NPC can never block a corridor.
 
 #### `triggers`
 

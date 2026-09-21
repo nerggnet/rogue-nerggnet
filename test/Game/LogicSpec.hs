@@ -72,11 +72,23 @@ spec = do
       let s = movePlayer East (withWorld (\w -> w {doors = [mkDoor (V2 5 3) False "Iron Key"]}) baseState)
       position (player s) `shouldBe` V2 5 3
 
-    it "talks to an NPC rather than displacing it" $ do
+    -- Talking used to leave both of you where you were, which made an NPC a
+    -- wall. NPCs step aside only on their own clock, and one with the player
+    -- on one side and a monster on the other has nowhere to step: in a
+    -- one-tile corridor that sealed the passage for good.
+    it "talks to an NPC and changes places with it" $ do
       let s = movePlayer East (withWorld (\w -> w {npcs = [mkNPC "Bob" (V2 5 3)]}) baseState)
-      position (player s) `shouldBe` V2 4 3
+      position (player s) `shouldBe` V2 5 3
+      map npcPosition (npcs (currentWorld s)) `shouldBe` [V2 4 3]
       lastInteractedNpc s `shouldBe` Just "Bob"
       latest s `shouldSatisfy` ("Bob says: hello" `isInfixOf`)
+
+    it "still talks, without moving, when the NPC stands in a wall" $ do
+      let boxed = withWorld (\w -> w {npcs = [mkNPC "Bob" (V2 5 0)]})
+                    (mkState (mkWorld openMap) (V2 5 1))
+          s = movePlayer North boxed
+      position (player s) `shouldBe` V2 5 1
+      lastInteractedNpc s `shouldBe` Just "Bob"
 
     it "attacks a monster rather than displacing it" $ do
       let goblin = mkMonster "Goblin" (V2 5 3) 100 3

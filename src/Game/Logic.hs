@@ -599,7 +599,24 @@ movePlayer dir state =
          internalHandleMovement newPos
        (_, Just monster, _) -> -- Monster
          combat state monster True
-       (_, _, Just npc) -> -- NPC
+       -- Walking into an NPC talks to them and changes places with them.
+       --
+       -- Talking used to leave both of you standing where you were, which
+       -- made an NPC in a one-tile corridor a wall: they step aside only on
+       -- their own clock, and an NPC with the player on one side and a
+       -- monster on the other has nowhere to step at all. That sealed the
+       -- passage for good. Swapping costs nothing and cannot deadlock.
+       (_, _, Just npc) | canMove newPos ->
+         let swapped = w {npcs = map step (npcs w)}
+             w = world
+             step q | npcName q == npcName npc = q {npcPosition = playerPos}
+                    | otherwise = q
+          in setCurrentWorld (updateVisibility (player state) defaultFogRadius swapped)
+               state { player = (player state) {position = newPos}
+                     , message = (npcName npc ++ " says: " ++ npcMessage npc) : message state
+                     , lastInteractedNpc = Just (npcName npc)
+                     }
+       (_, _, Just npc) ->
          state { message = (npcName npc ++ " says: " ++ npcMessage npc) : message state
                , lastInteractedNpc = Just (npcName npc)
                }

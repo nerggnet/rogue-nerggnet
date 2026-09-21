@@ -41,6 +41,22 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Floors 2 to 12 have something to do besides bleed. They were generated
+  from two ideas -- a blade trap and a fountain -- scaled by depth, and used
+  5 of the 11 trigger actions and 2 of the 6 trigger types; everything else
+  the trigger system can do sat unused below level 1. All 11 actions and all
+  6 trigger types are now in play down there: ambushes that spring from a
+  dead end or from picking up the thing they were guarding, caches behind
+  loose stones, chutes that drop you somewhere else, rock that shifts, locks
+  that open for clearing a floor or for asking the right person, a floor
+  boss that drops what it was carrying, and five people still alive down
+  there, one of whom wants an errand run.
+
+  Nothing on the way down is gated behind an NPC or an errand, because
+  autoplay proves the dungeon beatable and autoplay never talks to anyone.
+  Where a trigger opens a locked door it is an alternative to a key that
+  still exists.
+- Walking into an NPC now changes places with them as well as talking.
 - Getting out of the dungeon is something the player does, rather than
   something that happens to them. There used to be four tiles that ended the
   run the instant they were stood on while carrying a Coil of Rope, placed
@@ -65,6 +81,12 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- An NPC could seal a corridor permanently. Walking into one talked instead
+  of moving, and NPCs step aside only on their own clock, so an NPC in a
+  one-tile passage with the player on one side and a monster on the other
+  had nowhere to go and never moved again. The passage was shut for the rest
+  of the run. Found by autoplay, which spent 58,000 turns pressing east into
+  a locksmith.
 - The border around the map is drawn around the map, rather than around
   whatever space the terminal had going spare. A viewport takes all the room
   it is offered, so on a window taller or wider than the dungeon the border
