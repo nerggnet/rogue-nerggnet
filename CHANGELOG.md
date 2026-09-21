@@ -6,6 +6,13 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- The game says what an item does. Every item has carried a description
+  since the beginning and the game showed it nowhere, so an inventory was a
+  list of names: nothing said what the Whetstone of the Forge was for, and a
+  Special could only be found out by using it, which for half of them spends
+  it. The item chooser now has a second column saying what each one does in
+  a few words, picking something up prints that plus its description, and
+  standing on an item says what it is without picking it up.
 - A scoreboard. Every finished run is written to `scores.json` -- when it
   ended, how it ended, how deep it got, what it carried out, experience and
   turns -- and the end-of-run screen shows where it placed among the rest.

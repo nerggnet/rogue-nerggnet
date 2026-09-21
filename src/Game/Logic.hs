@@ -4,7 +4,7 @@ module Game.Logic where
 import Game.State
   ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
   , updateVisibility, evalTriggerCondition, visibleMonsters
-  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid
+  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid, whatItDoes
   )
 import Game.GridUtils (updateTile, gridLookup, orthogonal, keyedInventory)
 import Game.Types
@@ -98,6 +98,14 @@ goDown state =
       | otherwise -> state { message = "You are already on the bottom level." : message state }
     _ -> state { message = "No stairs to go down here!" : message state }
 
+-- Picking something up is the moment its description is worth reading: it
+-- is the one time the player is certainly looking at that item and nothing
+-- else, and the inventory has no room for a sentence.
+pickedUp :: Item -> String
+pickedUp itm =
+  "You picked up: " ++ iName itm ++ " - " ++ whatItDoes itm
+    ++ (if null (iDescription itm) then "" else ". " ++ iDescription itm)
+
 pickUpItem :: GameState -> GameState
 pickUpItem state =
   let world = currentWorld state
@@ -122,14 +130,14 @@ pickUpItem state =
                -- not -- which made a pair of mismatched items look like a
                -- bonus and a matched pair look like a loss.
                (Just invItem, Just uses) ->
-                 (False, ["You picked up: " ++ iName item], map (\i -> if i == invItem
+                 (False, [pickedUp item], map (\i -> if i == invItem
                             then i { iUses = fmap (+ uses) (iUses i)
                                    , iValue = iValue i + iValue item }
                             else i)
                      (state.player.inventory))
                _ -> if inventorySize >= maxInventorySize
                     then (True, ["Your inventory is full! Drop an item before picking up more."], state.player.inventory)
-                    else (False, ["You picked up: " ++ iName item], item : state.player.inventory)  -- Add as a new item if not stackable
+                    else (False, [pickedUp item], item : state.player.inventory)  -- Add as a new item if not stackable
 
              updatedPlayer = (player state) { inventory = updatedInventory }
              updatedWorld = if invFull then world else world { items = remainingItems }

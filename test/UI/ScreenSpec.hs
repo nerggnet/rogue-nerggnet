@@ -269,6 +269,33 @@ spec = do
     it "shows every key on a large terminal while choosing" $
       keysOn (120, 40) (choosing UseMode) `shouldBe` take 15 ['a' ..]
 
+    -- The second column is what the chooser is for now, so it has to be
+    -- there; an item list of bare names says nothing a player can act on.
+    it "says what each item does" $ do
+      let potion = (mkItem "Health Potion" Healing 60 (V2 0 0)) {iUses = Just 2}
+          st = (withPlayer (\p -> p {inventory = [potion]}) room) {inventoryMode = Just UseMode}
+      showsText st "heals 60" `shouldBe` True
+
+    it "explains a Special by its effect, not its name" $ do
+      let scroll = mkSpecial "Ashen Scroll" Firestorm 60
+          st = (withPlayer (\p -> p {inventory = [scroll]}) room) {inventoryMode = Just UseMode}
+      showsText st "60 damage to all in sight" `shouldBe` True
+
+    -- The whole popup has to fit the narrowest terminal the game supports,
+    -- or the column it was widened for is the first thing off the screen.
+    it "keeps the chooser inside an 80-column terminal" $ do
+      let wordy = [ (mkItem ("Reliquary of the Deepest Deep " ++ show i) Special 0 (V2 0 0))
+                      {iEffect = Just Lifesteal, iEffectValue = 25}
+                  | i <- [1 .. 15 :: Int] ]
+          st = (withPlayer (\p -> p {inventory = wordy}) room) {inventoryMode = Just UseMode}
+          rows = renderRows (80, 24) (drawUI st)
+      -- What matters is that the second column is still readable: Brick
+      -- clips the popup to the terminal either way, so a test that only
+      -- looked for the border passed whatever the column widths were.
+      rows `shouldSatisfy` any ("returns 25% of damage dealt, while carried" `isInfixOf`)
+      -- ...and that the names were what gave way, marked as cut.
+      rows `shouldSatisfy` any ("~" `isInfixOf`)
+
     it "says whether the item is being used or dropped" $ do
       showsText (choosing UseMode) "Use which item?" `shouldBe` True
       showsText (choosing DropMode) "Drop which item?" `shouldBe` True

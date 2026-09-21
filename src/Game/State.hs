@@ -112,6 +112,41 @@ helpPages =
     )
   ]
 
+-- | What an item does, in a few words.
+--
+-- Every item carries a description, and for a long time the game never
+-- showed it anywhere: an inventory of names told the player nothing about
+-- what any of them was for, and a Special can only be found out by using
+-- it, which for half of them spends it. This is the mechanical half, said
+-- plainly; the description is the flavour and is shown on picking it up.
+--
+-- It lives here rather than in the UI because it is a statement about the
+-- rules, and the rules are not allowed to depend on a terminal.
+whatItDoes :: Item -> String
+whatItDoes itm = case iCategory itm of
+  Weapon  -> plus "attack while wielded"
+  Armor   -> plus "resistance while worn"
+  Healing -> "heals " ++ show value
+  Key     -> "opens the door it matches"
+  Range   -> "shot from a distance, " ++ plus "damage"
+  Special -> maybe "nothing at all" effectDoes (iEffect itm)
+  where
+    value = iEffectValue itm
+    plus what = "+" ++ show value ++ " " ++ what
+    once = " (once)"
+    effectDoes effect = case effect of
+      Keepsake   -> "carried for its own sake"
+      Empower    -> plus "attack, for good" ++ once
+      Fortify    -> plus "resistance, for good" ++ once
+      Reveal     -> "maps the whole floor" ++ once
+      Blink      -> "puts you elsewhere on the floor" ++ once
+      Firestorm  -> show value ++ " damage to all in sight" ++ once
+      Regenerate -> "heals " ++ show value ++ " a turn while carried"
+      Lifesteal  -> "returns " ++ show value ++ "% of damage dealt, while carried"
+      Revive     -> "saves you from one death, then burns up"
+      Vanish     -> "unseen for " ++ show value ++ " turns" ++ once
+      Escape     -> "climbs a shaft to the floor above" ++ once
+
 -- Move to the next help page, closing the help after the last one
 nextHelpPage :: Int -> Int
 nextHelpPage page

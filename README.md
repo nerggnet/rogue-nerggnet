@@ -145,8 +145,20 @@ under `?`.
 
 ### Using items
 
-`u` opens a chooser listing the inventory by letter (equipped items first)
-and waits for a key. `Esc` closes it without using anything. The same list is
+`u` opens a chooser listing the inventory by letter (equipped items first),
+with what each one does beside it, and waits for a key:
+
+```
+┌────────────────Use which item?────────────────┐
+│ a) Voidsteel Edge (W)      +38 attack while wielded    │
+│ c) Ashen Scroll            60 damage to all in sight (once) │
+│ e) Elixir of the Deep (3)  heals 200                   │
+│ j) Whetstone of the Forge  +6 attack, for good (once)  │
+└───────────────────────────────────────────────┘
+```
+
+An item's `itemDescription` is shown when you pick it up, and standing on one
+says what it is without picking it up at all. `Esc` closes it without using anything. The same list is
 always in the sidebar, but the chooser is shown over the map so the keys are
 readable even on a small terminal.
 

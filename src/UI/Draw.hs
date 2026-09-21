@@ -11,10 +11,10 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import Game.Types
 import Game.Score (ranked, runOf, runScore)
-import Game.State (helpPages, maxInventorySize, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld)
+import Game.State (helpPages, maxInventorySize, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld, whatItDoes)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
-import Data.List (zip4)
+import Data.List (intercalate, zip4)
 import Data.Maybe (isJust)
 import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
@@ -45,13 +45,17 @@ drawUI state =
   where
     world = currentWorld state
     playerPos = state.player.position
-    itemsOnPlayerTile = [iName item | item <- items world, iPosition item == playerPos, not (iInactive item)]
-    currentTileMessage =
-      if null itemsOnPlayerTile then ""
-        else "You see: " ++ unwords itemsOnPlayerTile
+    itemsUnderfoot = [item | item <- items world, iPosition item == playerPos, not (iInactive item)]
+    -- One item gets the full treatment, since there is room for it. Several
+    -- get their names, which is all that fits and all that is needed to
+    -- decide which to stand on.
+    currentTileMessage = case itemsUnderfoot of
+      []    -> ""
+      [itm] -> "You see: " ++ iName itm ++ " - " ++ whatItDoes itm
+      many  -> "You see: " ++ intercalate ", " (map iName many)
 
     -- Combine the tile-specific message with the general log
-    updatedMessages = if null itemsOnPlayerTile then message state else currentTileMessage : message state
+    updatedMessages = if null itemsUnderfoot then message state else currentTileMessage : message state
 
 -- The stats box calls the player's experience level "Level", so depth is
 -- named "Floor" here and never abbreviated, and says how far down the
@@ -284,11 +288,34 @@ drawInventoryPopup mode plyr =
     inv = inventory plyr
     eqpdWeapon = equippedWeapon plyr
     eqpdArmor = equippedArmor plyr
+    keyed = keyedInventory inv eqpdWeapon eqpdArmor
+    labels = map (inventoryEntry eqpdWeapon eqpdArmor) keyed
+    -- The names are padded to a common width so the second column lines up,
+    -- which is what makes the list readable as a table rather than prose.
+    -- The padding is capped, because one very long name would otherwise
+    -- push what every item does off the right of an 80-column terminal --
+    -- and the second column is the reason the chooser has two.
+    nameWidth = min nameColumn (maximum (0 : map length labels))
     entries
       | null inv = ["No items collected"]
       | otherwise =
-          map (inventoryEntry eqpdWeapon eqpdArmor) (keyedInventory inv eqpdWeapon eqpdArmor)
+          [ padTo nameWidth label ++ "   " ++ whatItDoes itm
+          | (label, (_, itm)) <- zip labels keyed
+          ]
     width = maximum (length title : map length entries)
+
+-- | A field of exactly n characters: padded if it is short, and cut with a
+-- tilde if it is long, so that a name nobody expected cannot move the
+-- column after it.
+padTo :: Int -> String -> String
+padTo n text
+  | length text <= n = text ++ replicate (n - length text) ' '
+  | otherwise = take (n - 1) text ++ "~"
+
+-- | How much of the chooser the names may take. What is left over is enough
+-- for the longest thing whatItDoes says, inside 80 columns.
+nameColumn :: Int
+nameColumn = 30
 
 -- Draw one page of the help as a popup
 drawLegendPopup :: Int -> Widget ()
