@@ -107,8 +107,6 @@ helpPages =
       , " "
       , ":q         Save and quit"
       , ":restart   Start a new dungeon"
-      , ":heal      Cheat: back to full health"
-      , ":super     Cheat: become very strong"
       ]
     )
   ]

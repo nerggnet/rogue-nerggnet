@@ -397,8 +397,16 @@ spec = do
         [ "w or k", "s or j", "a or h", "d or l"
         , "<", ">", "g", "u", "x"
         , "a b c ...", "Esc", ":", "Enter", "Backspace"
-        , ":q", ":restart", ":heal", ":super"
+        , ":q", ":restart"
         ]
+
+    -- The cheats still work for anyone who knows them. The help is not the
+    -- place to teach them.
+    it "does not advertise the cheats" $ do
+      let documented = unlines (concatMap snd helpPages)
+      mapM_
+        (\k -> documented `shouldSatisfy` not . (k `isInfixOf`))
+        [":heal", ":super"]
 
     it "gives every page a title" $
       map fst helpPages `shouldSatisfy` notElem ""

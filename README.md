@@ -14,7 +14,7 @@ Twelve floors deep. The way out is at the bottom, past the Dungeon Lord, and
 a run is judged on how far down it got and what it carried back up.
 
 ```
-                    Rogue nerggnet (press ? for help)
+              Rogue nerggnet - Floor 2 of 12 (press ? for help)
 
 ┌───────────────────────────────────────────────────┐   ┌────Stats───────────┐
 │##############################################     │   │Level: 2            │
@@ -111,8 +111,6 @@ places with it.
 | --- | --- |
 | `:q` | Quit (and save) |
 | `:restart` | Start a new game from `world.json` |
-| `:heal` | Cheat: restore full health |
-| `:super` | Cheat: 1000 HP, 100 attack, 100 resistance |
 
 `:` opens the command line at the bottom of the screen, which is blank until
 then. What you type appears there as you type it, `Enter` runs it, `Backspace`

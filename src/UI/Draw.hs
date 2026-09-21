@@ -26,7 +26,7 @@ drawUI state =
   [ drawVictoryScreen state | gameWon state ] ++
   [ drawGameOverScreen state | gameOver state && not (gameWon state) ] ++
   [ vBox
-      [ drawTitleBar
+      [ drawTitleBar state
       , hBox
           [ padRight (Pad 2) $ drawMap world (player state) (aimingState state)
           , padLeft (Pad 2) $
@@ -51,9 +51,16 @@ drawUI state =
     -- Combine the tile-specific message with the general log
     updatedMessages = if null itemsOnPlayerTile then message state else currentTileMessage : message state
 
-drawTitleBar :: Widget ()
-drawTitleBar =
-      padBottom (Pad 1) $ C.hCenter (str "Rogue nerggnet (press ? for help)")
+-- The stats box calls the player's experience level "Level", so depth is
+-- named "Floor" here and never abbreviated, and says how far down the
+-- dungeon goes so the number means something on its own.
+drawTitleBar :: GameState -> Widget ()
+drawTitleBar state =
+      padBottom (Pad 1) $ C.hCenter (str title)
+  where
+    title = "Rogue nerggnet - Floor " ++ show (currentLevel state + 1)
+              ++ " of " ++ show (length (levels state))
+              ++ " (press ? for help)"
 
 -- | What a tile needs to know about the rest of the level.
 --

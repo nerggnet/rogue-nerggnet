@@ -41,6 +41,13 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- The title bar says which floor you are on and how deep the dungeon goes:
+  `Rogue nerggnet - Floor 3 of 12 (press ? for help)`. The stats box already
+  calls the player's experience level "Level", so depth is named "Floor"
+  and never abbreviated.
+- The in-game help and the README no longer list `:heal` and `:super`. Both
+  commands still work for anyone who knows them; documenting them made a
+  cheat look like a feature.
 - Floors 2 to 12 have something to do besides bleed. They were generated
   from two ideas -- a blade trap and a fountain -- scaled by depth, and used
   5 of the 11 trigger actions and 2 of the 6 trigger types; everything else

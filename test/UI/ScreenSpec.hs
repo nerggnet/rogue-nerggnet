@@ -116,6 +116,20 @@ spec = do
     it "goes back to M when not aiming" $
       map (glyphAt withMonsters) [V2 1 1, V2 2 2] `shouldBe` "MM"
 
+  describe "the title bar" $ do
+    let threeDeep n =
+          let w = mkWorld openMap
+           in (room {levels = replicate 3 w, currentLevel = n})
+
+    it "says which floor the player is on, and how deep it goes" $
+      showsText (threeDeep 1) "Floor 2 of 3" `shouldBe` True
+
+    it "counts floors from one, the way the player does" $
+      showsText (threeDeep 0) "Floor 1 of 3" `shouldBe` True
+
+    it "keeps saying how to reach the help" $
+      showsText room "press ? for help" `shouldBe` True
+
   describe "the side panels" $ do
     it "shows the player's stats" $ do
       let st = withPlayer (\p -> p {health = 17, xp = 42, playerXPLevel = 3}) room
