@@ -41,6 +41,23 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Getting out of the dungeon is something the player does, rather than
+  something that happens to them. There used to be four tiles that ended the
+  run the instant they were stood on while carrying a Coil of Rope, placed
+  one step from the stairs the player arrived by, so a single step in the
+  wrong direction finished a run that had barely started.
+
+  Those tiles are `^` shafts now. Standing on one says there is daylight
+  overhead and costs nothing; the rope has an `Escape` effect, and using it
+  on a shaft climbs to the floor above, landing beside the stairs down. The
+  shafts have moved to the far side of their floors, which is what makes a
+  rope worth carrying: it buys the walk back. A rope used anywhere else is a
+  wasted keypress, not a lost rope.
+
+  Climbing from the first floor is leaving, and ends the run. The other
+  ending is new and is where the plot always pointed: a way home at the back
+  of the vault on floor 12, behind the Dungeon Lord and the door his sigil
+  opens.
 - The command line is vi's, rather than a labelled field. It is blank until
   `:` opens it, and then shows the command exactly as typed. It used to be
   prefixed with `Command: `, which put a second colon on the screen next to

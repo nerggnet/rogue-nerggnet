@@ -683,6 +683,52 @@ spec = do
     it "refuses to use stairs that are not there" $
       latest (goDown baseState) `shouldSatisfy` ("No stairs" `isInfixOf`)
 
+  describe "shafts" $ do
+    -- Level 0 is the way out, with a down staircase to level 1; level 1 has
+    -- the matching up staircase and a shaft off in the corner.
+    let upper = mkWorld ["####", "#.>#", "####"]
+        lower = mkWorld ["####", "#^<#", "####"]
+        rope = mkSpecial "Coil of Rope" Escape 0
+        below = (mkState upper (V2 2 1)) {levels = [upper, lower], currentLevel = 1}
+        onShaft = withPlayer (\pl -> pl {position = V2 1 1, inventory = [rope]}) below
+        surface = withPlayer (\pl -> pl {position = V2 1 1, inventory = [rope]})
+                    (mkState (mkWorld ["####", "#^>#", "####"]) (V2 1 1))
+
+    it "climbs to the floor above, landing by the stairs down" $ do
+      let s = useSpecial rope onShaft
+      currentLevel s `shouldBe` 0
+      position (player s) `shouldBe` V2 2 1
+      latest s `shouldSatisfy` ("climb" `isInfixOf`)
+
+    it "spends the rope on the way up" $
+      inventory (player (useSpecial rope onShaft)) `shouldBe` []
+
+    it "refuses anywhere there is no shaft" $ do
+      let elsewhere = withPlayer (\pl -> pl {position = V2 2 1}) onShaft
+          s = useSpecial rope elsewhere
+      currentLevel s `shouldBe` 1
+      latest s `shouldSatisfy` ("nothing overhead" `isInfixOf`)
+      inventory (player s) `shouldBe` [rope]
+
+    -- What the shaft on the first floor is for: there is no floor above it,
+    -- so climbing it is leaving, and that ends the run.
+    it "ends the run when climbed from the top floor" $ do
+      let s = useSpecial rope surface
+      gameWon s `shouldBe` True
+      latest s `shouldSatisfy` ("open air" `isInfixOf`)
+
+    -- The old ways out fired the moment they were stood on, which ended runs
+    -- that were only passing through.
+    it "does nothing at all to someone merely standing on it" $ do
+      let s = movePlayer West (withPlayer (\pl -> pl {position = V2 2 1}) onShaft)
+      gameWon s `shouldBe` False
+      currentLevel s `shouldBe` 1
+      latest s `shouldSatisfy` ("Daylight" `isInfixOf`)
+
+    it "is walked over like any other floor" $
+      position (player (movePlayer West (withPlayer (\pl -> pl {position = V2 2 1}) onShaft)))
+        `shouldBe` V2 1 1
+
   describe "monster movement" $ do
     let withMonsterAt pos playerPos =
           withWorld (\w -> w {monsters = [mkMonster "Goblin" pos 10 2]})

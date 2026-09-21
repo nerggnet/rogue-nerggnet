@@ -146,7 +146,7 @@
    "levelNumber": 1,
    "mapGrid": [
     "##############################################     ",
-    "#S....>#......#.....................#........#     ",
+    "#S^...>#......#.....................#........#     ",
     "#.N#####......#..####......#####....#.....#..###   ",
     "#..#..##...####..#!.###.####...#....##....#....#   ",
     "#..#...+...#..#+##...#.........#....#.....##...####",
@@ -1006,14 +1006,14 @@
       4,
       11
      ],
-     "itemDescription": "Long enough to reach daylight.",
+     "itemDescription": "Long enough to reach the floor above.",
      "itemCategory": "Special",
      "itemEffectValue": 0,
      "itemHidden": false,
      "itemInactive": false,
      "itemUses": null,
      "itemValue": 40,
-     "itemEffect": "Keepsake"
+     "itemEffect": "Escape"
     },
     {
      "itemName": "Iron Key",
@@ -1183,7 +1183,7 @@
     "###################################################",
     "###################..........######################",
     "#######...........#..........######################",
-    "#######...........#..........#############......###",
+    "#######...........#..........#############^.....###",
     "#######................................###......###",
     "#######...........#..........#.........###......###",
     "#######...........#..........#.........###...>..###",
@@ -1370,41 +1370,6 @@
     }
    ],
    "triggers": [
-    {
-     "triggerType": "posAndItems",
-     "target": [
-      35,
-      7
-     ],
-     "requiredItems": [
-      "Coil of Rope"
-     ],
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "You throw the rope, and climb into daylight.",
-       "actionAmount": null
-      },
-      {
-       "actionType": "setGameWon",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": null
-      }
-     ]
-    },
     {
      "triggerType": "position",
      "target": [
@@ -2019,14 +1984,14 @@
       16,
       18
      ],
-     "itemDescription": "Long enough to reach daylight.",
+     "itemDescription": "Long enough to reach the floor above.",
      "itemCategory": "Special",
      "itemEffectValue": 0,
      "itemHidden": false,
      "itemInactive": false,
      "itemUses": null,
      "itemValue": 40,
-     "itemEffect": "Keepsake"
+     "itemEffect": "Escape"
     }
    ],
    "triggers": [
@@ -2157,7 +2122,7 @@
     "##########.####..........##################.....###",
     "##########.####..........#####..........###.....###",
     "##########.####..........#####..........###########",
-    "##########...................................######",
+    "##########..................................^######",
     "###############..........#####..........###########",
     "###############..........##########################",
     "###################################################",
@@ -2344,41 +2309,6 @@
     }
    ],
    "triggers": [
-    {
-     "triggerType": "posAndItems",
-     "target": [
-      40,
-      12
-     ],
-     "requiredItems": [
-      "Coil of Rope"
-     ],
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "You throw the rope, and climb into daylight.",
-       "actionAmount": null
-      },
-      {
-       "actionType": "setGameWon",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": null
-      }
-     ]
-    },
     {
      "triggerType": "position",
      "target": [
@@ -3167,14 +3097,14 @@
       23,
       22
      ],
-     "itemDescription": "Long enough to reach daylight.",
+     "itemDescription": "Long enough to reach the floor above.",
      "itemCategory": "Special",
      "itemEffectValue": 0,
      "itemHidden": false,
      "itemInactive": false,
      "itemUses": null,
      "itemValue": 40,
-     "itemEffect": "Keepsake"
+     "itemEffect": "Escape"
     }
    ],
    "triggers": [
@@ -3350,7 +3280,7 @@
    "levelNumber": 9,
    "mapGrid": [
     "###################################################",
-    "##.........########################################",
+    "##^........########################################",
     "##.........########################################",
     "##....................#########.##.....############",
     "##.........#.........##.......#.##.....############",
@@ -3606,41 +3536,6 @@
     }
    ],
    "triggers": [
-    {
-     "triggerType": "posAndItems",
-     "target": [
-      46,
-      7
-     ],
-     "requiredItems": [
-      "Coil of Rope"
-     ],
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "You throw the rope, and climb into daylight.",
-       "actionAmount": null
-      },
-      {
-       "actionType": "setGameWon",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": null
-      }
-     ]
-    },
     {
      "triggerType": "position",
      "target": [
@@ -4582,14 +4477,14 @@
       5,
       23
      ],
-     "itemDescription": "Long enough to reach daylight.",
+     "itemDescription": "Long enough to reach the floor above.",
      "itemCategory": "Special",
      "itemEffectValue": 0,
      "itemHidden": false,
      "itemInactive": false,
      "itemUses": null,
      "itemValue": 40,
-     "itemEffect": "Keepsake"
+     "itemEffect": "Escape"
     }
    ],
    "triggers": [
@@ -4798,7 +4693,7 @@
    "levelNumber": 12,
    "mapGrid": [
     "###################################################",
-    "######.....########################################",
+    "######^....########################################",
     "######.....###########################........#####",
     "######.....###########################........#####",
     "######.....###############........####........#####",
@@ -5129,41 +5024,6 @@
    ],
    "triggers": [
     {
-     "triggerType": "posAndItems",
-     "target": [
-      32,
-      23
-     ],
-     "requiredItems": [
-      "Coil of Rope"
-     ],
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "You throw the rope, and climb into daylight.",
-       "actionAmount": null
-      },
-      {
-       "actionType": "setGameWon",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": null
-      }
-     ]
-    },
-    {
      "triggerType": "position",
      "target": [
       43,
@@ -5444,6 +5304,39 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": "The Dungeon Lord falls. A sigil cools in your hand.",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      16,
+      19
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "The circle takes you, and you are standing in daylight.",
+       "actionAmount": null
+      },
+      {
+       "actionType": "setGameWon",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
        "actionAmount": null
       }
      ]

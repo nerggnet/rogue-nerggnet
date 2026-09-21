@@ -76,6 +76,19 @@ helpPages =
       , "or into an NPC to talk to them."
       ]
     )
+  , ( "Shafts and getting out"
+    , [ "^          A shaft, with daylight behind it"
+      , " "
+      , "Standing on one costs nothing. Use a rope"
+      , "there to climb to the floor above; from the"
+      , "first floor, that is out of the dungeon and"
+      , "the end of the run. The rope is spent."
+      , " "
+      , "A run is scored on how deep you went and"
+      , "what you carried out, so leaving is a"
+      , "decision, not a failure."
+      ]
+    )
   , ( "Choosing and aiming"
     , [ "a b c ...  Choose the item with that letter"
       , "Esc        Cancel without choosing"
@@ -155,6 +168,7 @@ newGame gen config = do
       *> Validation (checkStairsMeet allWorlds)
       *> Validation (checkDoorsOpenable allWorlds)
       *> Validation (checkTriggerItems allWorlds)
+      *> Validation (checkShaftsClimbable allWorlds)
   initialWorld <- firstOr "no \"levels\" are defined" allWorlds
   startingPosition <- inContext "level 0" $
     maybe (problem "the map grid has no \"S\" tile for the player to start on")
@@ -378,7 +392,7 @@ itemEffects =
   [ ("Keepsake", Keepsake), ("Empower", Empower), ("Fortify", Fortify)
   , ("Reveal", Reveal), ("Blink", Blink), ("Firestorm", Firestorm)
   , ("Regenerate", Regenerate), ("Lifesteal", Lifesteal), ("Revive", Revive)
-  , ("Vanish", Vanish)
+  , ("Vanish", Vanish), ("Escape", Escape)
   ]
 
 parseItemEffect :: String -> Either Problems ItemEffect
@@ -685,6 +699,34 @@ checkTriggerActions world = noProblems
 --
 -- Going up or down leaves the player where they are and only changes which
 -- level that is, so stairs that do not line up drop them into a wall.
+-- A shaft is a tile; the rope that works it is an item, and the two need not
+-- be anywhere near each other. A dungeon with shafts and nothing to climb
+-- them with has drawn a way out that never opens.
+--
+-- The check is of the dungeon and not of each floor, because a shaft is
+-- climbed on the way back as readily as on the way down: the one on the
+-- first floor is the way out, and is reached by coming up to it carrying a
+-- rope found below. "A rope at or above this floor" would call that broken,
+-- and it is the whole point of it.
+checkShaftsClimbable :: [World] -> Either Problems ()
+checkShaftsClimbable worlds
+  | null shafts || not (null ropes) = noProblems []
+  | otherwise = noProblems
+      [ "level " ++ show ix ++ ": the shaft at " ++ showPos pos
+        ++ " can never be climbed; no item in the dungeon has the"
+        ++ " \"Escape\" effect"
+      | (ix, pos) <- shafts
+      ]
+  where
+    ropes = [i | world <- worlds, i <- items world, iEffect i == Just Escape]
+    shafts =
+      [ (ix :: Int, V2 x y)
+      | (ix, world) <- zip [0 ..] worlds
+      , (y, row) <- zip [0 ..] (mapGrid world)
+      , (x, tile) <- zip [0 ..] row
+      , tile == Shaft
+      ]
+
 checkStairsMeet :: [World] -> Either Problems ()
 checkStairsMeet worlds =
   noProblems (concat (zipWith3 between [0 :: Int ..] worlds (drop 1 worlds)))
@@ -779,6 +821,7 @@ charToTile '+' = Door
 charToTile '<' = UpStair
 charToTile '>' = DownStair
 charToTile 'S' = Start
+charToTile '^' = Shaft
 charToTile _   = Floor -- Default to Floor for unknown characters.
 
 tileToChar :: Tile -> Char
@@ -788,6 +831,7 @@ tileToChar Door      = '+'
 tileToChar UpStair   = '<'
 tileToChar DownStair = '>'
 tileToChar Start     = 'S'
+tileToChar Shaft     = '^'
 
 -- Find the tile the player starts on, if the map marks one
 findStartingPosition :: World -> Maybe (V2 Int)

@@ -4,7 +4,7 @@ module UI.MainUI (startGame) where
 import Brick
 import Graphics.Vty
   ( Event(..), Key(..), rgbColor, withBackColor, withForeColor, defAttr
-  , black, yellow, green, red, blue, magenta, cyan
+  , black, white, yellow, green, red, blue, magenta, cyan
   )
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
@@ -149,6 +149,7 @@ defaultAttrMap = attrMap defAttr
   , (attrName "door", withForeColor defAttr yellow)
   , (attrName "upStair", withForeColor defAttr green)
   , (attrName "downStair", withForeColor defAttr green)
+  , (attrName "shaft", withForeColor defAttr white)
   , (attrName "player", withForeColor defAttr blue)
   , (attrName "monster", withForeColor defAttr red)
   , (attrName "aimingMonster", withForeColor defAttr yellow)

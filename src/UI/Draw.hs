@@ -151,6 +151,7 @@ drawTileHidden Door      = str "."  -- Doors appear as regular floor when hidden
 drawTileHidden UpStair   = str "."  -- Up stairs appear as regular floor when hidden
 drawTileHidden DownStair = str "."  -- Down stairs appear as regular floor when hidden
 drawTileHidden Start     = str "."  -- Starting position
+drawTileHidden Shaft     = str "^"  -- A shaft stays worth remembering
 
 -- Draw a single tile
 drawTile :: Tile -> Widget ()
@@ -160,6 +161,7 @@ drawTile Door      = withAttr (attrName "door") $ str "+"
 drawTile UpStair   = withAttr (attrName "upStair") $ str "<"
 drawTile DownStair = withAttr (attrName "downStair") $ str ">"
 drawTile Start     = str "."
+drawTile Shaft     = withAttr (attrName "shaft") $ str "^"
 
 -- How the run went: how deep it got, and what it was worth.
 --

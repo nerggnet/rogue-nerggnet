@@ -152,6 +152,7 @@ special items have no use count and are never consumed.
 | `.` | Floor |
 | `+` | Door (yellow; locked doors block movement until unlocked) |
 | `<` / `>` | Stairs up / down |
+| `^` | A shaft, with daylight behind it |
 | `†` | A monster died here (the tile underneath is unchanged) |
 
 Unexplored tiles are blank. Tiles you have seen before but cannot currently see
@@ -177,6 +178,13 @@ are drawn dimmed and without their contents.
 * **XP levels** — defined in `world.json`. Crossing a threshold raises your
   base attack and resistance and restores you to the new maximum health.
 * **Inventory** — limited to 15 slots.
+* **Getting out** — `^` is a shaft with daylight behind it. Standing on one
+  costs nothing and says so; using an item with the `Escape` effect there
+  throws a rope and climbs you to the floor above, landing beside the stairs
+  you came down. Shafts sit a long way from the stairs, so the rope buys you
+  the walk back. From the first floor there is no floor above, and climbing
+  is leaving: the run ends and is scored. The other ending is at the bottom,
+  past the Dungeon Lord and the door his sigil opens.
 * **Score** — a run is measured by how deep you got and what you carried out.
   Every item has an `itemValue`, and the sidebar shows the running total, so
   the decision to press on or turn back is made with the numbers in view.
@@ -228,6 +236,9 @@ They also check that a level can actually be played:
   level 1's `>` was;
 * every locked door has a key that can be found on that level or an earlier
   one, or a trigger that opens it;
+* a dungeon with a `^` shaft in it has something with the `Escape` effect to
+  climb it with. The check is of the dungeon and not of each floor, because
+  a shaft is climbed on the way back as readily as on the way down;
 * every trigger action reaches for something that is really there: a
   `spawnMonster` names an inactive monster of that level and aims at floor,
   a `spawnItem` names an item the level places at exactly that spot, an
@@ -291,6 +302,7 @@ A list of equal-length strings, one per row:
 | `<` | Up stairs |
 | `>` | Down stairs |
 | `S` | Player start (first floor only) |
+| `^` | Shaft (a rope climbs it to the floor above) |
 
 Any other character is treated as floor (a space makes a handy "outside the
 dungeon" filler, since walls surround the playable area anyway).
@@ -343,6 +355,7 @@ in `world.json` rather than in Haskell. `itemEffectValue` is its strength.
 | `Blink` | Moves you to a random floor tile on the level | yes |
 | `Firestorm` | Hurts every monster you can see, by the effect value | yes |
 | `Vanish` | Monsters cannot find you for `itemEffectValue` turns | yes |
+| `Escape` | On a `^` shaft, climbs to the floor above; from the first floor, out of the dungeon | when it works |
 | `Regenerate` | Heals the effect value each turn while carried | no |
 | `Lifesteal` | Returns `itemEffectValue`% of the damage you deal, while carried | no |
 | `Revive` | Saves you from one death, then burns up | when it saves you |

@@ -11,7 +11,7 @@ import Game.Types
 import Linear.V2 (V2(..))
 import Data.List (find, partition, sortOn)
 import qualified Data.Map.Strict as Map
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, listToMaybe)
 import System.Random (StdGen, uniformR)
 
 handleMovementInternal :: Maybe Char -> GameState -> GameState
@@ -263,6 +263,56 @@ useSpecial itm state = case iEffect itm of
     apply Vanish =
       say ("Nothing can see you for " ++ show value ++ " turns.")
         state {hiddenTurns = hiddenTurns state + value}
+    apply Escape = climbOut itm state
+
+-- Throw a rope up a shaft and climb it.
+--
+-- A shaft is one floor's worth of daylight, not the way out: it puts the
+-- player on the floor above, beside the stairs they came down, which is the
+-- only spot up there that is certain to exist and be walkable. From the top
+-- floor there is no floor above, and climbing is leaving -- that is the run
+-- over, scored on what came up with them.
+--
+-- It is deliberately something the player does rather than something that
+-- happens to them. Standing on a shaft says so and costs nothing; only using
+-- the rope commits.
+climbOut :: Item -> GameState -> GameState
+climbOut rope state
+  | gridLookup (mapGrid (currentWorld state)) state.player.position /= Just Shaft =
+      say "There is nothing overhead to throw this over." state
+  | currentLevel state <= 0 =
+      say "You climb into the open air, and the dungeon is behind you."
+        (spent state) {gameWon = True}
+  | otherwise =
+      case landing of
+        Nothing -> say "The rope finds nothing to catch on." state
+        Just spot ->
+          let above = currentLevel state - 1
+              climbed = (spent state)
+                { currentLevel = above
+                , player = (climber state) {position = spot}
+                }
+           in say "You throw the rope, climb, and come out by the stairs."
+                climbed
+                  { levels = replaceLevel climbed above
+                      (updateVisibility (player climbed) defaultFogRadius
+                         (levels state !! above))
+                  }
+  where
+    say msg s = s {message = msg : message s}
+    climber s = (player s) {inventory = filter (/= rope) (inventory (player s))}
+    spent s = s {player = climber s}
+    landing = do
+      above <-
+        if currentLevel state > 0
+          then Just (levels state !! (currentLevel state - 1))
+          else Nothing
+      listToMaybe
+        [ V2 x y
+        | y <- [0 .. mapRows above - 1]
+        , x <- [0 .. mapCols above - 1]
+        , gridLookup (mapGrid above) (V2 x y) == Just DownStair
+        ]
 
 -- Floor tiles the player could be dropped on: anywhere they could walk, and
 -- not on top of something else.
@@ -531,9 +581,16 @@ movePlayer dir state =
            (worldMap !! y !! x) /= Wall
 
       -- Helper to handle movement
+      -- Stepping onto a shaft says what it is and nothing more. Before, the
+      -- tile itself ended the run the moment a player carrying a rope walked
+      -- over it, which made a way out of something that should be an offer.
+      noticed pos s
+        | gridLookup worldMap pos == Just Shaft =
+            s {message = "Daylight falls through a crack overhead." : message s}
+        | otherwise = s
       internalHandleMovement nPos =
         let updatedWorld = updateVisibility (player state) defaultFogRadius world
-        in setCurrentWorld updatedWorld $
+        in noticed nPos $ setCurrentWorld updatedWorld $
              state { player = (player state) { position = nPos } }
   in case (doorAt newPos, monsterAt newPos, npcAt newPos) of
        (Just door, _, _) | deLocked door -> -- Locked door case

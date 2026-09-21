@@ -28,7 +28,10 @@ instance FromJSON StdGen where
     (seed, gamma) <- parseJSON value
     pure (StdGen (seedSMGen seed gamma))
 
-data Tile = Wall | Floor | Door | UpStair | DownStair | Start deriving (Eq, Show, Generic)
+-- | Shaft is a crack in the ceiling with daylight behind it. It is walked
+-- over like floor; a rope turns it into a way up.
+data Tile = Wall | Floor | Door | UpStair | DownStair | Start | Shaft
+  deriving (Eq, Show, Generic)
 
 instance ToJSON Tile
 instance FromJSON Tile
@@ -59,12 +62,16 @@ data ItemEffect
   | Lifesteal  -- ^ While carried, returns a share of the damage dealt
   | Revive     -- ^ While carried, saves the player from one death
   | Vanish     -- ^ Hides the player from monsters for a while
+  | Escape     -- ^ On a shaft, climbs to the floor above; from the top, out
   deriving (Eq, Show, Generic)
 
 instance ToJSON ItemEffect
 instance FromJSON ItemEffect
 
 -- | Effects that are spent by using them, rather than working while carried.
+-- Escape is not here, and nor is Revive: both are spent only when they
+-- actually do something. A rope used where there is no shaft is a wasted
+-- keypress, not a lost rope.
 spentOnUse :: ItemEffect -> Bool
 spentOnUse effect = effect `elem` [Empower, Fortify, Reveal, Blink, Firestorm, Vanish]
 
