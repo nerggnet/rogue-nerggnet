@@ -33,6 +33,11 @@ fullLog = ["NEWEST", "older-1", "older-2", "older-3", "older-4", "older-5"]
 lit :: GameState -> GameState
 lit st = withCurrentWorld (updateVisibility (player st) defaultFogRadius) st
 
+-- The command line is blank until ":" opens it, so a state that has it open
+-- is what proves the bottom row of the screen is on screen at all.
+typing :: GameState -> GameState
+typing st = st {commandMode = True, commandBuffer = ":restart"}
+
 -- The player standing on an item, with a log at capacity.
 onItem :: GameState
 onItem =
@@ -61,8 +66,8 @@ spec = describe "the game screen" $ do
   forM_ sizes $ \size@(w, h) ->
     describe (show w ++ "x" ++ show h) $ do
       it "shows the command prompt" $
-        screen size onItem
-          `shouldSatisfy` any (("Command:" `isPrefixOf`) . dropWhile (== ' '))
+        screen size (typing onItem)
+          `shouldSatisfy` any ((":restart" `isPrefixOf`) . dropWhile (== ' '))
 
       it "shows the newest line of the log" $
         showsText size onItem "NEWEST" `shouldBe` True
@@ -142,7 +147,7 @@ spec = describe "the game screen" $ do
       borderHeight (screen (150, 50) onItem) `shouldBe` length bigMap
 
     it "is exactly as wide as the dungeon when the terminal has room to spare" $
-      borderWidth (screen (150, 50) onItem) `shouldBe` length (head bigMap)
+      borderWidth (screen (150, 50) onItem) `shouldBe` foldr (max . length) 0 bigMap
 
     -- The limits must only ever take room away. Making the map a fixed size
     -- would have vBox measure it before the panes around it, and on a short
@@ -165,8 +170,8 @@ spec = describe "the game screen" $ do
 
     it "keeps the command prompt in view wherever the player is" $
       forM_ corners $ \p ->
-        screen (100, 30) (at p)
-          `shouldSatisfy` any (("Command:" `isPrefixOf`) . dropWhile (== ' '))
+        screen (100, 30) (typing (at p))
+          `shouldSatisfy` any ((":restart" `isPrefixOf`) . dropWhile (== ' '))
 
   describe "the help" $ do
     -- All the keys together do not fit an 80x24 screen, which is why the
@@ -196,8 +201,8 @@ spec = describe "the game screen" $ do
         st = lit ((mkState (mkWorld huge) (V2 1 1)) {message = fullLog})
 
     it "still leaves room for the command prompt" $
-      screen (120, 40) st
-        `shouldSatisfy` any (("Command:" `isPrefixOf`) . dropWhile (== ' '))
+      screen (120, 40) (typing st)
+        `shouldSatisfy` any ((":restart" `isPrefixOf`) . dropWhile (== ' '))
 
     it "still leaves room for the log" $
       showsText (120, 40) st "NEWEST" `shouldBe` True

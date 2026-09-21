@@ -29,7 +29,11 @@ CI runs on Linux and macOS across GHC 9.12.2 and 9.14.1, so a break shows up
 four times. Check all four locally:
 
 1. `cabal build all --ghc-options=-Werror` — CI builds this package with
-   `-Werror`, so any warning is a failure.
+   `-Werror`, so any warning is a failure. **`touch` the files you changed
+   first.** Cabal will happily report success without recompiling anything,
+   and a warning that is not re-emitted is a warning you will not see; a
+   green run here on a cached build has already let a `-Wx-partial` failure
+   reach CI. A build that prints nothing at all has checked nothing.
 2. `hlint src test app` prints **No hints**. The hlint job uses
    `fail-on: suggestion`, so even a suggestion breaks the build.
 3. `cabal test` — all green.

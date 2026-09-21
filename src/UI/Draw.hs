@@ -9,7 +9,6 @@ module UI.Draw
 import Brick
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
-import qualified Brick.Widgets.Border.Style as BS
 import Game.Types
 import Game.State (helpPages, maxInventorySize, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld)
 import Game.GridUtils (keyedInventory)
@@ -304,11 +303,16 @@ drawMessages msgs =
     blanks = replicate (visibleLogMessages - length shown) " "
 
 -- Draw the command input bar
+--
+-- vi's, rather than a labelled field: the line stays blank until ":" opens
+-- it, and then shows the command exactly as typed, leading colon and all.
+-- The label used to read "Command: ", which put a second colon on the screen
+-- beside the one the player had just pressed. How to open the line is in the
+-- help, under "?", where the commands themselves are listed.
+--
+-- The trailing space is what gives an empty line its height, and is where
+-- the cursor sits while the buffer is empty.
 drawCommandInput :: GameState -> Widget ()
 drawCommandInput state =
-  withBorderStyle BS.unicodeBold $
-    hBox
-      [ str "Command: "
-      , showCursor () (Location (length (commandBuffer state), 0)) $
-          str (commandBuffer state ++ " ")
-      ]
+  showCursor () (Location (length (commandBuffer state), 0)) $
+    str (commandBuffer state ++ " ")

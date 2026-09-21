@@ -32,7 +32,7 @@ You picked up: Health Potion
 You attacked Goblin for 27 damage!
 You defeated the Goblin and gained 25 XP!
 
-Command:
+:restart
 ```
 
 ## Requirements
@@ -113,8 +113,10 @@ Moving into a monster attacks it. Moving into an NPC talks to it.
 | `:heal` | Cheat: restore full health |
 | `:super` | Cheat: 1000 HP, 100 attack, 100 resistance |
 
-While typing a command, `Enter` runs it, `Backspace` rubs out a character and
-`Esc` abandons it. All of this is in the in-game help under `?`.
+`:` opens the command line at the bottom of the screen, which is blank until
+then. What you type appears there as you type it, `Enter` runs it, `Backspace`
+rubs out a character and `Esc` abandons it. All of this is in the in-game help
+under `?`.
 
 ### Using items
 

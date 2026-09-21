@@ -5,7 +5,7 @@
 -- other end, which is the part a player would notice being wrong.
 module UI.ScreenSpec (spec) where
 
-import Data.List (isInfixOf)
+import Data.List (dropWhileEnd, isInfixOf, isPrefixOf)
 import Game.GridUtils (keyedInventory)
 import Game.Logic (getVisibleMonsters)
 import Game.State (withCurrentWorld)
@@ -150,8 +150,12 @@ spec = do
     it "echoes what has been typed" $
       showsText room {commandBuffer = ":resta"} ":resta" `shouldBe` True
 
-    it "shows the prompt with an empty buffer" $
-      showsText room "Command:" `shouldBe` True
+    it "keeps the leading colon the player typed, and adds none of its own" $ do
+      let rows = renderRows (terminal 100 40) (drawUI room {commandBuffer = ":restart"})
+      map (dropWhileEnd (== ' ')) (filter (":" `isPrefixOf`) rows) `shouldBe` [":restart"]
+
+    it "says nothing at all while the line is closed" $
+      showsText room "Command" `shouldBe` False
 
   describe "popups" $ do
     it "shows the help only once it is opened" $ do

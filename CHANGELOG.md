@@ -39,6 +39,13 @@ All notable changes to this project are documented in this file.
   **This changes the save format**, so saves written by earlier versions no
   longer load. `world.json` is unaffected — dungeons do not need editing.
 
+### Changed
+
+- The command line is vi's, rather than a labelled field. It is blank until
+  `:` opens it, and then shows the command exactly as typed. It used to be
+  prefixed with `Command: `, which put a second colon on the screen next to
+  the one the player had just pressed: `Command: :restart`.
+
 ### Fixed
 
 - The border around the map is drawn around the map, rather than around
