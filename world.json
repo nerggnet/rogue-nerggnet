@@ -987,7 +987,7 @@
       36,
       3
      ],
-     "itemDescription": "Found in the deep.",
+     "itemDescription": "Restores HP.",
      "itemCategory": "Healing",
      "itemEffectValue": 60,
      "itemHidden": false,
@@ -1493,7 +1493,7 @@
       45,
       11
      ],
-     "itemDescription": "Found in the deep.",
+     "itemDescription": "Restores HP.",
      "itemCategory": "Healing",
      "itemEffectValue": 60,
      "itemHidden": false,
@@ -1898,13 +1898,13 @@
       11,
       12
      ],
-     "itemDescription": "Found in the deep.",
+     "itemDescription": "Restores HP.",
      "itemCategory": "Healing",
-     "itemEffectValue": 70,
+     "itemEffectValue": 60,
      "itemHidden": false,
      "itemInactive": false,
      "itemUses": 2,
-     "itemValue": 140,
+     "itemValue": 120,
      "itemEffect": null
     },
     {
@@ -6355,13 +6355,13 @@
       14,
       20
      ],
-     "itemDescription": "Thick, and very old.",
+     "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
      "itemEffectValue": 200,
      "itemHidden": false,
      "itemInactive": false,
      "itemUses": 1,
-     "itemValue": 200,
+     "itemValue": 360,
      "itemEffect": null
     }
    ],

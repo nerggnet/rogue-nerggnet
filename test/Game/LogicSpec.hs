@@ -3,7 +3,7 @@ module Game.LogicSpec (spec) where
 
 import Data.List (isInfixOf, nub, unfoldr, (\\))
 import Game.Logic
-import Game.State (currentWorld, evalTriggerCondition, helpPages, maxInventorySize, maxLogMessages, visibleMonsters)
+import Game.State (currentWorld, evalTriggerCondition, helpPages, maxInventorySize, maxLogMessages, treasureCarried, visibleMonsters)
 import Game.Types
 import System.Random (mkStdGen)
 import Linear.V2 (V2 (..))
@@ -427,6 +427,26 @@ spec = do
       let opened = promptUseItem holding
           chosen = handleCommandInputInternal (Just 'a') False opened opened
       inventoryMode chosen `shouldBe` Nothing
+
+  describe "stacking" $ do
+    let potion = (mkItem "Health Potion" Healing 60 (V2 4 3)) {iUses = Just 2, iValue = 120}
+        lying is = withWorld (\w -> w {items = is}) baseState
+        tookUp n = iterate (pickUpItem . withWorld (\w -> w {items = [potion]}))
+                    (lying []) !! n
+
+    it "adds the doses of a second one to the first" $
+      map iUses (inventory (player (tookUp 2))) `shouldBe` [Just 4]
+
+    it "keeps them in one row" $
+      length (inventory (player (tookUp 2))) `shouldBe` 1
+
+    -- Adding only the doses meant a second flask scored nothing, so two
+    -- potions that stacked were worth less carried out than two that did not.
+    it "adds what the second one is worth as well" $
+      treasureCarried (tookUp 2) `shouldBe` 240
+
+    it "keeps counting as more are picked up" $
+      map (treasureCarried . tookUp) [1, 2, 3] `shouldBe` [120, 240, 360]
 
   describe "dropItem" $ do
     let sword = mkItem "Sword" Weapon 4 (V2 0 0)

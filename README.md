@@ -138,7 +138,10 @@ readable even on a small terminal.
   `c`… on the map; press a letter to fire, or `Esc` to cancel.
 
 Items with an `itemUses` count are consumed one use at a time and stack in the
-inventory when you pick up another of the same kind. Weapons, armor and
+inventory when you pick up another of the same kind -- same name, category and
+effect value. A stack adds up both the uses and what it is worth carried out.
+Two items sharing a name but differing in anything else would sit in separate
+rows, so the world file is checked for that. Weapons, armor and
 special items have no use count and are never consumed.
 
 ## Map legend
@@ -240,6 +243,9 @@ They also check that a level can actually be played:
 * a dungeon with a `^` shaft in it has something with the `Escape` effect to
   climb it with. The check is of the dungeon and not of each floor, because
   a shaft is climbed on the way back as readily as on the way down;
+* no name is used for two different items. Copies of a name must agree on
+  category, effect value, effect and value, since the inventory stacks on
+  those; only `itemUses` may differ, being what a stack adds up;
 * every trigger action reaches for something that is really there: a
   `spawnMonster` names an inactive monster of that level and aims at floor,
   a `spawnItem` names an item the level places at exactly that spot, an

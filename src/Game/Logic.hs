@@ -112,9 +112,15 @@ pickUpItem state =
                (state.player.inventory)
 
              (invFull, invMsgs, updatedInventory) = case (existingStackableItem, iUses item) of
+               -- Stacking adds the doses and the worth both. Adding only the
+               -- doses meant a second flask scored nothing, so two potions
+               -- that stacked were worth less carried out than two that did
+               -- not -- which made a pair of mismatched items look like a
+               -- bonus and a matched pair look like a loss.
                (Just invItem, Just uses) ->
                  (False, ["You picked up: " ++ iName item], map (\i -> if i == invItem
-                            then i { iUses = fmap (+ uses) (iUses i) }
+                            then i { iUses = fmap (+ uses) (iUses i)
+                                   , iValue = iValue i + iValue item }
                             else i)
                      (state.player.inventory))
                _ -> if inventorySize >= maxInventorySize

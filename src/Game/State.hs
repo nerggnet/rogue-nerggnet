@@ -8,8 +8,9 @@ import Linear.V2 (V2(..))
 import System.Random (StdGen)
 import Control.Monad (void)
 import Data.Bifunctor (first)
-import Data.List (find, intercalate)
+import Data.List (find, intercalate, nub)
 import Data.Maybe (fromMaybe, isNothing, listToMaybe)
+import qualified Data.Map.Strict as Map
 import qualified Data.Set as Set
 
 -- | Everything wrong with a configuration file.
@@ -169,6 +170,7 @@ newGame gen config = do
       *> Validation (checkDoorsOpenable allWorlds)
       *> Validation (checkTriggerItems allWorlds)
       *> Validation (checkShaftsClimbable allWorlds)
+      *> Validation (checkItemsAgree allWorlds)
   initialWorld <- firstOr "no \"levels\" are defined" allWorlds
   startingPosition <- inContext "level 0" $
     maybe (problem "the map grid has no \"S\" tile for the player to start on")
@@ -699,6 +701,31 @@ checkTriggerActions world = noProblems
 --
 -- Going up or down leaves the player where they are and only changes which
 -- level that is, so stairs that do not line up drop them into a wall.
+-- One name, one item.
+--
+-- Two items that share a name but differ in what they do are two items
+-- wearing one label, and the player is the one who finds out: the inventory
+-- stacks by name, category and effect value, so a "Health Potion" that heals
+-- 70 sits in its own row next to the one that heals 60, looking for all the
+-- world like a display fault. Doses are the exception -- they are what
+-- stacking adds up, so the same potion may be found in twos and threes.
+checkItemsAgree :: [World] -> Either Problems ()
+checkItemsAgree worlds = noProblems
+  [ "item " ++ show name ++ " is defined more than one way: "
+    ++ intercalate "; " (map describe (nub shapes))
+  | (name, shapes) <- Map.toList byName
+  , length (nub shapes) > 1
+  ]
+  where
+    byName = Map.fromListWith (++)
+      [ (iName i, [(iCategory i, iEffectValue i, iEffect i, iValue i)])
+      | world <- worlds, i <- items world
+      ]
+    describe (cat, effectValue, effect, worth) =
+      show cat ++ ", effect value " ++ show effectValue
+        ++ maybe "" (\e -> ", " ++ show e) effect
+        ++ ", worth " ++ show worth
+
 -- A shaft is a tile; the rope that works it is an item, and the two need not
 -- be anywhere near each other. A dungeon with shafts and nothing to climb
 -- them with has drawn a way out that never opens.

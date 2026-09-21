@@ -264,6 +264,33 @@ spec = do
       doing (action "consumeItem") {FT.actionItemName = Just "Ghost Relic"}
         `shouldReport` "nothing down to here provides"
 
+  describe "checking a name means one item" $ do
+    let room = ["#####", "#S..#", "#####"]
+        withItems is = newGame testGen (jsonConfig [(jsonLevel room) {FT.items = is}])
+        potion v = (jsonItemOf "Health Potion" "Healing")
+          {FT.itemEffectValue = v, FT.itemUses = Just 2, FT.itemValue = Just 120}
+
+    -- The inventory stacks by name, category and effect value, so two
+    -- potions that disagree sit in separate rows and look like a bug.
+    it "reports one name used for two different things" $
+      withItems [potion 60, (potion 70) {FT.itemPosition = (3, 1)}]
+        `shouldReport` "defined more than one way"
+
+    it "says what the two things are" $
+      withItems [potion 60, (potion 70) {FT.itemPosition = (3, 1)}]
+        `shouldReport` "effect value 70"
+
+    it "reports a disagreement about what it is worth" $
+      withItems [potion 60, (potion 60) {FT.itemPosition = (3, 1), FT.itemValue = Just 400}]
+        `shouldReport` "defined more than one way"
+
+    -- Doses are what stacking adds up, so the same potion may be found in
+    -- twos and threes without being two different potions.
+    it "accepts the same item found in different quantities" $ do
+      st <- shouldSucceed (withItems
+        [potion 60, (potion 60) {FT.itemPosition = (3, 1), FT.itemUses = Just 3}])
+      length (levels st) `shouldBe` 1
+
   describe "checking the levels join up" $ do
     it "accepts stairs that meet" $ do
       st <- shouldSucceed $ newGame testGen $ jsonConfig

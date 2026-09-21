@@ -81,6 +81,17 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Two Health Potions no longer sit in the inventory as separate rows. The
+  inventory stacks by name, category and effect value, and level 4's potion
+  healed 70 where every other one healed 60 -- one name on two different
+  items, which looked for all the world like a display fault. It heals 60
+  now, and the validator rejects a dungeon that gives one name two meanings.
+  Doses stay exempt: they are what stacking adds up, so the same potion may
+  be found in twos and threes.
+- Stacking no longer throws away what the second one was worth. Only the
+  doses were added, so a second flask scored nothing, and two potions that
+  stacked were worth less carried out than two that did not -- which made
+  the bug above look like a bonus and fixing it look like a loss.
 - An NPC could seal a corridor permanently. Walking into one talked instead
   of moving, and NPCs step aside only on their own clock, so an NPC in a
   one-tile passage with the player on one side and a monster on the other
