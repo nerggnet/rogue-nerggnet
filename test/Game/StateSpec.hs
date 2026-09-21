@@ -23,12 +23,15 @@ step (V2 x1 y1) (V2 x2 y2) = max (abs (x2 - x1)) (abs (y2 - y1))
 spec :: Spec
 spec = do
   describe "charToTile / tileToChar" $ do
+    -- Every constructor, so that adding one without a character is caught.
+    let everyTile = [minBound .. maxBound] :: [Tile]
+
     it "round-trips every tile that has a map character" $
-      map (charToTile . tileToChar) [Wall, Floor, Door, UpStair, DownStair, Start]
-        `shouldBe` [Wall, Floor, Door, UpStair, DownStair, Start]
+      map (charToTile . tileToChar) everyTile `shouldBe` everyTile
 
     it "treats an unrecognised character as floor" $
-      property $ \c -> c `notElem` "#.+<>S" ==> charToTile c === Floor
+      property $ \c ->
+        c `notElem` map tileToChar everyTile ==> charToTile c === Floor
 
   describe "manhattanDistance" $ do
     it "is zero exactly when the points are equal" $

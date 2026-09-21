@@ -31,7 +31,7 @@ instance FromJSON StdGen where
 -- | Shaft is a crack in the ceiling with daylight behind it. It is walked
 -- over like floor; a rope turns it into a way up.
 data Tile = Wall | Floor | Door | UpStair | DownStair | Start | Shaft
-  deriving (Eq, Show, Generic)
+  deriving (Eq, Show, Generic, Enum, Bounded)
 
 instance ToJSON Tile
 instance FromJSON Tile

@@ -36,7 +36,10 @@ four times. Check all four locally:
    reach CI. A build that prints nothing at all has checked nothing.
 2. `hlint src test app` prints **No hints**. The hlint job uses
    `fail-on: suggestion`, so even a suggestion breaks the build.
-3. `cabal test` — all green.
+3. `cabal test` — all green. The suite is randomized and uses QuickCheck,
+   so a property can pass locally and fail on CI's seed. When you change
+   what a total function returns, go looking for the property that says
+   what it used to return; do not trust one green run.
 4. `cabal check` — clean.
 
 Commit and push finished work without being asked. Commit subjects are
