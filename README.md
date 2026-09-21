@@ -238,10 +238,16 @@ are drawn dimmed and without their contents.
 ## Playing it through by machine
 
 `Game.Autoplay` plays the dungeon with the same functions the keyboard
-drives. It heals when hurt, wears the best thing it is carrying, fights what
-is in the way, picks up what it passes, unlocks what it can, walks down, and
-takes a way out once there is nowhere deeper to go. It is deliberately
-unclever, and it never runs away, so a dungeon it beats is beatable.
+drives. It heals when hurt, banks a permanent gain the moment it finds one,
+burns a scroll on a crowd, wears the best thing it is carrying, fights what
+is in the way, picks up what it passes, keeps what it knows how to use,
+unlocks what it can, walks down, and takes a way out once there is nowhere
+deeper to go. When it is nearly dead with nothing left to drink it stops
+fighting: it vanishes, or blinks, or walks away from whatever can reach it.
+
+It is still deliberately unclever -- it does not lure, does not fight in a
+doorway, and does not break an archer's line on purpose -- so a dungeon it
+beats is beatable.
 
 The test-suite plays the shipped dungeon through on several seeds and
 checks that it gets to the bottom and back out alive, with the treasure,

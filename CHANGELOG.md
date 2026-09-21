@@ -84,6 +84,25 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Autoplay retreats and uses what it is carrying. It used to walk past every
+  permanent upgrade in its pack and never fire a scroll, so every difficulty
+  figure this project has quoted came from a player who could not do two
+  things a person does constantly.
+
+  It now uses an Empower or Fortify charm the moment it has one, burns a
+  Firestorm scroll when three things are in sight, and, when it is nearly
+  dead with nothing left to drink, vanishes or blinks or walks away from
+  whatever can reach it. A tool is also no longer shed as dead weight: it
+  was being weighed against the treasure competing for its slot, which it
+  loses every time, being worth less than a crown.
+
+  The dungeon turns out to be a good deal softer than it looked. Floors 7
+  to 12 all read easier now, because a player who opens what they are
+  carrying is a stronger player than the one the numbers were measured
+  against:
+
+      with the new habits   90 72 60 67 81 81 72 82 69 49 40 38
+      without them          90 72 60 69 81 80 40 47 44 37 38 21
 - The title bar says which floor you are on and how deep the dungeon goes:
   `Rogue nerggnet - Floor 3 of 12 (press ? for help)`. The stats box already
   calls the player's experience level "Level", so depth is named "Floor"

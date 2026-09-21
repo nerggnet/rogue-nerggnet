@@ -67,7 +67,6 @@ autoplay limit = go 0 100
       where
         low' = min low (healthPct state)
 
-    healthPct state = health (player state) * 100 `div` max 1 (maxHealth state)
 
     report result turns low state = Report
       { outcome = result
@@ -91,6 +90,11 @@ decide :: GameState -> Maybe [Char]
 decide state =
   firstJust
     [ drinkIfHurt state
+      -- Nothing is worth a swing when the next blow is fatal and there is
+      -- no draught left to answer it.
+    , breakOff state
+    , bankTheGains state
+    , firestormIfSwarmed state
     , equipIfBetter state
     , unlockIfPossible state
     , grabUnderfoot state
@@ -117,6 +121,117 @@ drinkIfHurt state
     keyed = keyedInventory (inventory (player state))
               (equippedWeapon (player state)) (equippedArmor (player state))
     usable i = iCategory i == Healing && iUses i /= Just 0
+
+-- Health as a percentage of the most this player can have.
+healthPct :: GameState -> Int
+healthPct state = health (player state) * 100 `div` max 1 (maxHealth state)
+
+-- Below this, stop fighting and get out. Drinking has its own threshold,
+-- higher, in drinkIfHurt.
+dyingBelow :: Int
+dyingBelow = 25
+
+keysOf :: GameState -> [(Char, Item)]
+keysOf state =
+  keyedInventory (inventory plyr) (equippedWeapon plyr) (equippedArmor plyr)
+  where plyr = player state
+
+-- The key that would use the first carried item with this effect.
+effectKey :: ItemEffect -> GameState -> Maybe Char
+effectKey effect state =
+  fst <$> find ((== Just effect) . iEffect . snd) (keysOf state)
+
+useEffect :: ItemEffect -> GameState -> Maybe [Char]
+useEffect effect state = (\k -> ['u', k]) <$> effectKey effect state
+
+anyHealingLeft :: GameState -> Bool
+anyHealingLeft state =
+  any (\i -> iCategory i == Healing && iUses i /= Just 0) (inventory (player state))
+
+-- Anything that could hit the player where they stand: something beside
+-- them, or something with a bow and a clear line.
+threats :: GameState -> [V2 Int]
+threats state =
+  [ mPosition m
+  | m <- monsters world
+  , not (mInactive m)
+  , isAdjacent (mPosition m) here || canShoot world m here
+  ]
+  where
+    world = currentWorld state
+    here = position (player state)
+
+-- | A permanent gain is worth nothing while it is being carried.
+--
+-- Empower and Fortify raise a base figure for good and are spent doing it,
+-- so there is never a turn on which holding one is better than having used
+-- it. The bot used to carry them to the surface unopened.
+bankTheGains :: GameState -> Maybe [Char]
+bankTheGains state =
+  fromMaybe Nothing (find isJust [useEffect Empower state, useEffect Fortify state])
+
+-- | A scroll that burns everything in sight is worth a crowd, not a rat.
+--
+-- A crowd, and not a bad moment: waiting until the health is low as well
+-- meant waiting for a turn on which there was also nothing left to drink,
+-- because drinking comes first -- and on this dungeon that turn never
+-- arrives. Three at once is a crowd here: over a whole run the player sees
+-- four together on six turns and three on thirty-two, so four would have
+-- been another threshold that reads sensibly and never fires.
+firestormIfSwarmed :: GameState -> Maybe [Char]
+firestormIfSwarmed state
+  | length (visibleMonsters (currentWorld state)) < 3 = Nothing
+  | otherwise = useEffect Firestorm state
+
+-- | Stop fighting and get out of reach.
+--
+-- Only when the next blow could be the last and there is nothing left to
+-- drink, because a bot that backs away from every scratch never finishes a
+-- floor. Vanishing is the cleanest way out, blinking the next, and walking
+-- the last -- and walking only counts if there is somewhere to walk that is
+-- further from everything than here is, which is what keeps it from
+-- shuffling on the spot in a dead end.
+breakOff :: GameState -> Maybe [Char]
+breakOff state
+  | healthPct state > dyingBelow = Nothing
+  | anyHealingLeft state = Nothing
+  | null (threats state) = Nothing
+  | otherwise =
+      fromMaybe Nothing
+        (find isJust [useEffect Vanish state, useEffect Blink state, stepAway state])
+
+-- One step further from everything that can reach us, if there is one.
+stepAway :: GameState -> Maybe [Char]
+stepAway state = case better of
+  [] -> Nothing
+  (there : _) -> stepTo state there
+  where
+    world = currentWorld state
+    here = position (player state)
+    taken = [mPosition m | m <- monsters world, not (mInactive m)]
+             ++ map npcPosition (npcs world)
+    clearance pos = case threats state of
+      [] -> maxBound
+      ts -> minimum (map (manhattanDistance pos) ts)
+    open pos =
+      isWalkable world pos && pos `notElem` taken
+    better =
+      map snd $
+        sortOn (negate . fst)
+          [ (clearance n, n)
+          | n <- orthogonal here
+          , open n
+          , clearance n > clearance here
+          ]
+
+-- The keystroke for a step to an adjacent tile.
+stepTo :: GameState -> V2 Int -> Maybe [Char]
+stepTo state there = case there - position (player state) of
+  V2 0 (-1) -> Just ['w']
+  V2 0 1 -> Just ['s']
+  V2 (-1) 0 -> Just ['a']
+  V2 1 0 -> Just ['d']
+  _ -> Nothing
 
 -- Wear the best thing carried. A player who leaves a better blade in the
 -- pack is not the player this is meant to stand in for.
@@ -157,6 +272,7 @@ canTake state i = better && room
       | carried < maxInventorySize - 1 = True
       | carried >= maxInventorySize = False
       | iCategory i `elem` [Key, Healing] = True
+      | worthUsing i = True
       | otherwise = iValue i > worstSpareValue state
 
 -- The poorest thing in the pack that could be put down, if any.
@@ -165,8 +281,22 @@ worstSpareValue state = case map iValue (spares state) of
   [] -> maxBound
   values -> minimum values
 
--- What could be put down without regret: not a key, not a draught, not worn,
--- and not something a way out asks to be carried.
+-- | Effects this player knows what to do with.
+--
+-- Something carrying one of these is a tool, and is kept for what it does
+-- rather than weighed against the treasure competing for its slot -- which
+-- it loses, every time, being worth less than a crown. Keepsake is absent
+-- because it really is only worth its price; Reveal because the map is
+-- already known to a thing that walks it by breadth-first search; Escape
+-- because the way out is down.
+worthUsing :: Item -> Bool
+worthUsing i = case iEffect i of
+  Just e -> e `elem` [Empower, Fortify, Firestorm, Vanish, Blink,
+                      Regenerate, Lifesteal, Revive]
+  Nothing -> False
+
+-- What could be put down without regret: not a key, not a draught, not a
+-- tool, not worn, and not something a way out asks to be carried.
 spares :: GameState -> [Item]
 spares state = filter keepable (inventory plyr)
   where
@@ -177,6 +307,7 @@ spares state = filter keepable (inventory plyr)
              , AtPositionWithItems _ needed <- [triggerCondition t] ]
     keepable i =
       iCategory i `notElem` [Key, Healing]
+        && not (worthUsing i)
         && iName i `notElem` wayOutNeeds
         && Just i /= equippedWeapon plyr
         && Just i /= equippedArmor plyr
