@@ -11,6 +11,12 @@ All notable changes to this project are documented in this file.
 - A `spec` test-suite covering grid utilities, visibility and line of
   sight, world construction, trigger serialization, turn logic, combat,
   inventory handling and the save/load round-trip.
+- Level 2 is a hand-cut maze, drawn on paper rather than generated: dead
+  ends, an irregular outline, eight doors and seventeen monsters spread
+  across it. It replaces the rooms-and-corridors floor that was there, and
+  is a deliberate change of character so early that the dungeon does not
+  read as one machine's work all the way down. Level 3's up-stair moves to
+  meet its exit, on two tiles of new corridor.
 - The world validator now checks what each trigger action reaches for:
   `spawnMonster` must name an inactive monster of that level and aim at a
   tile that is not a wall, `spawnItem` must name an item the level places at

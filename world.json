@@ -671,135 +671,310 @@
   {
    "levelNumber": 2,
    "mapGrid": [
-    "###################################################",
-    "##....<....########################################",
-    "##.........#############################.....######",
-    "##.......................###############.....######",
-    "##.........##########......#######...........######",
-    "##.........##########......#####.....###.....######",
-    "######.##############..........#.....#####.#.######",
-    "######.##############......#####..>..####.......###",
-    "######.##############......#####.....####.......###",
-    "######.##################################.......###",
-    "######........####################.######.......###",
-    "######........####################.######.......###",
-    "######........####################.######.......###",
-    "######........##################.....#####.#.######",
-    "#######.......##################.....#####.#.######",
-    "#######..............................#####......###",
-    "##########.#####################.....#####......###",
-    "##########......................................###",
-    "###########################################.....###",
-    "###################################################",
-    "###################################################",
-    "###################################################",
-    "###################################################",
-    "###################################################",
-    "###################################################",
-    "###################################################",
-    "###################################################"
+    "###########################    ################    ",
+    "#....#<.#.....#.........###   ##..............#    ",
+    "#..####...###.#.######....### #.........#####.##   ",
+    "#.##..#####...#.#....#......###.####...##...#..### ",
+    "#..#...+....###+###..##.......#.#..#####....##...# ",
+    "##.#...#.####.....#...#.####..#+#............###.##",
+    "#..#####.#........#.###.#..####.#######........#..#",
+    "#.................#.#.................####.....##.#",
+    "#..################.#######.....#####....#......#.#",
+    "##.#......................#######...#....#......#.#",
+    "#..#...################...+.....+...+....#.....##.#",
+    "#.##...#..............#...#######...#.####.....#..#",
+    "#..#####..#######.....#####.....#####.#.......##..#",
+    "##........#.....##.......#..###.......#.......#...#",
+    " ##.....###......#######...##.##.....##.......#...#",
+    "  #..####..............#####...##...##......###...#",
+    " ##..#.................#...#....#####......##.....#",
+    "#...##........####.....#...#............####.....##",
+    "#.###........##..##....#...#.....................# ",
+    "#.#..........#....##...##..#........###+####.....##",
+    "#.#..........#.....#....##+#.......##......##.....#",
+    "#.###........#.....##..............#........###...#",
+    "#...##....####......##.............#####......#...#",
+    "###..#...##..........##......#####.....####...#...#",
+    "  ##.#####............########...##.......######..#",
+    "   #..........>...................##.............##",
+    "   ############################################### "
    ],
    "monsters": [
     {
      "name": "Cave Rat",
      "position": [
-      46,
-      12
+      7,
+      7
      ],
      "health": 16,
-     "attack": 7,
-     "xp": 20,
+     "attack": 9,
+     "xp": 10,
+     "inactive": false
+    },
+    {
+     "name": "Cave Rat",
+     "position": [
+      10,
+      9
+     ],
+     "health": 16,
+     "attack": 9,
+     "xp": 10,
+     "inactive": false
+    },
+    {
+     "name": "Cave Rat",
+     "position": [
+      18,
+      25
+     ],
+     "health": 16,
+     "attack": 9,
+     "xp": 10,
+     "inactive": false
+    },
+    {
+     "name": "Goblin Scout",
+     "position": [
+      15,
+      20
+     ],
+     "health": 22,
+     "attack": 10,
+     "xp": 12,
+     "inactive": false
+    },
+    {
+     "name": "Goblin Scout",
+     "position": [
+      20,
+      18
+     ],
+     "health": 22,
+     "attack": 10,
+     "xp": 12,
+     "inactive": false
+    },
+    {
+     "name": "Goblin Scout",
+     "position": [
+      24,
+      18
+     ],
+     "health": 22,
+     "attack": 10,
+     "xp": 12,
+     "inactive": false
+    },
+    {
+     "name": "Cave Rat",
+     "position": [
+      25,
+      17
+     ],
+     "health": 16,
+     "attack": 9,
+     "xp": 10,
+     "inactive": false
+    },
+    {
+     "name": "Cave Lurker",
+     "position": [
+      26,
+      18
+     ],
+     "health": 26,
+     "attack": 12,
+     "xp": 14,
+     "inactive": false
+    },
+    {
+     "name": "Goblin Scout",
+     "position": [
+      28,
+      10
+     ],
+     "health": 22,
+     "attack": 10,
+     "xp": 12,
+     "inactive": false
+    },
+    {
+     "name": "Cave Lurker",
+     "position": [
+      31,
+      18
+     ],
+     "health": 26,
+     "attack": 12,
+     "xp": 14,
+     "inactive": false
+    },
+    {
+     "name": "Cave Lurker",
+     "position": [
+      34,
+      14
+     ],
+     "health": 26,
+     "attack": 12,
+     "xp": 14,
+     "inactive": false
+    },
+    {
+     "name": "Goblin Scout",
+     "position": [
+      38,
+      3
+     ],
+     "health": 22,
+     "attack": 10,
+     "xp": 12,
      "inactive": false
     },
     {
      "name": "Cave Lurker",
      "position": [
       41,
-      4
+      22
      ],
      "health": 26,
-     "attack": 9,
-     "xp": 28,
-     "inactive": false
-    },
-    {
-     "name": "Goblin Scout",
-     "position": [
-      34,
-      16
-     ],
-     "health": 22,
-     "attack": 8,
-     "xp": 24,
+     "attack": 12,
+     "xp": 14,
      "inactive": false
     },
     {
      "name": "Cave Rat",
      "position": [
-      36,
-      4
+      43,
+      3
      ],
      "health": 16,
-     "attack": 7,
-     "xp": 20,
+     "attack": 9,
+     "xp": 10,
      "inactive": false
     },
     {
      "name": "Cave Lurker",
      "position": [
-      10,
+      43,
       11
      ],
      "health": 26,
-     "attack": 9,
-     "xp": 28,
+     "attack": 12,
+     "xp": 14,
      "inactive": false
     },
     {
-     "name": "Goblin Scout",
+     "name": "Cave Lurker",
      "position": [
-      3,
-      3
+      45,
+      16
      ],
-     "health": 22,
-     "attack": 8,
-     "xp": 24,
+     "health": 26,
+     "attack": 12,
+     "xp": 14,
      "inactive": false
     },
     {
-     "name": "Cave Rat",
+     "name": "Cave Lurker",
      "position": [
-      47,
-      9
+      45,
+      20
      ],
-     "health": 16,
-     "attack": 7,
-     "xp": 20,
+     "health": 26,
+     "attack": 12,
+     "xp": 14,
      "inactive": false
     }
    ],
-   "doors": [],
+   "doors": [
+    {
+     "doorPosition": [
+      7,
+      4
+     ],
+     "doorLocked": false,
+     "doorKeyName": "Iron Key"
+    },
+    {
+     "doorPosition": [
+      15,
+      4
+     ],
+     "doorLocked": false,
+     "doorKeyName": "Iron Key"
+    },
+    {
+     "doorPosition": [
+      31,
+      5
+     ],
+     "doorLocked": true,
+     "doorKeyName": "Iron Key"
+    },
+    {
+     "doorPosition": [
+      26,
+      10
+     ],
+     "doorLocked": false,
+     "doorKeyName": "Iron Key"
+    },
+    {
+     "doorPosition": [
+      32,
+      10
+     ],
+     "doorLocked": false,
+     "doorKeyName": "Iron Key"
+    },
+    {
+     "doorPosition": [
+      36,
+      10
+     ],
+     "doorLocked": false,
+     "doorKeyName": "Iron Key"
+    },
+    {
+     "doorPosition": [
+      39,
+      19
+     ],
+     "doorLocked": true,
+     "doorKeyName": "Iron Key"
+    },
+    {
+     "doorPosition": [
+      26,
+      20
+     ],
+     "doorLocked": false,
+     "doorKeyName": "Iron Key"
+    }
+   ],
    "items": [
     {
-     "itemName": "Scale Mail",
+     "itemName": "Iron Key",
      "itemPosition": [
-      11,
-      14
+      17,
+      3
      ],
-     "itemDescription": "Found in the deep.",
-     "itemCategory": "Armor",
-     "itemEffectValue": 8,
+     "itemDescription": "Sturdy key.",
+     "itemCategory": "Key",
+     "itemEffectValue": 0,
      "itemHidden": false,
      "itemInactive": false,
-     "itemUses": null,
-     "itemValue": 160,
+     "itemUses": 1,
+     "itemValue": null,
      "itemEffect": null
     },
     {
      "itemName": "Health Potion",
      "itemPosition": [
-      8,
-      2
+      36,
+      3
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -811,10 +986,25 @@
      "itemEffect": null
     },
     {
+     "itemName": "Scale Mail",
+     "itemPosition": [
+      9,
+      9
+     ],
+     "itemDescription": "Found in the deep.",
+     "itemCategory": "Armor",
+     "itemEffectValue": 8,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 160,
+     "itemEffect": null
+    },
+    {
      "itemName": "Coil of Rope",
      "itemPosition": [
-      12,
-      13
+      4,
+      11
      ],
      "itemDescription": "Long enough to reach daylight.",
      "itemCategory": "Special",
@@ -824,14 +1014,104 @@
      "itemUses": null,
      "itemValue": 40,
      "itemEffect": "Keepsake"
+    },
+    {
+     "itemName": "Iron Key",
+     "itemPosition": [
+      25,
+      11
+     ],
+     "itemDescription": "Sturdy key.",
+     "itemCategory": "Key",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": 1,
+     "itemValue": null,
+     "itemEffect": null
+    },
+    {
+     "itemName": "Tarnished Locket",
+     "itemPosition": [
+      47,
+      13
+     ],
+     "itemDescription": "Someone carried this a long way.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 110,
+     "itemEffect": "Keepsake"
+    },
+    {
+     "itemName": "Miner's Tally",
+     "itemPosition": [
+      20,
+      15
+     ],
+     "itemDescription": "Notched for every day underground.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 90,
+     "itemEffect": "Keepsake"
+    },
+    {
+     "itemName": "Knot of Sinew",
+     "itemPosition": [
+      24,
+      16
+     ],
+     "itemDescription": "Wound tight. Strengthens the arm.",
+     "itemCategory": "Special",
+     "itemEffectValue": 2,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 70,
+     "itemEffect": "Empower"
+    },
+    {
+     "itemName": "Silver Ingot",
+     "itemPosition": [
+      43,
+      23
+     ],
+     "itemDescription": "Stamped with a mark nobody here can read.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 130,
+     "itemEffect": "Keepsake"
+    },
+    {
+     "itemName": "Copper Torc",
+     "itemPosition": [
+      12,
+      25
+     ],
+     "itemDescription": "Green with age, and heavy.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 150,
+     "itemEffect": "Keepsake"
     }
    ],
    "triggers": [
     {
      "triggerType": "position",
      "target": [
-      16,
-      15
+      29,
+      14
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -863,8 +1143,8 @@
     {
      "triggerType": "position",
      "target": [
-      11,
-      3
+      36,
+      21
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -906,7 +1186,7 @@
     "#######...........#..........#############......###",
     "#######................................###......###",
     "#######...........#..........#.........###......###",
-    "#######...........#..........#....<....###...>..###",
+    "#######...........#..........#.........###...>..###",
     "############.########.##.#####.........###......###",
     "############.########.##.#####.........###......###",
     "#########.....#######.##.#########.##########.#####",
@@ -923,8 +1203,8 @@
     "#####.....##.#####################.################",
     "#####.....##.#####################.################",
     "#####..............................################",
-    "#####.....#########################################",
-    "###################################################",
+    "#####.....####.####################################",
+    "##############<####################################",
     "###################################################"
    ],
    "monsters": [
