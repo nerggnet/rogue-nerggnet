@@ -663,15 +663,7 @@ combat state mnstr playerGoesFirst =
             _ -> health plyr
           wounded = max 0 (drained - monsterDamage)
 
-          -- A charm that catches you once is spent doing so.
-          (newHealth, survivingPack, rescueMessage) =
-            case carrying Revive rolled of
-              Just charm | wounded <= 0 ->
-                ( maxHealth rolled
-                , filter (/= charm) (inventory plyr)
-                , [iName charm ++ " burns up, and you are standing again."]
-                )
-              _ -> (wounded, inventory plyr, [])
+          (newHealth, survivingPack, rescueMessage) = catchDeath rolled wounded
           updatedPlayer = plyr { health = newHealth, inventory = survivingPack }
 
           isTarget m = not (mInactive m) && mPosition m == mPosition target
@@ -769,6 +761,25 @@ monsterAttackOrWait state mnstr =
    in if mAttackWait mnstr
       then updatedState
       else combat updatedState mnstrUpdated False
+
+-- A charm that catches you once is spent doing so.
+--
+-- Every death it can reach goes through here: a monster's blow, the
+-- counterblow from your own attack, and a blade in the floor. The trap case
+-- used to kill outright, which made "saves you from one death" mean "saves
+-- you from one death unless the floor does it".
+catchDeath :: GameState -> Int -> (Int, [Item], [String])
+catchDeath state wounded
+  | wounded > 0 = (wounded, pack, [])
+  | otherwise = case carrying Revive state of
+      Just charm ->
+        ( maxHealth state
+        , filter (/= charm) pack
+        , [iName charm ++ " burns up, and you are standing again."]
+        )
+      Nothing -> (wounded, pack, [])
+  where
+    pack = inventory (player state)
 
 -- Can anything walk over this tile, leaving aside who is standing on it?
 isWalkable :: World -> V2 Int -> Bool
@@ -944,12 +955,16 @@ executeAction state (UnlockDoor pos) =
 -- A trap. Enough of them and the run ends, so they are a real cost rather
 -- than scenery.
 executeAction state (HarmPlayer amount) =
-  let hurt = max 0 (health (player state) - amount)
-   in state { player = (player state) { health = hurt }
+  let struck = health (player state) - amount
+      (hurt, pack, rescued) = catchDeath state struck
+   in state { player = (player state) { health = max 0 hurt, inventory = pack }
             , gameOver = hurt <= 0
-            , message = ("You take " ++ show amount ++ " damage!")
-                        : ["You have died! Game Over." | hurt <= 0]
-                        ++ message state }
+              -- Newest first, so the order here is the reverse of the order
+              -- it happened in: the blade, then whatever came of it.
+            , message = rescued
+                        ++ ["You have died! Game Over." | hurt <= 0]
+                        ++ ("You take " ++ show amount ++ " damage!")
+                        : message state }
 
 executeAction state (HealPlayer amount) =
   let mended = min (maxHealth state) (health (player state) + amount)

@@ -1936,6 +1936,21 @@
      "itemUses": null,
      "itemValue": 80,
      "itemEffect": "Fortify"
+    },
+    {
+     "itemName": "Waystone",
+     "itemPosition": [
+      46,
+      21
+     ],
+     "itemDescription": "Hold it and the floor forgets where you were standing.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 140,
+     "itemEffect": "Blink"
     }
    ],
    "triggers": [
@@ -2873,6 +2888,21 @@
      "itemUses": null,
      "itemValue": 120,
      "itemEffect": "Keepsake"
+    },
+    {
+     "itemName": "Widow's Knot",
+     "itemPosition": [
+      36,
+      20
+     ],
+     "itemDescription": "Tied by somebody who expected you back.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 260,
+     "itemEffect": "Revive"
     }
    ],
    "triggers": [
@@ -3390,6 +3420,21 @@
      "itemUses": null,
      "itemValue": 150,
      "itemEffect": "Keepsake"
+    },
+    {
+     "itemName": "Thirsting Band",
+     "itemPosition": [
+      4,
+      22
+     ],
+     "itemDescription": "It closes your wounds with somebody else's.",
+     "itemCategory": "Special",
+     "itemEffectValue": 15,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 240,
+     "itemEffect": "Lifesteal"
     }
    ],
    "triggers": [

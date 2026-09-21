@@ -57,6 +57,7 @@ roundTrip state =
 spec :: Spec
 spec = do
   scoresSpec
+  effectsSpec
   hasWorld <- runIO (doesFileExist "world.json")
   if not hasWorld
     then it "requires world.json" $
@@ -228,6 +229,18 @@ withTempScores act = do
   act path `finally` do
     exists <- doesFileExist path
     when exists (removeFile path)
+
+-- An effect with no item is a feature the game has and nobody can reach.
+-- Blink, Lifesteal and Revive were all three implemented, specced and
+-- written up in the README, and for a long time no item in the dungeon had
+-- any of them.
+effectsSpec :: Spec
+effectsSpec = describe "the effects the dungeon uses" $
+  it "puts every effect the game implements on some item" $ do
+    game <- freshGame
+    let placed = [e | w <- levels game, i <- items w, Just e <- [iEffect i]]
+    mapM_ (\e -> (e, e `elem` placed) `shouldBe` (e, True))
+          ([minBound .. maxBound] :: [ItemEffect])
 
 scoresSpec :: Spec
 scoresSpec = describe "the scoreboard file" $ do

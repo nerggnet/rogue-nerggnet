@@ -651,6 +651,19 @@ spec = do
         -- about five back from the blow, less about two from the counterblow
         health (player s) `shouldSatisfy` onlyBetween 6 9 . pure
 
+      it "Revive catches a blade in the floor, not only a monster" $ do
+        let knot = mkSpecial "Widow's Knot" Revive 0
+            frail = withPlayer (\p -> p {health = 5, inventory = [knot]}) baseState
+            sprung = executeAction frail (HarmPlayer 40)
+        gameOver sprung `shouldBe` False
+        health (player sprung) `shouldSatisfy` (> 5)
+        inventory (player sprung) `shouldBe` []
+        latest sprung `shouldSatisfy` ("burns up" `isInfixOf`)
+
+      it "lets a blade in the floor kill when nothing is there to catch it" $ do
+        let frail = withPlayer (\p -> p {health = 5}) baseState
+        gameOver (executeAction frail (HarmPlayer 40)) `shouldBe` True
+
       it "Revive catches a killing blow once, and burns up doing it" $ do
         let feather = mkSpecial "Phoenix Feather" Revive 0
             brute = mkMonster "Brute" (V2 5 3) 100 30

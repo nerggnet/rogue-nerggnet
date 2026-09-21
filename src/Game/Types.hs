@@ -86,7 +86,7 @@ data ItemEffect
   | Revive     -- ^ While carried, saves the player from one death
   | Vanish     -- ^ Hides the player from monsters for a while
   | Escape     -- ^ On a shaft, climbs to the floor above; from the top, out
-  deriving (Eq, Show, Generic)
+  deriving (Eq, Show, Generic, Enum, Bounded)
 
 instance ToJSON ItemEffect
 instance FromJSON ItemEffect

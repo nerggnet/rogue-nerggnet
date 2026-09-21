@@ -6,6 +6,16 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- The Waystone, the Widow's Knot and the Thirsting Band, on floors 4, 6 and
+  7. `Blink`, `Lifesteal` and `Revive` were implemented, specced and written
+  up in the README, and no item in the dungeon had any of them: three
+  abilities the game had and nobody could reach. A spec now insists every
+  effect the game implements is on some item.
+
+  They are found in the first half on purpose. By floor 8 the pack is full
+  of things worth more than they are, so the decision worth having is not
+  whether to pick one up but whether to keep carrying it once vault treasure
+  starts competing for the slot.
 - The game says what an item does. Every item has carried a description
   since the beginning and the game showed it nowhere, so an inventory was a
   list of names: nothing said what the Whetstone of the Forge was for, and a
@@ -110,6 +120,10 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- A `Revive` charm catches a blade in the floor as well as a monster's blow.
+  `harmPlayer` killed outright without consulting it, so "saves you from one
+  death" quietly meant "unless the floor does it". Every death the charm can
+  reach now goes through one place.
 - Two Health Potions no longer sit in the inventory as separate rows. The
   inventory stacks by name, category and effect value, and level 4's potion
   healed 70 where every other one healed 60 -- one name on two different
