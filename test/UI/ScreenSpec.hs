@@ -171,6 +171,37 @@ spec = do
     it "says nothing at all while the line is closed" $
       showsText room "Command" `shouldBe` False
 
+  describe "the scoreboard" $ do
+    let aRun n = Run { runWhen = "2026-01-0" ++ show n ++ " 12:00", runEnding = GotOut
+                     , runDepth = n, runTreasure = 100 * n, runXP = 10, runTurns = 50 }
+        board = room {scoreboard = [aRun 1, aRun 2], showScores = True}
+
+    it "shows nothing until it is asked for" $
+      showsText room "score" `shouldBe` False
+
+    it "lists the runs recorded so far" $ do
+      showsText board "2026-01-01 12:00" `shouldBe` True
+      showsText board "2026-01-02 12:00" `shouldBe` True
+
+    -- aRun 2 went deeper and carried more out, so it belongs above aRun 1.
+    it "puts the better run first" $ do
+      let rowOf needle = length (takeWhile (not . (needle `isInfixOf`)) (screen board))
+      rowOf "2026-01-02" `shouldSatisfy` (< rowOf "2026-01-01")
+
+    it "says so when there is nothing recorded yet" $
+      showsText room {showScores = True} "Nothing recorded yet" `shouldBe` True
+
+    -- The run just finished is not on the board until the game exits, so
+    -- the end screen has to put it there itself.
+    it "marks the run just finished on the end screen" $ do
+      let ended = room {gameWon = True, deepestLevel = 3, scoreboard = [aRun 1]}
+      showsText ended "this run" `shouldBe` True
+
+    it "ranks the finished run against the recorded ones" $ do
+      let ended = room {gameWon = True, deepestLevel = 11, scoreboard = [aRun 1]}
+          rows = filter (\r -> "this run" `isInfixOf` r) (screen ended)
+      rows `shouldSatisfy` any (">" `isInfixOf`)
+
   describe "popups" $ do
     it "shows the help only once it is opened" $ do
       showsText room "Move up" `shouldBe` False
@@ -207,7 +238,7 @@ spec = do
 
     it "reports depth, treasure and experience on getting out" $ do
       let out = hauling {gameWon = True}
-      showsText out "Reached level 3" `shouldBe` True
+      showsText out "Reached floor 3" `shouldBe` True
       showsText out "Treasure carried out: 1150" `shouldBe` True
       showsText out "Experience: 77" `shouldBe` True
 

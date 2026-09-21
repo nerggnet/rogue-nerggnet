@@ -107,6 +107,7 @@ helpPages =
       , " "
       , ":q         Save and quit"
       , ":restart   Start a new dungeon"
+      , ":scores    Runs finished so far"
       ]
     )
   ]
@@ -199,6 +200,9 @@ newGame gen config = do
         , inventoryMode = Nothing
         , legendPage = 0
         , keyPressCount = 0
+        , turnCount = 0
+        , scoreboard = []
+        , showScores = False
         , lastInteractedNpc = Nothing
         , aimingState = Nothing
         , gameOver = False

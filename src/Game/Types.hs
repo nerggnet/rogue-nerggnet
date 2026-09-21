@@ -36,6 +36,29 @@ data Tile = Wall | Floor | Door | UpStair | DownStair | Start | Shaft
 instance ToJSON Tile
 instance FromJSON Tile
 
+-- | How a run finished. There is no third case: a run still being played
+-- is not a run yet.
+data Ending = GotOut | Killed deriving (Eq, Show, Generic)
+
+instance ToJSON Ending
+instance FromJSON Ending
+
+-- | A finished run, as the scoreboard keeps it. The dungeon is drawn by
+-- hand and never changes, so two people's runs are of the same twelve
+-- floors and can be set side by side -- which only works if they are
+-- written down.
+data Run = Run
+  { runWhen     :: String -- ^ When it ended, as the caller chose to write it
+  , runEnding   :: Ending
+  , runDepth    :: Int    -- ^ Deepest floor reached, counting from 1
+  , runTreasure :: Int    -- ^ What came out. Dying brings nothing out
+  , runXP       :: Int
+  , runTurns    :: Int
+  } deriving (Eq, Show, Generic)
+
+instance ToJSON Run
+instance FromJSON Run
+
 data Direction = North | South | East | West | Up | Down deriving (Eq, Show, Generic)
 
 instance ToJSON Direction
@@ -317,6 +340,9 @@ data GameState = GameState
   , hiddenTurns       :: Int -- Turns left before monsters notice the player again
   , defeatedMonsters  :: [String] -- Names of monsters beaten so far
   , deepestLevel      :: Int -- The furthest down the player has been
+  , turnCount         :: Int -- Turns this run has lasted, for the scoreboard
+  , scoreboard        :: [Run] -- Finished runs, best first; read at startup
+  , showScores        :: Bool  -- Whether the scoreboard popup is open
   } deriving (Generic)
 
 instance ToJSON GameState
@@ -347,3 +373,8 @@ instance FromJSON GameState where
       <*> v .:? Key.fromString "hiddenTurns" .!= 0
       <*> v .:? Key.fromString "defeatedMonsters" .!= []
       <*> v .:? Key.fromString "deepestLevel" .!= 0
+      <*> v .:? Key.fromString "turnCount" .!= 0
+      -- The scoreboard lives in its own file and is read at startup;
+      -- a save carries neither it nor whether it was on screen.
+      <*> pure []
+      <*> pure False

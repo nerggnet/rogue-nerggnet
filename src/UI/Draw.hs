@@ -10,6 +10,7 @@ import Brick
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import Game.Types
+import Game.Score (ranked, runOf, runScore)
 import Game.State (helpPages, maxInventorySize, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
@@ -21,6 +22,7 @@ import qualified Data.Set as Set
 -- Draw the UI
 drawUI :: GameState -> [Widget ()]
 drawUI state =
+  [ drawScoresPopup state | showScores state ] ++
   [ drawLegendPopup (legendPage state) | legendPage state > 0 ] ++
   [ drawInventoryPopup mode (player state) | Just mode <- [inventoryMode state] ] ++
   [ drawVictoryScreen state | gameWon state ] ++
@@ -176,11 +178,61 @@ drawTile Shaft     = withAttr (attrName "shaft") $ str "^"
 -- another. Getting out is what turns treasure carried into treasure kept.
 runSummary :: GameState -> [String]
 runSummary state =
-  [ "Reached level " ++ show (deepestLevel state + 1) ++ " of " ++ show (length (levels state))
+  [ "Reached floor " ++ show (deepestLevel state + 1) ++ " of " ++ show (length (levels state))
   , "Treasure " ++ (if gameWon state then "carried out" else "lost") ++ ": "
       ++ show (treasureCarried state)
   , "Experience: " ++ show (xp (player state))
   ]
+
+-- One row of the scoreboard, in fixed columns so the numbers line up.
+--
+-- The dungeon never changes, which is the point of keeping these: every row
+-- is the same twelve floors, so the rows can be read against each other.
+scoreRow :: Int -> Run -> String
+scoreRow place run =
+  pad 4 (show place ++ ".")
+    ++ pad 18 (runWhen run)
+    ++ pad 8 (case runEnding run of GotOut -> "out"; Killed -> "died")
+    ++ pad 8 ("F" ++ show (runDepth run))
+    ++ rpad 9 (show (runTreasure run))
+    ++ rpad 8 (show (runXP run))
+    ++ rpad 8 (show (runTurns run))
+    ++ rpad 9 (show (runScore run))
+  where
+    pad n t = t ++ replicate (n - length t) ' '
+    rpad n t = replicate (n - length t) ' ' ++ t
+
+scoreHeader :: String
+scoreHeader =
+  "    " ++ "when              " ++ "how     " ++ "depth   "
+    ++ " treasure" ++ "      xp" ++ "   turns" ++ "    score"
+
+-- | The scoreboard with one run picked out, as rows of text. The run being
+-- shown may not be on the board yet -- it is written when the game exits,
+-- and the player wants to see where they came before that.
+scoreLines :: Maybe Run -> [Run] -> [String]
+scoreLines highlight runs
+  | null table = ["Nothing recorded yet. This is the first."]
+  | otherwise = scoreHeader : zipWith row [1 ..] table
+  where
+    table = take 10 (ranked (maybe runs (: runs) highlight))
+    row place run
+      | Just run == highlight = "> " ++ drop 2 (scoreRow place run)
+      | otherwise = scoreRow place run
+
+drawScoresPopup :: GameState -> Widget ()
+drawScoresPopup state =
+  C.centerLayer $
+    B.borderWithLabel (str "Scores") $
+      padAll 1 $ vBox $
+        map str (scoreLines Nothing (scoreboard state))
+          ++ [str " ", C.hCenter (str "Press any key to close.")]
+
+-- What the run just finished was worth, and how it sits among the rest.
+endOfRunBoard :: GameState -> [String]
+endOfRunBoard state = case runOf "this run" state of
+  Nothing -> []
+  Just run -> " " : scoreLines (Just run) (scoreboard state)
 
 -- Draw the victory screen as a popup
 drawVictoryScreen :: GameState -> Widget ()
@@ -192,6 +244,7 @@ drawVictoryScreen state =
         , C.hCenter $ str " "
         ]
           ++ map (C.hCenter . str) (runSummary state)
+          ++ map (C.hCenter . str) (endOfRunBoard state)
           ++ [C.hCenter $ str " ", C.hCenter $ str "Press :q to exit."]
 
 -- Draw the death screen as a popup.
@@ -207,6 +260,7 @@ drawGameOverScreen state =
         , C.hCenter $ str " "
         ]
           ++ map (C.hCenter . str) (runSummary state)
+          ++ map (C.hCenter . str) (endOfRunBoard state)
           ++ [ C.hCenter $ str " "
              , C.hCenter $ str "Press :restart for a new dungeon, or :q to quit."
              ]

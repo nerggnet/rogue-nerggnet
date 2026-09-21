@@ -17,6 +17,7 @@ import Game.Types
 import Linear.V2 (V2 (..))
 import System.Directory (doesFileExist, getTemporaryDirectory, removeFile)
 import System.FilePath ((</>))
+import File.Scores
 import Test.Hspec
 
 import Fixtures (shouldSucceed, testGen)
@@ -55,6 +56,7 @@ roundTrip state =
 
 spec :: Spec
 spec = do
+  scoresSpec
   hasWorld <- runIO (doesFileExist "world.json")
   if not hasWorld
     then it "requires world.json" $
@@ -217,3 +219,55 @@ spec = do
           let world = currentWorld after'
           gridLookup (mapGrid world) (V2 0 1) `shouldBe` Just Floor
           tileOverrides world `shouldBe` [(V2 0 1, Floor)]
+
+-- | Run an action with a scratch scoreboard, removing it afterwards.
+withTempScores :: (FilePath -> IO a) -> IO a
+withTempScores act = do
+  dir <- getTemporaryDirectory
+  let path = dir </> "rogue-nerggnet-spec-scores.json"
+  act path `finally` do
+    exists <- doesFileExist path
+    when exists (removeFile path)
+
+scoresSpec :: Spec
+scoresSpec = describe "the scoreboard file" $ do
+  let finished st = st {gameWon = True, deepestLevel = 2, turnCount = 40}
+
+  it "is empty when there is no file yet" $
+    withTempScores $ \path ->
+      loadScores path `shouldReturn` Right []
+
+  it "writes a finished run and reads it back" $
+    withTempScores $ \path -> do
+      game <- freshGame
+      _ <- recordRun path "2026-01-01 00:00" (finished game)
+      board <- loadScores path
+      fmap (map runDepth) board `shouldBe` Right [3]
+
+  it "keeps the runs already recorded" $
+    withTempScores $ \path -> do
+      game <- freshGame
+      _ <- recordRun path "2026-01-01 00:00" (finished game)
+      _ <- recordRun path "2026-01-02 00:00" (finished game)
+      board <- loadScores path
+      fmap length board `shouldBe` Right 2
+
+  it "says where the run placed" $
+    withTempScores $ \path -> do
+      game <- freshGame
+      let rich = (finished game) {deepestLevel = 9}
+      _ <- recordRun path "2026-01-01 00:00" (finished game)
+      placed <- recordRun path "2026-01-02 00:00" rich
+      fmap (\(_, place, outOf) -> (place, outOf)) placed `shouldBe` Just (1, 2)
+
+  it "records nothing for a game still being played" $
+    withTempScores $ \path -> do
+      game <- freshGame
+      recordRun path "2026-01-01 00:00" game `shouldReturn` Nothing
+
+  -- Losing the history is not a reason to refuse to play.
+  it "reports a scoreboard it cannot parse, rather than throwing" $
+    withTempScores $ \path -> do
+      writeFile path "this is not json"
+      board <- loadScores path
+      board `shouldSatisfy` either (const True) (const False)

@@ -6,6 +6,21 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- A scoreboard. Every finished run is written to `scores.json` -- when it
+  ended, how it ended, how deep it got, what it carried out, experience and
+  turns -- and the end-of-run screen shows where it placed among the rest.
+  `:scores` shows the table at any time; the last hundred runs are kept.
+
+  The score is the treasure carried out plus 100 a floor. Dying forfeits the
+  treasure and keeps the depth, so the decision the dungeon is built around
+  -- press on or turn back -- is the one the score rewards. Ties go to the
+  shorter run.
+
+  This is what a fixed, hand-drawn dungeon was for: everyone plays the same
+  twelve floors, so two scoreboards can be compared. Until now a run's score
+  vanished when the game exited.
+- `GameState` counts the turns a run has lasted. `keyPressCount` was modulo
+  the NPC interval and never a total.
 - A real `README.md`, including a reference for the `world.json` schema
   (tile characters, item categories, trigger types and trigger actions).
 - A `spec` test-suite covering grid utilities, visibility and line of

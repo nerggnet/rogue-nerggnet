@@ -32,11 +32,13 @@ library
     hs-source-dirs:   src
     exposed-modules:  Game.Types
                       Game.Autoplay
+                      Game.Score
                       Game.State
                       Game.Logic
                       Game.GridUtils
                       File.Types
                       File.MapIO
+                      File.Scores
                       UI.Draw
                       UI.MainUI
     build-depends:    base               >= 4.21  && < 4.23
@@ -48,6 +50,7 @@ library
                     , linear             >= 1.22  && < 1.24
                     , random             >= 1.2   && < 1.4
                     , splitmix           >= 0.1   && < 0.2
+                    , time               >= 1.12  && < 1.16
                     , vty                >= 6.0   && < 7
                     , vty-crossplatform  >= 0.4   && < 0.6
     default-language: Haskell2010
@@ -69,6 +72,7 @@ test-suite spec
     main-is:          Spec.hs
     other-modules:    Fixtures
                       Game.GridUtilsSpec
+                      Game.ScoreSpec
                       Game.StateSpec
                       Game.LogicSpec
                       Game.AutoplaySpec
@@ -87,6 +91,7 @@ test-suite spec
                     , linear          >= 1.22 && < 1.24
                     , QuickCheck      >= 2.14 && < 2.19
                     , random          >= 1.2  && < 1.4
+                    , time            >= 1.12 && < 1.16
                     , brick           >= 2.8  && < 3
                     , text            >= 2.0  && < 2.2
                     , vector          >= 0.13 && < 0.14

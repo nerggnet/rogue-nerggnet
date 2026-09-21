@@ -125,6 +125,9 @@ mkState world pos =
     , hiddenTurns       = 0
     , defeatedMonsters  = []
     , deepestLevel      = 0
+    , turnCount         = 0
+    , scoreboard        = []
+    , showScores        = False
     }
 
 -- | The standard fixture: the open room with the player on the start tile.

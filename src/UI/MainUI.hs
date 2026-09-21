@@ -8,6 +8,8 @@ import Graphics.Vty
   )
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
+import Data.Either (fromRight)
+import File.Scores
 import File.MapIO (defaultWorldFile, loadNewGame, loadSavedGame, persistGame)
 import Game.State (maxHealth, newGame, treasureCarried)
 import Game.Logic
@@ -57,20 +59,35 @@ startGame = do
       gen <- initStdGen
       pure (config >>= newGame gen)
 
+  -- A scoreboard that will not parse is reported and then ignored. Losing
+  -- the history is not a reason to refuse to play.
+  board <- loadScores defaultScoresFile
+  case board of
+    Left err -> report "Could not read the scoreboard, starting an empty one" [err]
+    Right _  -> pure ()
+
   case started of
     Left problems -> do
       report ("Could not start a game from " ++ defaultWorldFile) problems
       exitFailure
-    Right initialState -> do
+    Right loaded -> do
+      let initialState = loaded {scoreboard = fromRight [] board}
       finalState <- runGame initialState
       persistGame saveFile finalState
-      putStrLn $ case (gameWon finalState, gameOver finalState) of
+      stamped <- timestampNow
+      placed <- recordRun defaultScoresFile stamped finalState
+      let standing = case placed of
+            Just (_, place, outOf) | place > 0 ->
+              " Placed " ++ show place ++ " of " ++ show outOf ++ " in " ++ defaultScoresFile ++ "."
+            Just _ -> " The scoreboard could not be written."
+            Nothing -> ""
+      putStrLn $ (++ standing) $ case (gameWon finalState, gameOver finalState) of
         (True, _) ->
-          "You got out alive from level " ++ show (deepestLevel finalState + 1)
+          "You got out alive from floor " ++ show (deepestLevel finalState + 1)
             ++ " with " ++ show (treasureCarried finalState)
             ++ " in treasure. Cleared the save, so next time starts a new dungeon."
         (_, True) ->
-          "You died on level " ++ show (deepestLevel finalState + 1)
+          "You died on floor " ++ show (deepestLevel finalState + 1)
             ++ ", losing " ++ show (treasureCarried finalState)
             ++ " in treasure. Cleared the save, so next time starts a new dungeon."
         _ -> "Saving progress..."
@@ -123,6 +140,7 @@ handleCommandInput key = do
 -- Execute commands
 executeCommand :: String -> EventM () GameState ()
 executeCommand ":q" = halt -- Quit the game
+executeCommand ":scores" = modify (\s -> s {showScores = not (showScores s)})
 executeCommand ":restart" = do -- Restart the game
   config <- liftIO loadNewGame
   gen <- liftIO initStdGen

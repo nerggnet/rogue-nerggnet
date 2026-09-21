@@ -66,6 +66,31 @@ individual examples.
 CI builds and tests on Linux and macOS with `-Werror`, and runs
 [hlint](https://github.com/ndmitchell/hlint) over `src/`, `test/` and `app/`.
 
+## Scores
+
+Every finished run is written to `scores.json` in the working directory, and
+the end-of-run screen shows where it placed:
+
+```
+    when              how     depth    treasure      xp   turns    score
+ 1. 2026-09-21 15:09  out     F12         13100   69207    3166    14300
+ 2. 2026-09-21 15:09  out     F12         13100   69207    3169    14300
+>3. 2026-09-21 15:14  died    F8              0   12480    1902      800
+```
+
+The score is the treasure you carried out plus 100 for each floor reached.
+Dying forfeits the treasure but keeps the depth, so getting to floor 11 and
+dying is not the same as drowning on floor 2 -- and getting out is always
+worth more than the same haul lost. Ties go to the shorter run.
+
+This is what the fixed dungeon is for: everyone plays the same twelve floors,
+so two scoreboards can be set side by side. `:scores` shows the table at any
+time, and the last hundred runs are kept.
+
+A missing `scores.json` is simply an empty board. One that cannot be read is
+reported and then ignored, because losing the history is not a reason to
+refuse to play.
+
 ## Saving
 
 * On exit the full game state is written to `save.json`.
@@ -111,6 +136,7 @@ places with it.
 | --- | --- |
 | `:q` | Quit (and save) |
 | `:restart` | Start a new game from `world.json` |
+| `:scores` | Show the runs finished so far (any key closes it) |
 
 `:` opens the command line at the bottom of the screen, which is blank until
 then. What you type appears there as you type it, `Enter` runs it, `Backspace`

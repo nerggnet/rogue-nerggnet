@@ -15,6 +15,9 @@ import Data.Maybe (isJust, listToMaybe)
 import System.Random (StdGen, uniformR)
 
 handleMovementInternal :: Maybe Char -> GameState -> GameState
+-- The scoreboard is a sheet of paper held up in front of the game. Any key
+-- puts it down again, and putting it down is not a turn.
+handleMovementInternal _ state | showScores state = state {showScores = False}
 handleMovementInternal key state =
   case aimingState state of
     -- Delegate to the aiming logic, which hands back a state transformer
@@ -47,6 +50,7 @@ processTurn :: GameState -> GameState
 processTurn state =
   let ticked = regenerate state
         { keyPressCount = (keyPressCount state + 1) `mod` npcMoveInterval
+        , turnCount = turnCount state + 1
         , hiddenTurns = max 0 (hiddenTurns state - 1)
         }
       state' = moveMonsters ticked
