@@ -41,6 +41,14 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- The border around the map is drawn around the map, rather than around
+  whatever space the terminal had going spare. A viewport takes all the room
+  it is offered, so on a window taller or wider than the dungeon the border
+  stood well clear of it, with a field of empty rows between the last wall
+  and the bottom edge. It is limited to the size of the grid now. The limits
+  only take room away, and the map is still measured last, so a window too
+  small for the level scrolls as it did and the log and the command prompt
+  keep their rows.
 - `validateTriggers` now actually rejects triggers that name an item or NPC
   the level does not define. Its guards previously tested for strings that
   never appeared in a description, so nothing was ever rejected.

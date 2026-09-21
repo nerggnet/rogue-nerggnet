@@ -92,12 +92,31 @@ mapView world plyr amngState =
 -- message log and the command prompt off the bottom, where they are silently
 -- cut off rather than scrolled to. The player's own tile is marked visible,
 -- so the viewport follows them around a map bigger than the window.
+--
+-- A viewport takes all the room it is offered, which on a terminal larger
+-- than the dungeon drew a border standing well clear of the map on the
+-- bottom and the right. The limits inside cut the border back to the size of
+-- the grid, and only ever take room away, so a window too small for the
+-- level still gets the scrolling viewport it had before.
+--
+-- The padding outside them is what keeps that true. A limited widget is a
+-- fixed-size one, and vBox hands fixed-size children their room before
+-- anything else; the map would then have taken its 27 rows off the top of a
+-- 24-row terminal and left the log and the command prompt with none. Padding
+-- to Max makes it greedy again, so the panes around it are still measured
+-- first and the map takes what is left -- it simply no longer draws a border
+-- around the empty part of it.
 drawMap :: World -> Player -> Maybe AimingState -> Widget ()
 drawMap wrld plyr amngState =
-  B.border $
-    viewport () Both $
-      vBox $ zipWith3 drawRow [0..] (mapGrid wrld) (zip (visibility wrld) (discovered wrld))
+  padRight Max $
+    padBottom Max $
+      B.border $
+        vLimit (length grid) $
+          hLimit (maximum (0 : map length grid)) $
+            viewport () Both $
+              vBox $ zipWith3 drawRow [0..] grid (zip (visibility wrld) (discovered wrld))
   where
+    grid = mapGrid wrld
     view = mapView wrld plyr amngState
     drawRow y tiles (visRow, seenRow) =
       hBox [ drawTileWithFog view (V2 x y) tile vis seen

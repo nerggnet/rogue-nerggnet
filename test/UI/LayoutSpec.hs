@@ -125,6 +125,32 @@ spec = describe "the game screen" $ do
       let long = replicate 400 'x'
       heightWith onItem {message = [long]} `shouldBe` heightWith onItem {message = ["short"]}
 
+  describe "the map border" $ do
+    -- A viewport takes all the room it is offered. On a terminal larger than
+    -- the dungeon the border used to be drawn around that room rather than
+    -- around the map, leaving a field of empty rows between the last wall
+    -- and the bottom edge, and empty columns out to the right.
+    let corner c rows = [i | (i, r) <- zip [0 :: Int ..] rows, take 1 r == [c]]
+        borderHeight rows = case (corner '\9484' rows, corner '\9492' rows) of
+          (t : _, b : _) -> b - t - 1
+          _ -> error "no map border found"
+        borderWidth rows = case filter ("\9484" `isPrefixOf`) rows of
+          (top : _) -> length (takeWhile (/= '\9488') top) - 1
+          _ -> error "no map border found"
+
+    it "is exactly as tall as the dungeon when the terminal has room to spare" $
+      borderHeight (screen (150, 50) onItem) `shouldBe` length bigMap
+
+    it "is exactly as wide as the dungeon when the terminal has room to spare" $
+      borderWidth (screen (150, 50) onItem) `shouldBe` length (head bigMap)
+
+    -- The limits must only ever take room away. Making the map a fixed size
+    -- would have vBox measure it before the panes around it, and on a short
+    -- terminal it would take its full height off the top and leave the log
+    -- and the command prompt with nothing.
+    it "gives way to the rest of the screen when the window is short" $
+      borderHeight (screen (80, 24) onItem) `shouldSatisfy` (< length bigMap)
+
   describe "scrolling" $ do
     -- A map bigger than the window has to move under the player rather than
     -- stretch the screen, or the rest of the layout goes off the bottom.
