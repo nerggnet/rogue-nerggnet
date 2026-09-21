@@ -139,10 +139,25 @@ data Monster = Monster
   , mXP         :: Int
   , mInactive   :: Bool
   , mAttackWait :: Bool
+  , mRange      :: Maybe Int -- ^ How far it can strike. Nothing is arm's length
   } deriving (Show, Eq, Generic)
 
 instance ToJSON Monster
-instance FromJSON Monster
+
+-- Hand-written and tolerant, so that a save written before monsters could
+-- shoot still loads: anything without a range fights at arm's length, which
+-- is what every monster used to do.
+instance FromJSON Monster where
+  parseJSON = withObject "Monster" $ \v ->
+    Monster
+      <$> v .:  Key.fromString "mPosition"
+      <*> v .:  Key.fromString "mHealth"
+      <*> v .:  Key.fromString "mAttack"
+      <*> v .:  Key.fromString "mName"
+      <*> v .:  Key.fromString "mXP"
+      <*> v .:? Key.fromString "mInactive" .!= False
+      <*> v .:? Key.fromString "mAttackWait" .!= False
+      <*> v .:? Key.fromString "mRange" .!= Nothing
 
 data NPC = NPC
   { npcName               :: String

@@ -1390,9 +1390,10 @@
       3
      ],
      "health": 30,
-     "attack": 13,
+     "attack": 11,
      "xp": 40,
-     "inactive": false
+     "inactive": false,
+     "range": 4
     },
     {
      "name": "Cave Lurker",
@@ -1423,9 +1424,10 @@
       7
      ],
      "health": 30,
-     "attack": 13,
+     "attack": 11,
      "xp": 40,
-     "inactive": false
+     "inactive": false,
+     "range": 4
     },
     {
      "name": "Cave Lurker",
@@ -1456,9 +1458,10 @@
       21
      ],
      "health": 30,
-     "attack": 13,
+     "attack": 11,
      "xp": 40,
-     "inactive": false
+     "inactive": false,
+     "range": 4
     }
    ],
    "doors": [
@@ -1784,9 +1787,10 @@
       8
      ],
      "health": 30,
-     "attack": 13,
+     "attack": 11,
      "xp": 40,
-     "inactive": false
+     "inactive": false,
+     "range": 4
     },
     {
      "name": "Ember Hound",
@@ -1817,9 +1821,10 @@
       6
      ],
      "health": 30,
-     "attack": 13,
+     "attack": 11,
      "xp": 40,
-     "inactive": false
+     "inactive": false,
+     "range": 4
     },
     {
      "name": "Ember Hound",
@@ -1850,9 +1855,10 @@
       5
      ],
      "health": 30,
-     "attack": 13,
+     "attack": 11,
      "xp": 40,
-     "inactive": false
+     "inactive": false,
+     "range": 4
     },
     {
      "name": "Blade's Keeper",
@@ -3784,9 +3790,10 @@
       6
      ],
      "health": 360,
-     "attack": 44,
+     "attack": 38,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Void Stalker",
@@ -3817,9 +3824,10 @@
       5
      ],
      "health": 360,
-     "attack": 44,
+     "attack": 38,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Void Stalker",
@@ -3850,9 +3858,10 @@
       9
      ],
      "health": 360,
-     "attack": 44,
+     "attack": 38,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Void Stalker",
@@ -3883,9 +3892,10 @@
       16
      ],
      "health": 360,
-     "attack": 44,
+     "attack": 38,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Void Stalker",
@@ -4299,9 +4309,10 @@
       4
      ],
      "health": 360,
-     "attack": 44,
+     "attack": 38,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Void Stalker",
@@ -4332,9 +4343,10 @@
       5
      ],
      "health": 360,
-     "attack": 44,
+     "attack": 38,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Void Stalker",
@@ -4365,9 +4377,10 @@
       13
      ],
      "health": 360,
-     "attack": 44,
+     "attack": 38,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Void Stalker",
@@ -4398,9 +4411,10 @@
       3
      ],
      "health": 360,
-     "attack": 44,
+     "attack": 38,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Void Stalker",
@@ -4431,9 +4445,10 @@
       7
      ],
      "health": 360,
-     "attack": 44,
+     "attack": 38,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Void Stalker",
@@ -5477,9 +5492,10 @@
       8
      ],
      "health": 360,
-     "attack": 64,
+     "attack": 58,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Dread Sentinel",
@@ -5510,9 +5526,10 @@
       10
      ],
      "health": 360,
-     "attack": 64,
+     "attack": 58,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Dread Sentinel",
@@ -5543,9 +5560,10 @@
       11
      ],
      "health": 360,
-     "attack": 64,
+     "attack": 58,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Dread Sentinel",
@@ -5576,9 +5594,10 @@
       8
      ],
      "health": 360,
-     "attack": 64,
+     "attack": 58,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Dread Sentinel",
@@ -5609,9 +5628,10 @@
       19
      ],
      "health": 360,
-     "attack": 64,
+     "attack": 58,
      "xp": 420,
-     "inactive": false
+     "inactive": false,
+     "range": 3
     },
     {
      "name": "Dread Sentinel",

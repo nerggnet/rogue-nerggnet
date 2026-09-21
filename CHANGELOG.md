@@ -6,6 +6,17 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Monsters that strike from a distance. Every monster fought the same way --
+  walk up, swing -- so the Bone Archer walked up and punched you. A monster
+  may now have a `range`: it holds its ground while it has a clear line to
+  the player, shoots instead of closing, and is drawn `A` rather than `M`.
+  The line is the same one the player sees by, so nothing shoots through a
+  wall, and a range wider than the player's sight is refused by the
+  validator -- being shot by something you cannot see or reach is not a
+  difficulty setting.
+
+  Bone Archers strike from 4 and Ashen Wyrms from 3, at some cost to their
+  attack, since a shot costs the shooter nothing.
 - The Waystone, the Widow's Knot and the Thirsting Band, on floors 4, 6 and
   7. `Blink`, `Lifesteal` and `Revive` were implemented, specced and written
   up in the README, and no item in the dungeon had any of them: three

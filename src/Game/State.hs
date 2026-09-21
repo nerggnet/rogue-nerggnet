@@ -205,6 +205,7 @@ newGame gen config = do
       *> Validation (checkTriggerItems allWorlds)
       *> Validation (checkShaftsClimbable allWorlds)
       *> Validation (checkItemsAgree allWorlds)
+      *> Validation (checkShootersAreVisible allWorlds)
   initialWorld <- firstOr "no \"levels\" are defined" allWorlds
   startingPosition <- inContext "level 0" $
     maybe (problem "the map grid has no \"S\" tile for the player to start on")
@@ -259,24 +260,30 @@ newGame gen config = do
 updateVisibility :: Player -> Int -> World -> World
 updateVisibility plyr radius world =
   let pos = position plyr
-      updatedVisibility = [ [isVisible pos (V2 x y) | x <- [0..cols-1]] | y <- [0..rows-1] ]
+      updatedVisibility = [ [seesFrom world radius pos (V2 x y) | x <- [0..cols-1]] | y <- [0..rows-1] ]
       updatedDiscovered = zipWith (zipWith (||)) updatedVisibility (discovered world)
   in world { visibility = updatedVisibility, discovered = updatedDiscovered }
   where
-    rows = mapRows world
     cols = mapCols world
+    rows = mapRows world
 
-    isVisible :: V2 Int -> V2 Int -> Bool
-    isVisible src dest
-      | manhattanDistance src dest > radius = False
-      | otherwise = all (\point -> isPassable (mapGrid world) (doors world) point || point == src || point == dest)
-                        (bresenhamLine src dest)
-
-    isPassable :: [[Tile]] -> [DoorEntity] -> V2 Int -> Bool
-    isPassable grid drs (V2 x y) =
-      let inBounds = y >= 0 && y < rows && x >= 0 && x < cols
-          isDoor = any (\door -> dePosition door == V2 x y && deLocked door) drs
-      in inBounds && not isDoor && grid !! y !! x /= Wall
+-- | Whether one tile can be seen from another, within a range.
+--
+-- Walls and locked doors block the line; the two ends never block it
+-- themselves, or nothing could see out of a doorway. This is the player's
+-- fog of war and a monster's aim both: an archer that could shoot through a
+-- wall, or at something it could not see, would not be playing the same
+-- game as the player.
+seesFrom :: World -> Int -> V2 Int -> V2 Int -> Bool
+seesFrom world radius src dest
+  | manhattanDistance src dest > radius = False
+  | otherwise = all clear (bresenhamLine src dest)
+  where
+    clear point = point == src || point == dest || isPassable point
+    isPassable (V2 x y) =
+      let inBounds = y >= 0 && y < mapRows world && x >= 0 && x < mapCols world
+          shut = any (\door -> dePosition door == V2 x y && deLocked door) (doors world)
+       in inBounds && not shut && mapGrid world !! y !! x /= Wall
 
 bresenhamLine :: V2 Int -> V2 Int -> [V2 Int]
 bresenhamLine (V2 x0 y0) (V2 x1 y1) =
@@ -386,6 +393,7 @@ transformMonster fm = Monster
   , mXP = FT.xp fm
   , mInactive = fromMaybe False (FT.inactive fm)
   , mAttackWait = True
+  , mRange = FT.range fm
   }
 
 -- Transform a File.Types.JSONNPC to Game.Types.NPC
@@ -790,6 +798,26 @@ checkShaftsClimbable worlds
       , (x, tile) <- zip [0 ..] row
       , tile == Shaft
       ]
+
+-- A monster that outranges the player's eyes is a wound from nowhere: the
+-- player is hit, told what hit them, and cannot see it or reach it. Whether
+-- that is unfair is a judgement, but it is certainly not what anybody meant
+-- to author, so it is refused rather than shipped.
+checkShootersAreVisible :: [World] -> Either Problems ()
+checkShootersAreVisible worlds = noProblems
+  [ "level " ++ show ix ++ ": " ++ show (mName m) ++ " strikes from "
+    ++ show reach ++ " away, " ++ complaint
+  | (ix, world) <- zip [0 :: Int ..] worlds
+  , m <- monsters world
+  , Just reach <- [mRange m]
+  , complaint <- reasons reach
+  ]
+  where
+    reasons reach
+      | reach < 1 = ["which is closer than arm's length"]
+      | reach > defaultFogRadius =
+          ["further than the player can see (" ++ show defaultFogRadius ++ ")"]
+      | otherwise = []
 
 checkStairsMeet :: [World] -> Either Problems ()
 checkStairsMeet worlds =

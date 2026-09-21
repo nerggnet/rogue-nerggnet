@@ -186,6 +186,7 @@ special items have no use count and are never consumed.
 | --- | --- |
 | `@` | You |
 | `M` | Monster |
+| `A` | Monster that strikes from a distance |
 | `N` | NPC |
 | `!` | Item on the floor |
 | `#` | Wall |
@@ -204,7 +205,9 @@ are drawn dimmed and without their contents.
   walls and locked doors block sight.
 * **Monsters** — chase you when they are within 4 steps of you, counted
   along the way they would have to walk, so one behind a wall or a locked
-  door stays put. They follow the shortest route and go round corners. An
+  door stays put. One with a `range` (drawn `A`) does not chase at all while
+  it has a clear line to you: it stands where it is and shoots, and closing
+  that distance is your problem. They follow the shortest route and go round corners. An
   adjacent monster attacks every other turn. Damage to you is based on `monster attack − your
   resistance`.
 * **Damage is rolled**, landing within a quarter either side of the
@@ -353,11 +356,27 @@ dungeon" filler, since walls surround the playable area anyway).
 #### `monsters`
 
 ```json
-{ "name": "Goblin", "position": [5, 5], "health": 10, "attack": 3, "xp": 25, "inactive": false }
+{ "name": "Goblin", "position": [5, 5], "health": 10, "attack": 3, "xp": 25, "inactive": false, "range": null }
 ```
 
 A monster with `"inactive": true` is not placed in the world; it acts as a
 **template** that a `spawnMonster` trigger action can bring to life.
+
+`range` is how far it can strike, in steps, counted the way sight is. A
+monster with a range holds its ground while it has a clear line to you and
+shoots instead of closing, and is drawn `A` rather than `M`. Omit it, or set
+it to `null`, for something that fights at arm's length.
+
+A shot costs the shooter nothing — you cannot swing back at what you are not
+standing beside — so a monster that gains a range and keeps its attack is
+simply a better monster. Take a few points off its `attack` to pay for the
+reach, and bear in mind that damage is attack minus your resistance: a third
+off the attack of something that hits for 44 against a player resisting 24
+takes three quarters off its damage, not a third.
+
+The range may not exceed the player's sight (5), because being shot by
+something you cannot see, cannot find and cannot reach is not a difficulty
+setting. The world file is checked for it.
 
 #### `doors`
 

@@ -4,7 +4,7 @@ module Game.Logic where
 import Game.State
   ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
   , updateVisibility, evalTriggerCondition, visibleMonsters
-  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid, whatItDoes
+  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid, whatItDoes, seesFrom
   )
 import Game.GridUtils (updateTile, gridLookup, orthogonal, keyedInventory)
 import Game.Types
@@ -737,6 +737,19 @@ levelUp plyr lvls =
              ])
        Nothing -> (plyr, [])
 
+-- | Whether a monster is able to shoot the player where it stands.
+--
+-- It needs a range, the player inside it, and a clear line. The same line
+-- the player sees by, so nothing can shoot from behind a wall, and -- since
+-- a monster's range is checked against what the player can see -- nothing
+-- can shoot out of the dark either.
+canShoot :: World -> Monster -> V2 Int -> Bool
+canShoot world monster playerPos = case mRange monster of
+  Nothing -> False
+  Just reach ->
+    not (isAdjacent (mPosition monster) playerPos)
+      && seesFrom world reach (mPosition monster) playerPos
+
 -- Monsters in tiles adjacent to the player should attack
 monstersAttack :: GameState -> GameState
 monstersAttack state
@@ -745,10 +758,9 @@ monstersAttack state
   let world = currentWorld state
       playerPos = state.player.position
       (_, activeMonsters) = partition mInactive (monsters world)
-      monstersAdjacentToPlayer = filter (\m ->
-          let mPos = mPosition m
-           in isAdjacent mPos playerPos) activeMonsters
-    in foldl' monsterAttackOrWait state monstersAdjacentToPlayer
+      withinReach = filter (\m ->
+          isAdjacent (mPosition m) playerPos || canShoot world m playerPos) activeMonsters
+    in foldl' monsterAttackOrWait state withinReach
 
 -- Helper for handling either monster going into combat or monster waiting
 monsterAttackOrWait :: GameState -> Monster -> GameState
@@ -760,7 +772,32 @@ monsterAttackOrWait state mnstr =
       updatedState = setCurrentWorld updatedWorld state
    in if mAttackWait mnstr
       then updatedState
-      else combat updatedState mnstrUpdated False
+      else if canShoot world mnstrUpdated state.player.position
+             then shootPlayer updatedState mnstrUpdated
+             else combat updatedState mnstrUpdated False
+
+-- A shot from across the room.
+--
+-- Unlike a blow traded at arm's length this costs the shooter nothing: the
+-- player cannot swing back at something they are not standing next to, and
+-- that asymmetry is the whole of what a bow is worth.
+shootPlayer :: GameState -> Monster -> GameState
+shootPlayer state mnstr =
+  let plyr = player state
+      (damage, rolled) =
+        withRandom (rollDamage (mAttack mnstr - resistance plyr)) state
+      (left, pack, rescued) = catchDeath rolled (health plyr - damage)
+      told
+        | damage <= 0 = [mName mnstr ++ " shoots at you, and misses."]
+        | otherwise = [mName mnstr ++ " shoots you for " ++ show damage ++ " damage!"]
+   in rolled
+        { player = plyr {health = max 0 left, inventory = pack}
+        , gameOver = left <= 0
+        , message = rescued
+                    ++ ["You have died! Game Over." | left <= 0]
+                    ++ told
+                    ++ message rolled
+        }
 
 -- A charm that catches you once is spent doing so.
 --
@@ -824,7 +861,7 @@ moveMonsters state =
         foldl
           (\(moved, occupied) monster ->
              let orgMonsterPos = mPosition monster
-                 newMonster = moveMonsterWithOccupied field playerPos occupied monster
+                 newMonster = moveMonsterWithOccupied world field playerPos occupied monster
                  newOccupied = replaceFirst orgMonsterPos (mPosition newMonster) occupied
              in (moved ++ [newMonster], newOccupied))
           ([], initialOccupiedPositions)
@@ -847,8 +884,12 @@ replaceFirst old new (x:xs)
 --
 -- A monster outside the field is either too far off or walled away from the
 -- player entirely, and in both cases has no business giving chase.
-moveMonsterWithOccupied :: Map.Map (V2 Int) Int -> V2 Int -> [V2 Int] -> Monster -> Monster
-moveMonsterWithOccupied field playerPos occupiedPositions monster
+moveMonsterWithOccupied :: World -> Map.Map (V2 Int) Int -> V2 Int -> [V2 Int] -> Monster -> Monster
+moveMonsterWithOccupied world field playerPos occupiedPositions monster
+  -- Something that shoots has no reason to walk into arm's reach. It stands
+  -- where it is as long as it has the shot, which is what makes closing the
+  -- distance the player's problem rather than its own.
+  | canShoot world monster playerPos = monster
   | isAdjacent monsterPos playerPos = monster -- close enough to swing
   | otherwise = case closer of
       [] -> monster -- nowhere better to be

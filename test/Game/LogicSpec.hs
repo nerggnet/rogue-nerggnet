@@ -782,6 +782,46 @@ spec = do
       position (player (movePlayer West (withPlayer (\pl -> pl {position = V2 2 1}) onShaft)))
         `shouldBe` V2 1 1
 
+  describe "monsters that strike at range" $ do
+    -- openMap is a 9x7 room, so there is space to stand off in it.
+    let archer reach pos = (mkMonster "Bone Archer" pos 30 9) {mRange = Just reach, mAttackWait = False}
+        facing m = withWorld (\w -> w {monsters = [m]}) baseState  -- player at (4, 3)
+        hp = health . player
+
+    it "can shoot the player from across the room" $
+      canShoot (currentWorld baseState) (archer 4 (V2 7 3)) (V2 4 3) `shouldBe` True
+
+    it "cannot shoot what it is standing next to; that is a swing" $
+      canShoot (currentWorld baseState) (archer 4 (V2 5 3)) (V2 4 3) `shouldBe` False
+
+    it "cannot shoot past its reach" $
+      canShoot (currentWorld baseState) (archer 2 (V2 7 3)) (V2 4 3) `shouldBe` False
+
+    it "cannot shoot through a wall" $ do
+      let walled = mkWorld ["#####", "#.#.#", "#####"]
+      canShoot walled (archer 4 (V2 3 1)) (V2 1 1) `shouldBe` False
+
+    it "leaves a monster with no reach fighting at arm's length" $
+      canShoot (currentWorld baseState) (mkMonster "Rat" (V2 7 3) 30 9) (V2 4 3)
+        `shouldBe` False
+
+    -- A shot costs the shooter nothing, which is the whole of what it is
+    -- worth: the player cannot swing back at what they are not beside.
+    it "wounds the player without taking a scratch" $ do
+      let shot = processTurn (facing (archer 4 (V2 7 3)))
+      hp shot `shouldSatisfy` (< hp baseState)
+      map mHealth (monsters (currentWorld shot)) `shouldBe` [30]
+      latest shot `shouldSatisfy` ("shoots" `isInfixOf`)
+
+    it "stands its ground while it has the shot" $ do
+      let held = processTurn (facing (archer 4 (V2 7 3)))
+      map mPosition (monsters (currentWorld held)) `shouldBe` [V2 7 3]
+
+    -- Out of line it is just a monster, and has to walk like one.
+    it "closes when it has no shot" $ do
+      let blind = processTurn (facing (archer 1 (V2 7 3)))
+      map mPosition (monsters (currentWorld blind)) `shouldNotBe` [V2 7 3]
+
   describe "monster movement" $ do
     let withMonsterAt pos playerPos =
           withWorld (\w -> w {monsters = [mkMonster "Goblin" pos 10 2]})

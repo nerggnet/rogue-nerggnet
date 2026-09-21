@@ -49,6 +49,7 @@ data JSONMonster = JSONMonster
   , health   :: Int         -- Monster health
   , xp       :: Int         -- XP gained from defeating the monster
   , inactive :: Maybe Bool  -- Inactive monsters act as templates for spawning
+  , range    :: Maybe Int   -- How far it strikes; absent means arm's length
   } deriving (Show, Generic)
 
 instance FromJSON JSONMonster

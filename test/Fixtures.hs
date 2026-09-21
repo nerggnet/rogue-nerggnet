@@ -168,6 +168,7 @@ mkMonster n pos hp atk =
     , mXP         = 10
     , mInactive   = False
     , mAttackWait = True
+    , mRange      = Nothing
     }
 
 mkNPC :: String -> V2 Int -> NPC
@@ -272,7 +273,7 @@ jsonConfig lvls =
 jsonMonsterAt :: String -> (Int, Int) -> FT.JSONMonster
 jsonMonsterAt n pos =
   FT.JSONMonster
-    {FT.name = n, FT.position = pos, FT.attack = 2, FT.health = 5, FT.xp = 1, FT.inactive = Just False}
+    {FT.name = n, FT.position = pos, FT.attack = 2, FT.health = 5, FT.xp = 1, FT.inactive = Just False, FT.range = Nothing}
 
 -- | An NPC standing at a position.
 jsonNpcAt :: String -> (Int, Int) -> FT.JSONNPC

@@ -83,6 +83,21 @@ spec = do
                  room
       map (glyphAt st) [V2 1 1, V2 2 1] `shouldBe` ".."
 
+  describe "monsters that shoot" $ do
+    let shooter = (mkMonster "Bone Archer" (V2 6 3) 30 9) {mRange = Just 4}
+        melee = mkMonster "Cave Rat" (V2 2 3) 30 9
+
+    -- A letter of its own, not a shade of the same one: whether the thing
+    -- across the room can hit you from there decides whether you cross it.
+    it "draws one that shoots apart from one that does not" $ do
+      let st = withWorld (\w -> w {monsters = [shooter, melee]}) room
+      glyphAt st (V2 6 3) `shouldBe` 'A'
+      glyphAt st (V2 2 3) `shouldBe` 'M'
+
+    it "still draws it as a monster once it is inactive" $ do
+      let st = withWorld (\w -> w {monsters = [shooter {mInactive = True}]}) room
+      glyphAt st (V2 6 3) `shouldNotBe` 'A'
+
   describe "fog of war" $ do
     -- A fresh world has been neither seen nor visited.
     let dark = baseState

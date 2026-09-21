@@ -170,6 +170,7 @@ defaultAttrMap = attrMap defAttr
   , (attrName "shaft", withForeColor defAttr white)
   , (attrName "player", withForeColor defAttr blue)
   , (attrName "monster", withForeColor defAttr red)
+  , (attrName "shooter", withForeColor defAttr magenta)
   , (attrName "aimingMonster", withForeColor defAttr yellow)
   , (attrName "corpse", withForeColor defAttr red)
   , (attrName "npc", withForeColor defAttr cyan)

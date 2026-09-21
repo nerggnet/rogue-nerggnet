@@ -291,6 +291,28 @@ spec = do
         [potion 60, (potion 60) {FT.itemPosition = (3, 1), FT.itemUses = Just 3}])
       length (levels st) `shouldBe` 1
 
+  describe "checking what can shoot" $ do
+    let room = ["#####", "#S..#", "#####"]
+        withReach r = newGame testGen (jsonConfig
+          [(jsonLevel room) {FT.monsters = [(jsonMonsterAt "Bone Archer" (3, 1)) {FT.range = Just r}]}])
+
+    it "accepts a reach the player can see across" $ do
+      st <- shouldSucceed (withReach defaultFogRadius)
+      length (levels st) `shouldBe` 1
+
+    -- Being shot by something you cannot see, cannot find and cannot reach
+    -- is not a difficulty setting, it is a wound from nowhere.
+    it "reports something that outranges the player's eyes" $
+      withReach (defaultFogRadius + 1) `shouldReport` "further than the player can see"
+
+    it "reports a reach shorter than arm's length" $
+      withReach 0 `shouldReport` "closer than arm's length"
+
+    it "leaves a monster with no reach alone" $ do
+      st <- shouldSucceed (newGame testGen (jsonConfig
+        [(jsonLevel room) {FT.monsters = [jsonMonsterAt "Rat" (3, 1)]}]))
+      length (levels st) `shouldBe` 1
+
   describe "checking the levels join up" $ do
     it "accepts stairs that meet" $ do
       st <- shouldSucceed $ newGame testGen $ jsonConfig

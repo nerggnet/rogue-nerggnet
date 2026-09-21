@@ -78,6 +78,7 @@ data MapView = MapView
   , viewAiming   :: Bool              -- Are we picking a ranged target?
   , viewLetters  :: Map.Map (V2 Int) Char -- Targeting letters for visible monsters
   , viewMonsters :: Set.Set (V2 Int)  -- Active monsters
+  , viewShooters :: Set.Set (V2 Int)  -- Of those, the ones that strike at range
   , viewItems    :: Set.Set (V2 Int)  -- Items that are on the floor and visible
   , viewNpcs     :: Set.Set (V2 Int)
   , viewCorpses  :: Set.Set (V2 Int)
@@ -91,6 +92,8 @@ mapView world plyr amngState =
       -- Shared with the ranged-targeting logic so the letters always agree.
     , viewLetters  = Map.fromList [(mPosition m, c) | (c, m) <- visibleMonsters world]
     , viewMonsters = Set.fromList (map mPosition (filter (not . mInactive) (monsters world)))
+    , viewShooters = Set.fromList
+        [mPosition m | m <- monsters world, not (mInactive m), isJust (mRange m)]
     , viewItems    = Set.fromList
         [iPosition i | i <- items world, not (iHidden i), not (iInactive i)]
     , viewNpcs     = Set.fromList (map npcPosition (npcs world))
@@ -145,6 +148,11 @@ drawTileWithFog view pos tile lit seen
   | viewAiming view
   , Just monsterChar <- Map.lookup pos (viewLetters view) =
       withAttr (attrName "aimingMonster") $ str [monsterChar]
+  -- A letter of its own rather than a shade of the same one: something that
+  -- can hit the player from across the room is worth telling apart before
+  -- walking into the open, and a colour alone would not say so.
+  | Set.member pos (viewShooters view) =
+      withAttr (attrName "shooter") $ str "A"
   | Set.member pos (viewMonsters view) =
       withAttr (attrName "monster") $ str "M"
   | Set.member pos (viewItems view) =
