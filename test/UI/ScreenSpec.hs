@@ -121,10 +121,12 @@ spec = do
         `shouldBe` []
 
   describe "doorways" $ do
-    let withDoor d = withWorld (\w -> w {doors = [d]}) (withCurrentWorld putDoor room)
-        putDoor w = w {mapGrid = [[if (x, y) == (6, 3) then Door else t
-                                   | (x, t) <- zip [0 :: Int ..] row]
-                                  | (y, row) <- zip [0 :: Int ..] (mapGrid w)]}
+    let withDoor d = withWorld (\w -> w {doors = [d]})
+                       (withCurrentWorld (putDoor (dePosition d)) room)
+        putDoor (V2 dx dy) w =
+          w {mapGrid = [[if (x, y) == (dx, dy) then Door else t
+                         | (x, t) <- zip [0 :: Int ..] row]
+                        | (y, row) <- zip [0 :: Int ..] (mapGrid w)]}
 
     -- Whether a doorway can be walked through decides whether a corridor
     -- is a way out or a wall, and it changes as the player works the door.
@@ -134,6 +136,23 @@ spec = do
 
     it "draws a locked one shut, because it is" $
       glyphAt (withDoor (mkDoor (V2 6 3) True "Iron Key")) (V2 6 3) `shouldBe` '+'
+
+    -- An open door was drawn as two characters for a while, which shifted
+    -- every tile to the right of it one place and pushed the row wider than
+    -- the map, so the whole thing scrolled inside its own border. Checking
+    -- the glyph itself did not catch it, because the first of the two was
+    -- the right one: what has to be true is that the tiles after it are
+    -- still where they belong.
+    it "draws each tile in exactly one column, doors included" $ do
+      let openDoor = withDoor (mkDoor (V2 2 3) False "Iron Key")
+          marked = withCurrentWorld
+            (\w -> w {mapGrid = [[if (x, y) == (7, 3) then DownStair else t
+                                  | (x, t) <- zip [0 :: Int ..] row]
+                                 | (y, row) <- zip [0 :: Int ..] (mapGrid w)]})
+            openDoor
+      glyphAt marked (V2 2 3) `shouldBe` '\''
+      glyphAt marked (V2 7 3) `shouldBe` '>'
+
 
   describe "the grave of an earlier run" $ do
     let buried extra = withWorld (\w -> w {graves = [Grave "yesterday" "d" 0 (V2 6 3) [] 90]

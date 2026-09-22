@@ -272,6 +272,13 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- An open doorway is drawn as one character again. It was written as `"\''"`,
+  which is Haskell for two of them, so every row holding an open door came
+  out a column too wide: everything to the right of it moved one place, and
+  the row overflowed the map, which set the whole thing scrolling inside its
+  own border. The spec that checked the glyph passed throughout, because the
+  first of the two characters was the right one; there is now one that
+  checks the tiles after a door are still where they belong.
 - Every door below floor 2 is drawn again. Redrawing those floors as caves
   moved each door entity to a new position without putting a door tile under
   it, so the door still locked, still wanted its key and still stopped the

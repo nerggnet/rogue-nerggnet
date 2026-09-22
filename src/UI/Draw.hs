@@ -187,7 +187,7 @@ drawTileWithFog view pos tile lit seen
   -- decides whether a corridor is a way out or a wall, and it changes as
   -- the player opens and shuts them.
   | Set.member pos (viewOpenDoors view), tile == Door =
-      withAttr (attrName "door") $ str "\''"
+      withAttr (attrName "door") $ str "'"
   | Set.member pos (viewSprung view) && tile `elem` [Floor, Start] =
       withAttr (attrName "sprung") $ str "*"
   | otherwise =
