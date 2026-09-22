@@ -84,6 +84,14 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Blade traps on floors 3 to 6 are cut by about two fifths, and those floors'
+  monsters hit a little harder. A trap on floor 3 was taking a seventh of the
+  player's health while a monster took a fiftieth, so the only real danger in
+  the first half of the dungeon was the floor. The curve below floor 2 now
+  descends where it used to sag:
+
+      before   90 72 65 66 72 75 52 39 44 37 37 37
+      after    90 72 70 58 53 50 52 39 46 37 37 37
 - The stats box says how much more experience the next level wants:
   `XP: 3877 (123 to next)`, and `(top level)` at the top of the table. It is
   read off the same rung `levelUp` will fire on, so the figure shown is the
