@@ -13,12 +13,13 @@ import Control.Concurrent (forkIO, threadDelay)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 import Data.Either (fromRight)
+import File.Graves
 import File.Replays
 import File.Scores
 import File.MapIO (defaultWorldFile, loadNewGame, loadSavedGame, persistGame)
 import Game.Replay
 import Game.Score (runOf, runScore)
-import Game.State (newGame, treasureCarried)
+import Game.State (layGraves, newGame, treasureCarried)
 import Game.Logic
 import UI.Draw
 import Game.Types
@@ -84,21 +85,30 @@ startGame = do
       report ("Could not start a game from " ++ defaultWorldFile) problems
       exitFailure
     Right (seed, loaded) -> do
-      let initialState = loaded {scoreboard = fromRight [] board}
       digest <- worldDigest
+      -- The dead of earlier runs go back where they fell, with what they
+      -- were carrying. Only this dungeon's dead; layGraves checks.
+      dead <- loadGraves defaultGravesFile
+      case dead of
+        Left err -> report "Could not read the graves, starting with none" [err]
+        Right _ -> pure ()
+      let initialState = layGraves digest (fromRight [] dead)
+                           loaded {scoreboard = fromRight [] board}
       finalState <- runGame initialState
       persistGame saveFile finalState
       stamped <- timestampNow
       placed <- recordRun defaultScoresFile stamped finalState
       filmed <- if seed == 0 then pure Nothing
                   else saveReplay defaultReplayDir digest seed stamped finalState
+      buried <- recordGrave defaultGravesFile digest stamped finalState
       let watchable = maybe "" (\p -> " Recorded to " ++ p ++ ".") filmed
+          remembered = maybe "" (const " Your body is still down there.") buried
           standing = case placed of
             Just (_, place, outOf) | place > 0 ->
               " Placed " ++ show place ++ " of " ++ show outOf ++ " in " ++ defaultScoresFile ++ "."
             Just _ -> " The scoreboard could not be written."
             Nothing -> ""
-      putStrLn $ (++ (standing ++ watchable)) $ case (gameWon finalState, gameOver finalState) of
+      putStrLn $ (++ (standing ++ watchable ++ remembered)) $ case (gameWon finalState, gameOver finalState) of
         (True, _) ->
           "You got out alive from floor " ++ show (deepestLevel finalState + 1)
             ++ " with " ++ show (treasureCarried finalState)
@@ -318,6 +328,7 @@ defaultAttrMap = attrMap defAttr
   , (attrName "shooter", withForeColor defAttr magenta)
   , (attrName "aimingMonster", withForeColor defAttr yellow)
   , (attrName "corpse", withForeColor defAttr red)
+  , (attrName "grave", withForeColor defAttr cyan)
   , (attrName "sprung", withForeColor defAttr red)
   , (attrName "hurt", withStyle (withForeColor defAttr red) reverseVideo)
   , (attrName "npc", withForeColor defAttr cyan)

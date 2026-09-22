@@ -135,6 +135,20 @@ spec = do
     it "draws a locked one shut, because it is" $
       glyphAt (withDoor (mkDoor (V2 6 3) True "Iron Key")) (V2 6 3) `shouldBe` '+'
 
+  describe "the grave of an earlier run" $ do
+    let buried extra = withWorld (\w -> w {graves = [Grave "yesterday" "d" 0 (V2 6 3) [] 90]
+                                          , items = extra}) room
+
+    -- Told apart from a monster's corpse on purpose: one is something the
+    -- player killed, the other is the player.
+    it "is marked, and not with the mark a kill leaves" $ do
+      glyphAt (buried []) (V2 6 3) `shouldBe` '\8225'
+      glyphAt (buried []) (V2 6 3) `shouldNotBe` '\8224'
+
+    -- What it was carrying is lying on it, and that is what you came for.
+    it "shows its belongings while they are still there" $
+      glyphAt (buried [mkItem "Gold Coin" Special 0 (V2 6 3)]) (V2 6 3) `shouldBe` '!'
+
   describe "a trap that has gone off" $ do
     let atTrap = withWorld (\w -> w {sprung = [V2 6 3]}) room
         standingIn = withPlayer (\p -> p {position = V2 6 3}) atTrap

@@ -49,4 +49,5 @@ debug.txt
 # Game save file, scoreboard and recorded runs
 save.json
 scores.json
+graves.json
 replays/

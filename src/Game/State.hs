@@ -114,6 +114,28 @@ helpPages =
     )
   ]
 
+-- | Put the dead of earlier runs back where they fell.
+--
+-- Only this dungeon's dead: a grave carries the fingerprint of the world it
+-- died in, because the same coordinates in a different dungeon are a
+-- different place, and a body in a wall would be worse than no body.
+--
+-- What they were carrying goes on the floor with them. Everything: the
+-- blade they were holding, the armour they were wearing, and the treasure
+-- that was about to be worth something. Getting it back is the point.
+layGraves :: String -> [Grave] -> GameState -> GameState
+layGraves worldDigest dead state =
+  state {levels = zipWith bury [0 :: Int ..] (levels state)}
+  where
+    mine = [g | g <- dead, graveWorld g == worldDigest]
+    bury ix world = world
+      { graves = graves world ++ here
+      , items = items world ++ [dropped (graveAt g) i | g <- here, i <- graveCarried g]
+      }
+      where
+        here = [g | g <- mine, graveFloor g == ix, standable world (graveAt g)]
+    dropped at i = i {iPosition = at, iInactive = False, iHidden = False}
+
 -- | What an item does, in a few words.
 --
 -- Every item carries a description, and for a long time the game never
@@ -370,6 +392,7 @@ transformFileWorld fileWorld = do
         , tileOverrides = []
         , corpses = []
         , sprung = []
+        , graves = []
         }
   pure built
   where

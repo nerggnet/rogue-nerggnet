@@ -59,6 +59,23 @@ data Run = Run
 instance ToJSON Run
 instance FromJSON Run
 
+-- | Where a previous run ended badly, and what it was carrying when it did.
+--
+-- The dungeon never changes, so the floor a run died on is the same floor
+-- the next run will walk through: the body can be put back exactly where it
+-- fell, with everything it was carrying still on it.
+data Grave = Grave
+  { graveWhen     :: String  -- ^ When that run ended
+  , graveWorld    :: String  -- ^ The dungeon it died in, so another one's dead stay out
+  , graveFloor    :: Int     -- ^ Counting from zero, as levels are indexed
+  , graveAt       :: V2 Int
+  , graveCarried  :: [Item]
+  , graveTreasure :: Int
+  } deriving (Eq, Show, Generic)
+
+instance ToJSON Grave
+instance FromJSON Grave
+
 data Direction = North | South | East | West | Up | Down deriving (Eq, Show, Generic)
 
 instance ToJSON Direction
@@ -282,6 +299,7 @@ data World = World
   , tileOverrides      :: [(V2 Int, Tile)]
   , corpses            :: [V2 Int]  -- Where monsters have been defeated
   , sprung             :: [V2 Int]  -- Where something in the floor has gone off
+  , graves             :: [Grave]   -- Where earlier runs of this dungeon ended
   } deriving (Generic)
 
 instance ToJSON World where
@@ -321,6 +339,7 @@ instance FromJSON World where
     tileOvrrds <- v .: Key.fromString "tileOverrides"
     crpses <- v .:? Key.fromString "corpses" .!= []
     sprng <- v .:? Key.fromString "sprung" .!= []
+    grvs <- v .:? Key.fromString "graves" .!= []
     return World
       { mapGrid = grid
       , mapRows = gridRows
@@ -336,6 +355,7 @@ instance FromJSON World where
       , tileOverrides = tileOvrrds
       , corpses = crpses
       , sprung = sprng
+      , graves = grvs
       }
 
 -- Convert a list of discovered coordinates back to a 2D grid.

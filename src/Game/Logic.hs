@@ -149,6 +149,14 @@ pickUpItem state =
               , message = invMsgs ++ message state
               }
 
+-- | What a grave says when the player finds it.
+epitaph :: Grave -> String
+epitaph g =
+  "Here you died, " ++ graveWhen g
+    ++ (if graveTreasure g > 0
+          then ", carrying " ++ show (graveTreasure g) ++ " in treasure."
+          else ", carrying nothing worth the trip.")
+
 -- | Pull a door shut.
 --
 -- Only one standing open beside the player, and only with the doorway
@@ -646,6 +654,8 @@ movePlayer dir state =
       -- tile itself ended the run the moment a player carrying a rope walked
       -- over it, which made a way out of something that should be an offer.
       noticed pos s
+        | Just g <- find ((== pos) . graveAt) (graves world) =
+            s {message = epitaph g : message s}
         | gridLookup worldMap pos == Just Shaft =
             s {message = "Daylight falls through a crack overhead." : message s}
         | otherwise = s

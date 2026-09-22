@@ -6,6 +6,13 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- A run that ends badly leaves a body, and the next run finds it. The grave
+  is marked `‡`, distinct from the `†` a kill leaves, and everything the
+  dead run was carrying is on the floor with it -- the blade, the armour and
+  the treasure that was nearly worth something. Standing on it says when it
+  happened and what it was worth. The last eight are kept in `graves.json`,
+  and a body from a different `world.json` is left out, since the same
+  coordinates in another dungeon are a different place.
 - Doors can be pulled shut, with `c`. Shut and locked have come apart: a
   locked door wants its key, a shut one only wants pushing, and pushing it
   costs the turn. Either stops movement and line of sight, and monsters

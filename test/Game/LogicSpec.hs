@@ -825,6 +825,24 @@ spec = do
       position (player (movePlayer West (withPlayer (\pl -> pl {position = V2 2 1}) onShaft)))
         `shouldBe` V2 1 1
 
+  describe "finding where you died" $ do
+    let room = mkWorld ["#####", "#...#", "#####"]
+        haunted = withWorld (\w -> w {graves = [Grave "2026-09-22 14:00" "d" 0 (V2 2 1) [] 4290]})
+                    (mkState room (V2 1 1))
+
+    it "says so when the player steps onto it" $
+      latest (movePlayer East haunted)
+        `shouldSatisfy` ("Here you died, 2026-09-22 14:00, carrying 4290" `isInfixOf`)
+
+    it "says something else when there was nothing worth carrying" $ do
+      let poor = withWorld (\w -> w {graves = [Grave "then" "d" 0 (V2 2 1) [] 0]})
+                   (mkState room (V2 1 1))
+      latest (movePlayer East poor) `shouldSatisfy` ("nothing worth the trip" `isInfixOf`)
+
+    it "says nothing about a tile with no grave on it" $
+      latest (movePlayer East (mkState room (V2 1 1)))
+        `shouldSatisfy` not . ("Here you died" `isInfixOf`)
+
   describe "shutting a door" $ do
     -- A corridor with a doorway in it, the player beside the doorway.
     let corridor = mkWorld ["#######", "#..+..#", "#######"]

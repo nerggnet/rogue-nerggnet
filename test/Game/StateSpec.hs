@@ -291,6 +291,50 @@ spec = do
         [potion 60, (potion 60) {FT.itemPosition = (3, 1), FT.itemUses = Just 3}])
       length (levels st) `shouldBe` 1
 
+  describe "laying out the dead of earlier runs" $ do
+    let room = ["#####", "#S..#", "#####"]
+        twoFloors = jsonConfig [jsonLevel ["#####", "#S.>#", "#####"]
+                               , jsonLevel ["#####", "#..<#", "#####"]]
+        grave onFloor at = Grave
+          { graveWhen = "yesterday", graveWorld = "thisdungeon00000"
+          , graveFloor = onFloor, graveAt = at
+          , graveCarried = [mkTreasure "Gold Coin" 90], graveTreasure = 90 }
+        lay dead = do
+          st <- shouldSucceed (newGame testGen twoFloors)
+          pure (layGraves "thisdungeon00000" dead st)
+        gravesOn n st = graves (levels st !! n)
+
+    it "puts a body back on the floor it fell on" $ do
+      st <- lay [grave 1 (V2 2 1)]
+      map graveAt (gravesOn 1 st) `shouldBe` [V2 2 1]
+      map graveAt (gravesOn 0 st) `shouldBe` []
+
+    -- Getting your own kit back is the point of it.
+    it "puts what it was carrying on the floor with it" $ do
+      st <- lay [grave 1 (V2 2 1)]
+      map (\i -> (iName i, iPosition i)) (items (levels st !! 1))
+        `shouldBe` [("Gold Coin", V2 2 1)]
+
+    it "gives each body its own belongings, not the first one's" $ do
+      st <- lay [grave 1 (V2 1 1), grave 1 (V2 2 1)]
+      map iPosition (items (levels st !! 1)) `shouldMatchList` [V2 1 1, V2 2 1]
+
+    -- The same coordinates in a different dungeon are a different place,
+    -- and a body in a wall would be worse than no body.
+    it "leaves out the dead of another dungeon" $ do
+      st <- lay [(grave 1 (V2 2 1)) {graveWorld = "someotherworld00"}]
+      concatMap graves (levels st) `shouldBe` []
+
+    it "leaves out one that would lie inside a wall" $ do
+      st <- lay [grave 1 (V2 0 0)]
+      concatMap graves (levels st) `shouldBe` []
+
+    it "leaves an unvisited dungeon exactly as it was" $ do
+      plain <- shouldSucceed (newGame testGen twoFloors)
+      st <- lay []
+      map (length . items) (levels st) `shouldBe` map (length . items) (levels plain)
+      length room `shouldBe` 3
+
   describe "checking a door is drawn as one" $ do
     let room = ["#####", "#S..#", "#####"]
         withDoorAt grid = newGame testGen (jsonConfig

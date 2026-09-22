@@ -41,6 +41,7 @@ library
                       File.MapIO
                       File.Scores
                       File.Replays
+                      File.Graves
                       UI.Draw
                       UI.MainUI
     build-depends:    base               >= 4.21  && < 4.23

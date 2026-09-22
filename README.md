@@ -95,6 +95,25 @@ A missing `scores.json` is simply an empty board. One that cannot be read is
 reported and then ignored, because losing the history is not a reason to
 refuse to play.
 
+## The dead
+
+A run that ends badly leaves a body where it fell, and the next run through
+the same dungeon will find it -- with everything it was carrying still on
+it. Standing on one says whose it was:
+
+```
+Here you died, 2026-09-22 14:00, carrying 4290 in treasure.
+```
+
+Getting your own kit back is the point of it: the blade, the armour and the
+treasure that was nearly worth something are all still there, on the floor
+you did not get off. The last eight deaths are kept, in `graves.json`.
+
+A body belongs to the dungeon it died in -- a grave carries the same
+fingerprint of `world.json` that a replay does, and one from a different
+dungeon is left out, since the same coordinates elsewhere are a different
+place.
+
 ## Replays
 
 Every finished run is written to `replays/`, as the seed it started from and
@@ -252,6 +271,7 @@ special items have no use count and are never consumed.
 | `<` / `>` | Stairs up / down |
 | `^` | A shaft, with daylight behind it |
 | `†` | A monster died here (the tile underneath is unchanged) |
+| `‡` | An earlier run of yours ended here |
 | `*` | Something in the floor went off here |
 
 Unexplored tiles are blank. Tiles you have seen before but cannot currently see

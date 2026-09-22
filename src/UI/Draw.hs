@@ -85,6 +85,7 @@ data MapView = MapView
   , viewCorpses  :: Set.Set (V2 Int)
   , viewSprung   :: Set.Set (V2 Int)  -- Where something in the floor went off
   , viewOpenDoors :: Set.Set (V2 Int) -- Doorways standing open
+  , viewGraves   :: Set.Set (V2 Int)  -- Where earlier runs ended
   }
 
 mapView :: World -> Player -> Maybe AimingState -> MapView
@@ -103,6 +104,7 @@ mapView world plyr amngState =
     , viewCorpses  = Set.fromList (corpses world)
     , viewSprung   = Set.fromList (sprung world)
     , viewOpenDoors = Set.fromList [dePosition d | d <- doors world, not (deBlocks d)]
+    , viewGraves   = Set.fromList (map graveAt (graves world))
     }
 
 -- Draw the map
@@ -172,6 +174,10 @@ drawTileWithFog view pos tile lit seen
   -- A corpse lies on the floor, not over a staircase. Something died on the
   -- stairs down on floor 7 and the marker sat on top of them for the rest
   -- of the run: you could stand on the way down and be told nothing.
+  -- Told apart from a monster's corpse on purpose: one is something the
+  -- player killed, the other is the player.
+  | Set.member pos (viewGraves view) && tile `elem` [Floor, Start] =
+      withAttr (attrName "grave") $ str "\8225"
   | Set.member pos (viewCorpses view) && tile `elem` [Floor, Start] =
       withAttr (attrName "corpse") $ str "†"
   -- Left on the floor once the player moves off it, so the way they came is
