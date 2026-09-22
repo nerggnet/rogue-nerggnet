@@ -1,9 +1,9 @@
 -- src/UI/MainUI.hs
-module UI.MainUI (startGame) where
+module UI.MainUI (startGame, defaultAttrMap) where
 
 import Brick
 import Graphics.Vty
-  ( Event(..), Key(..), rgbColor, withBackColor, withForeColor, defAttr
+  ( Event(..), Key(..), rgbColor, withBackColor, withForeColor, withStyle, defAttr, dim
   , black, white, yellow, green, red, blue, magenta, cyan
   )
 import Graphics.Vty.CrossPlatform (mkVty)
@@ -163,7 +163,12 @@ executeCommand cmd  = modify (\s -> s { message = ("Unknown command: " ++ cmd) :
 defaultAttrMap :: AttrMap
 defaultAttrMap = attrMap defAttr
   [ (attrName "fog", withBackColor defAttr black)
-  , (attrName "discovered", withBackColor defAttr (rgbColor (40 :: Int) 40 40)) -- Dimly lit
+    -- Remembered ground: seen once, not seen now. The shade carries it on a
+    -- terminal with colours to spare, and the dim style carries it on one
+    -- without -- vty drops a colour it cannot render, and that shade was
+    -- the only thing telling remembered ground from lit.
+  , (attrName "discovered",
+      withStyle (withBackColor defAttr (rgbColor (40 :: Int) 40 40)) dim)
   , (attrName "door", withForeColor defAttr yellow)
   , (attrName "upStair", withForeColor defAttr green)
   , (attrName "downStair", withForeColor defAttr green)

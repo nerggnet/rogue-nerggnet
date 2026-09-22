@@ -12,7 +12,10 @@ import Game.State (withCurrentWorld)
 import Game.Types
 import Linear.V2 (V2 (..))
 import Test.Hspec
+import Brick (attrMapLookup, attrName)
+import Graphics.Vty.Attributes
 import UI.Draw (drawUI)
+import UI.MainUI (defaultAttrMap)
 
 import Fixtures
 import Render
@@ -97,6 +100,25 @@ spec = do
     it "still draws it as a monster once it is inactive" $ do
       let st = withWorld (\w -> w {monsters = [shooter {mInactive = True}]}) room
       glyphAt st (V2 6 3) `shouldNotBe` 'A'
+
+  describe "how the map is coloured" $ do
+    let attrOf n = attrMapLookup (attrName n) defaultAttrMap
+
+    -- The shade is what tells remembered ground from lit, and it is the one
+    -- 24-bit colour in the game: a terminal with eight colours drops it and
+    -- is left with no cue at all. The dim style is one such a terminal can
+    -- show, and vty leaves it off where even that is unsupported.
+    it "marks remembered ground with a style as well as a shade" $ do
+      attrStyle (attrOf "discovered") `shouldBe` SetTo dim
+      attrBackColor (attrOf "discovered") `shouldNotBe` Default
+
+    -- Nothing is told by colour alone; every entity has a glyph of its own.
+    it "asks for nothing but the eight plain colours elsewhere" $ do
+      let plain = [black, white, yellow, green, red, blue, magenta, cyan]
+          named = ["door", "upStair", "downStair", "shaft", "player",
+                   "monster", "shooter", "aimingMonster", "corpse", "npc", "item"]
+      [n | n <- named, attrForeColor (attrOf n) `notElem` map SetTo plain]
+        `shouldBe` []
 
   describe "fog of war" $ do
     -- A fresh world has been neither seen nor visited.

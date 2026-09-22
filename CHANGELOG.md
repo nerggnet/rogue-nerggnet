@@ -84,6 +84,16 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Remembered ground is marked with the dim style as well as the dark shade.
+  The shade is the only 24-bit colour in the game and the only thing telling
+  ground you have seen from ground you can see, so on an 8-colour terminal,
+  where vty drops it, there was no cue at all. `xterm` shows the dim style
+  and now has one.
+- The README asked for a terminal with 24-bit colour, which was never true.
+  Vty clamps what it cannot render: the shade comes out as 256-colour 59 on
+  `xterm-256color`, is dropped on `xterm`, and on `vt100` the game draws in
+  plain monochrome and plays perfectly well. What is actually needed is a
+  terminfo entry and cursor addressing.
 - Floors 3 to 12 are caves. They were rectangles joined by straight lines,
   which read as machine-made next to the hand-cut maze on floor 2. The rooms
   are grown a tile at a time instead of stamped, the corridors between them

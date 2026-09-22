@@ -38,7 +38,11 @@ You defeated the Goblin and gained 25 XP!
 ## Requirements
 
 * GHC 9.12 or 9.14 and `cabal` — easiest via [ghcup](https://www.haskell.org/ghcup/)
-* A terminal that supports 24-bit colour
+* A terminal with a terminfo entry and cursor addressing. 256 colours gets
+  you everything the game draws; it runs on an 8-colour or monochrome
+  terminal too, and Vty quietly drops what the terminal cannot render.
+  Every entity has a glyph of its own (`@ M A N ! + < > ^ †`), so nothing
+  is told by colour alone
 
 The map scrolls to follow the player, so the window does not need to be tall
 enough to show a whole dungeon level at once.
