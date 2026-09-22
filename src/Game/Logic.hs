@@ -11,6 +11,7 @@ import Game.Types
 import Linear.V2 (V2(..))
 import Data.List (find, partition, sortOn)
 import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
 import Data.Maybe (isJust, listToMaybe)
 import System.Random (StdGen, uniformR)
 
@@ -263,7 +264,7 @@ useSpecial itm state = case iEffect itm of
           (\w -> w {discovered = initializeGrid True (mapRows w) (mapCols w)})
           state
     apply Blink =
-      case blinkTargets (currentWorld state) of
+      case blinkTargets (currentWorld state) (position plyr) of
         [] -> say "There is nowhere to go." state
         spots ->
           let (ix, moved) = withRandom (uniformR (0, length spots - 1)) state
@@ -332,18 +333,31 @@ climbOut rope state
         , gridLookup (mapGrid above) (V2 x y) == Just DownStair
         ]
 
--- Floor tiles the player could be dropped on: anywhere they could walk, and
--- not on top of something else.
-blinkTargets :: World -> [V2 Int]
-blinkTargets world =
+-- Floor tiles the player could be dropped on: anywhere they could walk to
+-- from where they stand, and not on top of something else.
+--
+-- Reachable from where they stand, and not merely somewhere on the level: a
+-- blink that can cross a locked door is a key. It put the player inside the
+-- vault on the bottom floor, where the door wants a sigil carried by the
+-- thing standing outside it -- the run ended there, with no way back
+-- through and nothing left to do.
+blinkTargets :: World -> V2 Int -> [V2 Int]
+blinkTargets world from =
   [ pos
-  | y <- [0 .. mapRows world - 1]
-  , x <- [0 .. mapCols world - 1]
-  , let pos = V2 x y
+  | pos <- Set.toList (walkableFrom world from)
   , gridLookup (mapGrid world) pos == Just Floor
   , not (any ((== pos) . mPosition) (filter (not . mInactive) (monsters world)))
   , not (any ((== pos) . npcPosition) (npcs world))
   ]
+
+-- Every tile that can be walked to from here, a locked door being a wall.
+walkableFrom :: World -> V2 Int -> Set.Set (V2 Int)
+walkableFrom world from = go (Set.singleton from) [from]
+  where
+    go seen [] = seen
+    go seen (pos : rest) =
+      let next = [n | n <- orthogonal pos, isWalkable world n, not (Set.member n seen)]
+       in go (foldr Set.insert seen next) (rest ++ next)
 
 -- Hurt every monster the player can see.
 firestorm :: Int -> GameState -> GameState

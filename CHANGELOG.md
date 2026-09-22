@@ -84,6 +84,23 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Floors 3 to 12 are caves. They were rectangles joined by straight lines,
+  which read as machine-made next to the hand-cut maze on floor 2. The rooms
+  are grown a tile at a time instead of stamped, the corridors between them
+  wander rather than turning twice, and a couple of cellular-automata passes
+  rough the edges; the floors are joined in a ring so there is more than one
+  way round.
+
+  The content did not change. Every monster, item, door, NPC and trigger
+  keeps its name, its numbers and its job, and was given a new place to
+  stand on the new map. Three things are held exactly: a floor is entered
+  where the floor above leaves off; a locked door stands where the floor
+  cannot be got past without it, with its key on the near side and the
+  stairs beyond; and the vault at the bottom is a room with one door and the
+  Dungeon Lord outside it.
+
+      before   90 72 60 67 81 81 57 46 40 38 39 33
+      after    90 72 65 66 72 75 52 38 44 37 37 37
 - Floors 7 to 12 are retuned against a player who opens their pack. They
   were measured against a bot that carried its Empower and Fortify charms to
   the surface unopened, and banking those is eight more attack and eight
@@ -163,6 +180,13 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Blinking can no longer cross a locked door, which means it can no longer
+  strand the player. A blink went anywhere on the floor, so it could put you
+  inside the vault at the bottom -- whose door wants a sigil carried by the
+  thing standing outside it. There was no way back through and nothing left
+  to do; the run was over where it stood. A blink now goes anywhere you
+  could have walked to, which is also the difference between a blink and a
+  key.
 - A corpse no longer lies on top of the way out. The marker was drawn over
   whatever tile it fell on, so something dying on a staircase hid it for the
   rest of the run: on floor 7 you could stand on the stairs down and be told

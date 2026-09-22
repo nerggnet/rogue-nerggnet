@@ -1344,53 +1344,53 @@
    "levelNumber": 3,
    "mapGrid": [
     "###################################################",
-    "###################################################",
-    "###################..........######################",
-    "#######...........#..........######################",
-    "#######...........#..........#############^.....###",
-    "#######................................###......###",
-    "#######...........#..........#.........###......###",
-    "#######...........#..........#.........###...>..###",
-    "############.########.##.#####.........###......###",
-    "############.########.##.#####.........###......###",
-    "#########.....#######.##.#########.##########.#####",
-    "#########.....#######.##.#########.##########.#####",
-    "#########....................................+#####",
-    "#########.....####.......#########.#.##############",
-    "#########.....####.......#########.#.##############",
-    "############.#####.......#########.#.##############",
-    "############.............#########.#.##############",
-    "############.#####.......#########.....#.........##",
-    "############.#####.......#########.....#.........##",
-    "############.###########.........................##",
-    "############.#####################.....#.........##",
-    "#####.....##.#####################.################",
-    "#####.....##.#####################.################",
-    "#####..............................################",
-    "#####.....####.####################################",
-    "##############<####################################",
+    "######.........###.###########...#######..#########",
+    "#####..........###..#.#######....#####.....########",
+    "######........####.....####.......###.......#######",
+    "#######.....###..#.......##........##........######",
+    "########....##....................###.#.......#####",
+    "########....##........##..........###.#...##..#####",
+    "########.............#####........###.##..##.######",
+    "#########..........#######.......####.######.######",
+    "########...........#######..##.######.####.....####",
+    "########...........######...########..####.......##",
+    "########......##....####......#####..####........##",
+    "#########.....##.....##.......#####.#####.......###",
+    "###########.......##.##......#......######.....####",
+    "###########......###..##....##.##..########....####",
+    "############....#####..........##..########...#####",
+    "############...######...........####...###....#####",
+    "#############..#####..............#....##.....#####",
+    "#############...#####......#####....######.....####",
+    "#############....#........######...#######.....####",
+    "#############....#.#......################.....####",
+    "#############....#.#.....#################......###",
+    "############.......##...##################....^>###",
+    "##########........#########################..######",
+    "########..........#################################",
+    "########......<...#################################",
     "###################################################"
    ],
    "monsters": [
     {
      "name": "Rust Beetle",
      "position": [
-      12,
-      7
+      37,
+      16
      ],
      "health": 34,
-     "attack": 11,
+     "attack": 15,
      "xp": 36,
      "inactive": false
     },
     {
      "name": "Bone Archer",
      "position": [
-      28,
-      3
+      21,
+      16
      ],
      "health": 30,
-     "attack": 11,
+     "attack": 15,
      "xp": 40,
      "inactive": false,
      "range": 4
@@ -1398,33 +1398,33 @@
     {
      "name": "Cave Lurker",
      "position": [
-      11,
-      11
+      18,
+      3
      ],
      "health": 26,
-     "attack": 9,
+     "attack": 13,
      "xp": 28,
      "inactive": false
     },
     {
      "name": "Rust Beetle",
      "position": [
-      46,
-      20
+      13,
+      25
      ],
      "health": 34,
-     "attack": 11,
+     "attack": 15,
      "xp": 36,
      "inactive": false
     },
     {
      "name": "Bone Archer",
      "position": [
-      46,
-      7
+      9,
+      3
      ],
      "health": 30,
-     "attack": 11,
+     "attack": 15,
      "xp": 40,
      "inactive": false,
      "range": 4
@@ -1432,11 +1432,11 @@
     {
      "name": "Cave Lurker",
      "position": [
-      40,
-      17
+      45,
+      15
      ],
      "health": 26,
-     "attack": 9,
+     "attack": 13,
      "xp": 28,
      "inactive": false
     },
@@ -1444,21 +1444,21 @@
      "name": "Rust Beetle",
      "position": [
       17,
-      7
+      22
      ],
      "health": 34,
-     "attack": 11,
+     "attack": 15,
      "xp": 36,
      "inactive": false
     },
     {
      "name": "Bone Archer",
      "position": [
-      12,
-      21
+      15,
+      23
      ],
      "health": 30,
-     "attack": 11,
+     "attack": 15,
      "xp": 40,
      "inactive": false,
      "range": 4
@@ -1467,8 +1467,8 @@
    "doors": [
     {
      "doorPosition": [
-      45,
-      12
+      30,
+      15
      ],
      "doorLocked": true,
      "doorKeyName": "Iron Key"
@@ -1478,8 +1478,8 @@
     {
      "itemName": "Hunting Bow",
      "itemPosition": [
-      21,
-      18
+      18,
+      19
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Range",
@@ -1493,8 +1493,8 @@
     {
      "itemName": "Health Potion",
      "itemPosition": [
-      45,
-      11
+      22,
+      17
      ],
      "itemDescription": "Restores HP.",
      "itemCategory": "Healing",
@@ -1508,8 +1508,8 @@
     {
      "itemName": "Miner's Lantern",
      "itemPosition": [
-      36,
-      17
+      18,
+      4
      ],
      "itemDescription": "Cracked glass, and a wick that still catches.",
      "itemCategory": "Special",
@@ -1523,8 +1523,8 @@
     {
      "itemName": "Iron Key",
      "itemPosition": [
-      32,
-      23
+      27,
+      17
      ],
      "itemDescription": "It turns one lock.",
      "itemCategory": "Key",
@@ -1540,7 +1540,73 @@
     {
      "triggerType": "position",
      "target": [
-      16,
+      26,
+      15
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 20
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      22,
+      20
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 20
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      23,
       5
      ],
      "requiredItems": null,
@@ -1573,74 +1639,8 @@
     {
      "triggerType": "position",
      "target": [
-      19,
-      23
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 20
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      48,
-      19
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 20
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      42,
-      6
+      12,
+      9
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -1652,8 +1652,8 @@
       {
        "actionType": "shiftTile",
        "actionPosition": [
-        41,
-        6
+        48,
+        21
        ],
        "actionItemName": null,
        "actionMonsterName": null,
@@ -1730,39 +1730,39 @@
    "levelNumber": 4,
    "mapGrid": [
     "###################################################",
-    "###################################################",
-    "#########.........#################################",
-    "#########.........#################################",
-    "#########.........#################################",
-    "#########.........#######################.........#",
-    "#########.........##########.........####.........#",
-    "#############.##############.........####....<....#",
-    "#.........###.##.......#####.........####.........#",
-    "#.........#.......................................#",
-    "#.............#............#.........##############",
-    "#.........#.#.#........###.#.........##############",
-    "#####.#####.#.#........###.########################",
-    "#####.#####.#.#.##########.########################",
-    "#####.#####.#.#.##########.########################",
-    "#####.#####.........######.########################",
-    "#####.#####.........######.########################",
-    "#####.#####.........#...........###################",
-    "#####.#####.........#...........##########......###",
-    "#####.#####.#...................##########......###",
-    "#####.##......#######...........##########......###",
-    "#####.##......############################...>..###",
-    "#####....................................+......###",
-    "########......############################......###",
-    "########......#####################################",
-    "###################################################",
+    "##############......####################......#####",
+    "##############.......##################........####",
+    "######..######......###################.......#####",
+    "######...#####.....#####..##############.......####",
+    "#####....####......#####...#############.......####",
+    "#####....####....#.###.....#############.......####",
+    "#####.....###......#..........###########......####",
+    "#####................#.........##########.......###",
+    "####...............#...........##########....#...##",
+    "#####..............###.#.....###########...###...##",
+    "######.............###..##..#############..####..##",
+    "######...........######.#################.####...##",
+    "#######..#.......######......###########..####...##",
+    "#######..##........####...........######.####....##",
+    "###########.........##........###...####.####...###",
+    "############........#.........#####.####..####..###",
+    "#############.......##.........####.###...#####..##",
+    "###>.....####.......##.........####.........##...##",
+    "##.......##.........##.............###............#",
+    "##..................#######.......................#",
+    "##........####....############.###..###...........#",
+    "###.......####..#######################........<..#",
+    "####..##################################.........##",
+    "#############################################.....#",
+    "##############################################....#",
     "###################################################"
    ],
    "monsters": [
     {
      "name": "Ember Hound",
      "position": [
-      10,
-      5
+      25,
+      13
      ],
      "health": 60,
      "attack": 17,
@@ -1772,8 +1772,8 @@
     {
      "name": "Grave Rat Swarm",
      "position": [
-      24,
-      10
+      8,
+      7
      ],
      "health": 75,
      "attack": 16,
@@ -1783,8 +1783,8 @@
     {
      "name": "Bone Archer",
      "position": [
-      18,
-      8
+      26,
+      17
      ],
      "health": 30,
      "attack": 11,
@@ -1795,8 +1795,42 @@
     {
      "name": "Ember Hound",
      "position": [
-      46,
-      9
+      15,
+      5
+     ],
+     "health": 60,
+     "attack": 17,
+     "xp": 70,
+     "inactive": false
+    },
+    {
+     "name": "Grave Rat Swarm",
+     "position": [
+      38,
+      18
+     ],
+     "health": 75,
+     "attack": 16,
+     "xp": 80,
+     "inactive": false
+    },
+    {
+     "name": "Bone Archer",
+     "position": [
+      24,
+      10
+     ],
+     "health": 30,
+     "attack": 11,
+     "xp": 40,
+     "inactive": false,
+     "range": 4
+    },
+    {
+     "name": "Ember Hound",
+     "position": [
+      28,
+      15
      ],
      "health": 60,
      "attack": 17,
@@ -1807,7 +1841,7 @@
      "name": "Grave Rat Swarm",
      "position": [
       42,
-      8
+      2
      ],
      "health": 75,
      "attack": 16,
@@ -1817,42 +1851,8 @@
     {
      "name": "Bone Archer",
      "position": [
-      29,
-      6
-     ],
-     "health": 30,
-     "attack": 11,
-     "xp": 40,
-     "inactive": false,
-     "range": 4
-    },
-    {
-     "name": "Ember Hound",
-     "position": [
-      43,
-      22
-     ],
-     "health": 60,
-     "attack": 17,
-     "xp": 70,
-     "inactive": false
-    },
-    {
-     "name": "Grave Rat Swarm",
-     "position": [
-      26,
-      13
-     ],
-     "health": 75,
-     "attack": 16,
-     "xp": 80,
-     "inactive": false
-    },
-    {
-     "name": "Bone Archer",
-     "position": [
-      48,
-      5
+      46,
+      21
      ],
      "health": 30,
      "attack": 11,
@@ -1863,8 +1863,8 @@
     {
      "name": "Blade's Keeper",
      "position": [
-      42,
-      23
+      41,
+      2
      ],
      "health": 70,
      "attack": 16,
@@ -1875,8 +1875,8 @@
    "doors": [
     {
      "doorPosition": [
-      41,
-      22
+      18,
+      8
      ],
      "doorLocked": true,
      "doorKeyName": "Iron Key"
@@ -1886,8 +1886,8 @@
     {
      "itemName": "Runed Blade",
      "itemPosition": [
-      9,
-      10
+      23,
+      8
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Weapon",
@@ -1901,8 +1901,8 @@
     {
      "itemName": "Health Potion",
      "itemPosition": [
-      11,
-      12
+      43,
+      8
      ],
      "itemDescription": "Restores HP.",
      "itemCategory": "Healing",
@@ -1916,8 +1916,8 @@
     {
      "itemName": "Iron Key",
      "itemPosition": [
-      25,
-      18
+      28,
+      8
      ],
      "itemDescription": "It turns one lock.",
      "itemCategory": "Key",
@@ -1931,8 +1931,8 @@
     {
      "itemName": "Sapper's Charm",
      "itemPosition": [
-      22,
-      18
+      6,
+      11
      ],
      "itemDescription": "Iron filings in a twist of cloth.",
      "itemCategory": "Special",
@@ -1946,8 +1946,8 @@
     {
      "itemName": "Waystone",
      "itemPosition": [
-      46,
-      21
+      15,
+      14
      ],
      "itemDescription": "Hold it and the floor forgets where you were standing.",
      "itemCategory": "Special",
@@ -1963,41 +1963,8 @@
     {
      "triggerType": "position",
      "target": [
-      11,
-      23
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 24
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      30,
-      18
+      41,
+      21
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -2030,7 +1997,40 @@
      "triggerType": "position",
      "target": [
       13,
-      7
+      18
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 24
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      8,
+      18
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -2102,8 +2102,8 @@
       {
        "actionType": "spawnMonster",
        "actionPosition": [
-        42,
-        23
+        25,
+        6
        ],
        "actionItemName": null,
        "actionMonsterName": "Blade's Keeper",
@@ -2125,8 +2125,8 @@
     {
      "triggerType": "position",
      "target": [
-      46,
-      18
+      2,
+      21
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -2138,8 +2138,8 @@
       {
        "actionType": "transportPlayer",
        "actionPosition": [
-        33,
-        22
+        6,
+        3
        ],
        "actionItemName": null,
        "actionMonsterName": null,
@@ -2172,8 +2172,8 @@
     {
      "npcName": "Chained Sapper",
      "npcPosition": [
-      22,
-      20
+      25,
+      5
      ],
      "npcMessage": "I cut these galleries. Take this -- it is no use to me now."
     }
@@ -2183,75 +2183,42 @@
    "levelNumber": 5,
    "mapGrid": [
     "###################################################",
-    "########################.........##################",
-    "########################.........##################",
-    "########################.........##################",
-    "####....................................###########",
-    "####........######.....#.........######.###########",
-    "####...........................................####",
-    "####........##.###.............................####",
-    "##############.###.....#####.##########.#####..####",
-    "##############.###.....#####.##########+#####..####",
-    "##############.#####.#######.########.....###..####",
-    "##############.#####.###.........####.....###..####",
-    "##############.#####.###.........####..>..###..####",
-    "##############...................####.....###..####",
-    "##############.#####.###.........###########.....##",
-    "##############.#####.#######################.....##",
-    "##############.#####.##########..................##",
-    "##############.#####.##########......#######.....##",
-    "##########........##.................########.#####",
-    "##########........#############......####.........#",
-    "##########........#############......####.........#",
-    "##########........#######################....<....#",
-    "##########........#######################.........#",
-    "##########........#######################.........#",
-    "###################################################",
-    "###################################################",
+    "#.....########........#####........################",
+    "#......#####..........#####.........###############",
+    "#.......###..#.........####........####..##########",
+    "#......###..#.........######....#.##......#########",
+    "##.....###.###.......#######...#####......#########",
+    "###.....#..###...#...######....######....##########",
+    "###........#########.#######...#####......#########",
+    "###........#########.######....####.......#########",
+    "####...........####..######.....###.......#########",
+    "###.........#..####..#####................#########",
+    "###........#######.....#.##.........####..#########",
+    "###.......########........##.......#####..#########",
+    "###..############........###........####.##########",
+    "###...###########......######......####..##########",
+    "#....##############....#####.......####..##########",
+    "#....#################..####...#######>.###########",
+    "#....####..#######.###...##....#############..#####",
+    "#..<........#......##............##########...#####",
+    "##......#........#####......###.......##......#####",
+    "######################.....########............####",
+    "#####################......############.......#####",
+    "####################.......############......######",
+    "####################......#############.....#######",
+    "######################....#########################",
+    "########################.##########################",
     "###################################################"
    ],
    "monsters": [
     {
      "name": "Shrieker",
      "position": [
-      11,
-      6
-     ],
-     "health": 95,
-     "attack": 22,
-     "xp": 110,
-     "inactive": false
-    },
-    {
-     "name": "Ember Hound",
-     "position": [
-      46,
-      11
-     ],
-     "health": 60,
-     "attack": 17,
-     "xp": 70,
-     "inactive": false
-    },
-    {
-     "name": "Iron Sentinel",
-     "position": [
-      12,
+      23,
       23
      ],
-     "health": 130,
-     "attack": 20,
-     "xp": 130,
-     "inactive": false
-    },
-    {
-     "name": "Shrieker",
-     "position": [
-      27,
-      4
-     ],
      "health": 95,
-     "attack": 22,
+     "attack": 20,
      "xp": 110,
      "inactive": false
     },
@@ -2259,76 +2226,109 @@
      "name": "Ember Hound",
      "position": [
       19,
-      8
+      10
      ],
      "health": 60,
-     "attack": 17,
+     "attack": 15,
      "xp": 70,
      "inactive": false
     },
     {
      "name": "Iron Sentinel",
      "position": [
-      48,
-      14
+      33,
+      19
      ],
      "health": 130,
-     "attack": 20,
+     "attack": 18,
      "xp": 130,
      "inactive": false
     },
     {
      "name": "Shrieker",
      "position": [
-      4,
-      6
+      15,
+      5
      ],
      "health": 95,
-     "attack": 22,
+     "attack": 20,
      "xp": 110,
      "inactive": false
     },
     {
      "name": "Ember Hound",
      "position": [
-      42,
-      20
+      20,
+      22
      ],
      "health": 60,
-     "attack": 17,
+     "attack": 15,
      "xp": 70,
      "inactive": false
     },
     {
      "name": "Iron Sentinel",
      "position": [
-      44,
-      15
+      22,
+      13
      ],
      "health": 130,
-     "attack": 20,
+     "attack": 18,
      "xp": 130,
      "inactive": false
     },
     {
      "name": "Shrieker",
      "position": [
-      38,
-      4
+      6,
+      5
      ],
      "health": 95,
-     "attack": 22,
+     "attack": 20,
+     "xp": 110,
+     "inactive": false
+    },
+    {
+     "name": "Ember Hound",
+     "position": [
+      20,
+      23
+     ],
+     "health": 60,
+     "attack": 15,
+     "xp": 70,
+     "inactive": false
+    },
+    {
+     "name": "Iron Sentinel",
+     "position": [
+      14,
+      5
+     ],
+     "health": 130,
+     "attack": 18,
+     "xp": 130,
+     "inactive": false
+    },
+    {
+     "name": "Shrieker",
+     "position": [
+      18,
+      6
+     ],
+     "health": 95,
+     "attack": 20,
      "xp": 110,
      "inactive": false
     },
     {
      "name": "Lockward",
      "position": [
-      38,
-      10
+      6,
+      9
      ],
      "health": 150,
-     "attack": 24,
+     "attack": 22,
      "xp": 40,
      "inactive": true
     }
@@ -2336,8 +2336,8 @@
    "doors": [
     {
      "doorPosition": [
-      39,
-      9
+      27,
+      18
      ],
      "doorLocked": true,
      "doorKeyName": "Silver Key"
@@ -2347,8 +2347,8 @@
     {
      "itemName": "Chain Hauberk",
      "itemPosition": [
-      32,
-      20
+      10,
+      4
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Armor",
@@ -2362,8 +2362,8 @@
     {
      "itemName": "Greater Health Potion",
      "itemPosition": [
-      14,
-      13
+      23,
+      20
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -2377,8 +2377,8 @@
     {
      "itemName": "Whetstone of the Forge",
      "itemPosition": [
-      20,
-      13
+      3,
+      3
      ],
      "itemDescription": "Grinding a blade on it leaves an edge that stays.",
      "itemCategory": "Special",
@@ -2392,8 +2392,8 @@
     {
      "itemName": "Silver Key",
      "itemPosition": [
-      28,
-      12
+      1,
+      16
      ],
      "itemDescription": "It turns one lock.",
      "itemCategory": "Key",
@@ -2407,8 +2407,8 @@
     {
      "itemName": "Coil of Rope",
      "itemPosition": [
-      16,
-      18
+      2,
+      5
      ],
      "itemDescription": "Long enough to reach the floor above.",
      "itemCategory": "Special",
@@ -2422,8 +2422,8 @@
     {
      "itemName": "Sunken Purse",
      "itemPosition": [
-      5,
-      5
+      36,
+      8
      ],
      "itemDescription": "Swollen leather, and heavy.",
      "itemCategory": "Special",
@@ -2439,8 +2439,8 @@
     {
      "triggerType": "position",
      "target": [
-      47,
-      21
+      31,
+      3
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -2472,8 +2472,8 @@
     {
      "triggerType": "position",
      "target": [
-      44,
-      14
+      3,
+      7
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -2505,7 +2505,7 @@
     {
      "triggerType": "position",
      "target": [
-      15,
+      1,
       18
      ],
      "requiredItems": null,
@@ -2548,8 +2548,8 @@
       {
        "actionType": "spawnMonster",
        "actionPosition": [
-        38,
-        10
+        40,
+        8
        ],
        "actionItemName": null,
        "actionMonsterName": "Lockward",
@@ -2571,8 +2571,8 @@
     {
      "triggerType": "position",
      "target": [
-      10,
-      22
+      11,
+      9
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -2584,8 +2584,8 @@
       {
        "actionType": "shiftTile",
        "actionPosition": [
-        9,
-        22
+        41,
+        3
        ],
        "actionItemName": null,
        "actionMonsterName": null,
@@ -2617,8 +2617,8 @@
       {
        "actionType": "spawnItem",
        "actionPosition": [
-        5,
-        5
+        36,
+        8
        ],
        "actionItemName": "Sunken Purse",
        "actionMonsterName": null,
@@ -2663,8 +2663,8 @@
     {
      "npcName": "Drowned Watchman",
      "npcPosition": [
-      26,
-      6
+      9,
+      18
      ],
      "npcMessage": "The sentinels do not sleep and do not tire. Go around them."
     }
@@ -2674,152 +2674,152 @@
    "levelNumber": 6,
    "mapGrid": [
     "###################################################",
-    "###################################################",
-    "###...........###########################.......###",
-    "###...........###########################.......###",
-    "###.............................................###",
-    "###......................######........##.......###",
-    "###....................................#####..#####",
-    "###...........#####......######........#####..#####",
-    "########.#.########......##########.########..#####",
-    "########.#.########......##########.########..#####",
-    "########.#.########......##########...........#####",
-    "########.#.#########.#.############...........#####",
-    "########.#.#########.#.................<......#####",
-    "#######.......######.###.........##...........#####",
-    "#######.......######.###.........##...........#####",
-    "#######.............................#########+#####",
-    "#######.......######.###.........##########.....###",
-    "#######.......######.######################.....###",
-    "#######.......######.######################..>..###",
-    "##########.####..........##################.....###",
-    "##########.####..........#####..........###.....###",
-    "##########.####..........#####..........###########",
-    "##########..................................^######",
-    "###############..........#####..........###########",
-    "###############..........##########################",
-    "###################################################",
+    "########.#########..........#######################",
+    "#####.......#.####..........#######################",
+    "#####.........#####..........######################",
+    "#######........####..........######################",
+    "#######...####.#####.............##################",
+    "########..####.####....####.......#################",
+    "#######.....##....##...####......##################",
+    "######......#####.........####...##################",
+    "#####........############.####...##################",
+    "####.........####...#####.###.....#..######.#######",
+    "#####.......#####.....##...###........####...######",
+    "#######......####.....##...###........###....######",
+    "########.##.####............##..#.............#####",
+    "########.#######.......##......####............####",
+    "########..######..##...##......####............####",
+    "#########..############............#..<........####",
+    "#########..#############......####...........######",
+    "#########..#############......########.......######",
+    "##########.#####..######.....###########..#########",
+    "##########.#####....>###......#####################",
+    "########....###.....^.###....######################",
+    "########.....#........#############################",
+    "#######..............##############################",
+    "######.........##..################################",
+    "#######.##....###..################################",
     "###################################################"
    ],
    "monsters": [
     {
      "name": "Mire Troll",
      "position": [
-      7,
-      14
+      23,
+      16
      ],
      "health": 180,
-     "attack": 30,
+     "attack": 28,
      "xp": 190,
      "inactive": false
     },
     {
      "name": "Shrieker",
      "position": [
-      13,
-      13
+      29,
+      5
      ],
      "health": 95,
-     "attack": 22,
+     "attack": 20,
      "xp": 110,
      "inactive": false
     },
     {
      "name": "Iron Sentinel",
      "position": [
-      33,
-      6
+      14,
+      7
      ],
      "health": 130,
-     "attack": 20,
+     "attack": 18,
      "xp": 130,
      "inactive": false
     },
     {
      "name": "Mire Troll",
      "position": [
-      19,
-      8
+      31,
+      7
      ],
      "health": 180,
-     "attack": 30,
+     "attack": 28,
      "xp": 190,
      "inactive": false
     },
     {
      "name": "Shrieker",
      "position": [
-      25,
-      6
+      26,
+      1
      ],
      "health": 95,
-     "attack": 22,
+     "attack": 20,
      "xp": 110,
      "inactive": false
     },
     {
      "name": "Iron Sentinel",
+     "position": [
+      46,
+      15
+     ],
+     "health": 130,
+     "attack": 18,
+     "xp": 130,
+     "inactive": false
+    },
+    {
+     "name": "Mire Troll",
+     "position": [
+      41,
+      13
+     ],
+     "health": 180,
+     "attack": 28,
+     "xp": 190,
+     "inactive": false
+    },
+    {
+     "name": "Shrieker",
+     "position": [
+      21,
+      6
+     ],
+     "health": 95,
+     "attack": 20,
+     "xp": 110,
+     "inactive": false
+    },
+    {
+     "name": "Iron Sentinel",
+     "position": [
+      11,
+      11
+     ],
+     "health": 130,
+     "attack": 18,
+     "xp": 130,
+     "inactive": false
+    },
+    {
+     "name": "Mire Troll",
+     "position": [
+      35,
+      15
+     ],
+     "health": 180,
+     "attack": 28,
+     "xp": 190,
+     "inactive": false
+    },
+    {
+     "name": "Shrieker",
      "position": [
       45,
-      13
-     ],
-     "health": 130,
-     "attack": 20,
-     "xp": 130,
-     "inactive": false
-    },
-    {
-     "name": "Mire Troll",
-     "position": [
-      23,
-      21
-     ],
-     "health": 180,
-     "attack": 30,
-     "xp": 190,
-     "inactive": false
-    },
-    {
-     "name": "Shrieker",
-     "position": [
-      20,
-      24
-     ],
-     "health": 95,
-     "attack": 22,
-     "xp": 110,
-     "inactive": false
-    },
-    {
-     "name": "Iron Sentinel",
-     "position": [
-      9,
-      3
-     ],
-     "health": 130,
-     "attack": 20,
-     "xp": 130,
-     "inactive": false
-    },
-    {
-     "name": "Mire Troll",
-     "position": [
-      14,
-      4
-     ],
-     "health": 180,
-     "attack": 30,
-     "xp": 190,
-     "inactive": false
-    },
-    {
-     "name": "Shrieker",
-     "position": [
-      14,
       15
      ],
      "health": 95,
-     "attack": 22,
+     "attack": 20,
      "xp": 110,
      "inactive": false
     }
@@ -2827,8 +2827,8 @@
    "doors": [
     {
      "doorPosition": [
-      45,
-      15
+      13,
+      4
      ],
      "doorLocked": true,
      "doorKeyName": "Iron Key"
@@ -2838,8 +2838,8 @@
     {
      "itemName": "Dwarven Maul",
      "itemPosition": [
-      19,
-      20
+      36,
+      13
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Weapon",
@@ -2853,8 +2853,8 @@
     {
      "itemName": "Greater Health Potion",
      "itemPosition": [
-      41,
-      3
+      40,
+      14
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -2868,8 +2868,8 @@
     {
      "itemName": "Iron Key",
      "itemPosition": [
-      42,
-      4
+      46,
+      16
      ],
      "itemDescription": "It turns one lock.",
      "itemCategory": "Key",
@@ -2883,8 +2883,8 @@
     {
      "itemName": "Votive Nail",
      "itemPosition": [
-      40,
-      22
+      24,
+      13
      ],
      "itemDescription": "Driven through a scrap of prayer.",
      "itemCategory": "Special",
@@ -2898,8 +2898,8 @@
     {
      "itemName": "Widow's Knot",
      "itemPosition": [
-      36,
-      20
+      21,
+      13
      ],
      "itemDescription": "Tied by somebody who expected you back.",
      "itemCategory": "Special",
@@ -2915,8 +2915,8 @@
     {
      "triggerType": "position",
      "target": [
-      23,
-      7
+      6,
+      10
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -2948,8 +2948,8 @@
     {
      "triggerType": "position",
      "target": [
-      12,
-      4
+      27,
+      1
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -2981,7 +2981,40 @@
     {
      "triggerType": "position",
      "target": [
-      29,
+      35,
+      11
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 32
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      43,
       13
      ],
      "requiredItems": null,
@@ -3014,41 +3047,8 @@
     {
      "triggerType": "position",
      "target": [
-      9,
-      4
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 32
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      13,
-      6
+      15,
+      21
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -3080,8 +3080,8 @@
     {
      "triggerType": "position",
      "target": [
-      46,
-      16
+      18,
+      2
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -3093,8 +3093,8 @@
       {
        "actionType": "unlockDoor",
        "actionPosition": [
-        45,
-        15
+        13,
+        4
        ],
        "actionItemName": null,
        "actionMonsterName": null,
@@ -3172,52 +3172,85 @@
    "mapGrid": [
     "###################################################",
     "###################################################",
-    "#######################.....#######################",
-    "#######################.....#######################",
-    "#######################.....#######################",
-    "#######################.....#######################",
-    "#######################.....#######################",
-    "#######.........#######.....#######################",
-    "#######.........#########.#########################",
-    "#######.........###........################......##",
-    "#######....................################......##",
-    "#####............................................##",
-    "#####.#.................................###......##",
-    "#####.#####.##.####........#######......######.####",
-    "#####.#####.##.####........#######......######.####",
-    "#####.#####.##.##########.########......######.####",
-    "#####.#####.##.##########.##########..###.........#",
-    "#####.#####.......#######.##########..###.........#",
-    "#.........#.......###########................<....#",
-    "#.........#.......###.......########..###.........#",
-    "#.........#.........#.......#..........##.........#",
-    "#...................#...>......................####",
-    "#.........#.......###.......#####......############",
-    "#.........###########.......#####......############",
     "###################################################",
-    "###################################################",
+    "#########################################.#########",
+    "########.##############################.....#######",
+    "#######....############################.......#####",
+    "########....########.##########...#####........####",
+    "#######......#####....#########...##...........####",
+    "######........####.....##...##..##...........######",
+    "#####.................###..........##...##...######",
+    "#####.......####.......#........#####..###...######",
+    "####........#######...##........#########...#######",
+    "####......##########..##........#########...#######",
+    "####.....############.###.......###########.#######",
+    "#####....###########..###..##...###################",
+    "######..############.###........#######....########",
+    "#####...###########..##....##...#####......########",
+    "####....##########...............####.......#######",
+    "####.....##..................................######",
+    "###.....###.##..............#...............#######",
+    "###>..###########...<.....##.......####....########",
+    "####.############........####......#####..#########",
+    "##################.....#######....#################",
+    "####################.##########....################",
+    "################################...################",
+    "#################################..################",
     "###################################################"
    ],
    "monsters": [
     {
      "name": "Grave Knight",
      "position": [
-      11,
-      11
+      33,
+      23
      ],
      "health": 230,
-     "attack": 41,
+     "attack": 48,
      "xp": 260,
      "inactive": false
     },
     {
      "name": "Mire Troll",
      "position": [
-      37,
-      19
+      39,
+      6
      ],
      "health": 180,
-     "attack": 33,
+     "attack": 40,
+     "xp": 190,
+     "inactive": false
+    },
+    {
+     "name": "Ashen Hound",
+     "position": [
+      42,
+      9
+     ],
+     "health": 170,
+     "attack": 44,
+     "xp": 220,
+     "inactive": false
+    },
+    {
+     "name": "Grave Knight",
+     "position": [
+      41,
+      6
+     ],
+     "health": 230,
+     "attack": 48,
+     "xp": 260,
+     "inactive": false
+    },
+    {
+     "name": "Mire Troll",
+     "position": [
+      12,
+      9
+     ],
+     "health": 180,
+     "attack": 40,
      "xp": 190,
      "inactive": false
     },
@@ -3225,54 +3258,54 @@
      "name": "Ashen Hound",
      "position": [
       12,
-      18
+      8
      ],
      "health": 170,
-     "attack": 37,
+     "attack": 44,
      "xp": 220,
      "inactive": false
     },
     {
      "name": "Grave Knight",
      "position": [
-      9,
-      8
+      15,
+      18
      ],
      "health": 230,
-     "attack": 41,
+     "attack": 48,
      "xp": 260,
      "inactive": false
     },
     {
      "name": "Mire Troll",
      "position": [
-      44,
-      11
+      30,
+      20
      ],
      "health": 180,
-     "attack": 33,
+     "attack": 40,
      "xp": 190,
      "inactive": false
     },
     {
      "name": "Ashen Hound",
      "position": [
-      3,
-      21
+      31,
+      11
      ],
      "health": 170,
-     "attack": 37,
+     "attack": 44,
      "xp": 220,
      "inactive": false
     },
     {
      "name": "Grave Knight",
      "position": [
-      35,
-      15
+      6,
+      10
      ],
      "health": 230,
-     "attack": 41,
+     "attack": 48,
      "xp": 260,
      "inactive": false
     },
@@ -3280,87 +3313,54 @@
      "name": "Mire Troll",
      "position": [
       5,
-      22
+      14
      ],
      "health": 180,
-     "attack": 33,
+     "attack": 40,
      "xp": 190,
      "inactive": false
     },
     {
      "name": "Ashen Hound",
      "position": [
-      23,
-      20
+      34,
+      23
      ],
      "health": 170,
-     "attack": 37,
-     "xp": 220,
-     "inactive": false
-    },
-    {
-     "name": "Grave Knight",
-     "position": [
-      48,
-      20
-     ],
-     "health": 230,
-     "attack": 41,
-     "xp": 260,
-     "inactive": false
-    },
-    {
-     "name": "Mire Troll",
-     "position": [
-      13,
-      21
-     ],
-     "health": 180,
-     "attack": 33,
-     "xp": 190,
-     "inactive": false
-    },
-    {
-     "name": "Ashen Hound",
-     "position": [
-      47,
-      10
-     ],
-     "health": 170,
-     "attack": 37,
+     "attack": 44,
      "xp": 220,
      "inactive": false
     },
     {
      "name": "Kennel Hound",
      "position": [
-      30,
-      18
+      38,
+      9
      ],
      "health": 190,
-     "attack": 36,
+     "attack": 43,
      "xp": 70,
      "inactive": true
     },
     {
      "name": "Kennel Hound",
      "position": [
-      33,
+      41,
       18
      ],
      "health": 190,
-     "attack": 36,
+     "attack": 43,
      "xp": 70,
      "inactive": true
     },
     {
      "name": "Kennelmaster",
      "position": [
-      2,
-      23
+      39,
+      17
      ],
      "health": 260,
-     "attack": 43,
+     "attack": 50,
      "xp": 160,
      "inactive": false
     }
@@ -3370,8 +3370,8 @@
     {
      "itemName": "Runed Plate",
      "itemPosition": [
-      4,
-      21
+      9,
+      5
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Armor",
@@ -3385,8 +3385,8 @@
     {
      "itemName": "Deepwood Bow",
      "itemPosition": [
-      20,
-      9
+      7,
+      14
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Range",
@@ -3400,8 +3400,8 @@
     {
      "itemName": "Warding Charm",
      "itemPosition": [
-      35,
-      13
+      38,
+      10
      ],
      "itemDescription": "Cold to hold, and blows land softer.",
      "itemCategory": "Special",
@@ -3415,8 +3415,8 @@
     {
      "itemName": "Iron Whistle",
      "itemPosition": [
-      3,
-      22
+      25,
+      8
      ],
      "itemDescription": "Notched, and worn smooth by a thumb.",
      "itemCategory": "Special",
@@ -3430,8 +3430,8 @@
     {
      "itemName": "Thirsting Band",
      "itemPosition": [
-      4,
-      22
+      8,
+      12
      ],
      "itemDescription": "It closes your wounds with somebody else's.",
      "itemCategory": "Special",
@@ -3447,7 +3447,7 @@
     {
      "triggerType": "position",
      "target": [
-      11,
+      8,
       8
      ],
      "requiredItems": null,
@@ -3480,8 +3480,8 @@
     {
      "triggerType": "position",
      "target": [
-      42,
-      20
+      29,
+      15
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -3513,8 +3513,8 @@
     {
      "triggerType": "position",
      "target": [
-      23,
-      13
+      31,
+      21
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -3547,7 +3547,7 @@
      "triggerType": "position",
      "target": [
       39,
-      14
+      20
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -3579,8 +3579,8 @@
     {
      "triggerType": "position",
      "target": [
-      10,
-      10
+      21,
+      11
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -3612,8 +3612,8 @@
     {
      "triggerType": "position",
      "target": [
-      29,
-      18
+      43,
+      13
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -3625,8 +3625,8 @@
       {
        "actionType": "spawnMonster",
        "actionPosition": [
-        30,
-        18
+        43,
+        12
        ],
        "actionItemName": null,
        "actionMonsterName": "Kennel Hound",
@@ -3637,8 +3637,8 @@
       {
        "actionType": "spawnMonster",
        "actionPosition": [
-        33,
-        18
+        36,
+        8
        ],
        "actionItemName": null,
        "actionMonsterName": "Kennel Hound",
@@ -3670,8 +3670,8 @@
       {
        "actionType": "spawnItem",
        "actionPosition": [
-        3,
-        22
+        25,
+        8
        ],
        "actionItemName": "Iron Whistle",
        "actionMonsterName": null,
@@ -3693,8 +3693,8 @@
     {
      "triggerType": "position",
      "target": [
-      3,
-      23
+      45,
+      5
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -3706,8 +3706,8 @@
       {
        "actionType": "transportPlayer",
        "actionPosition": [
-        24,
-        7
+        6,
+        18
        ],
        "actionItemName": null,
        "actionMonsterName": null,
@@ -3733,39 +3733,39 @@
    "levelNumber": 8,
    "mapGrid": [
     "###################################################",
-    "###################################################",
-    "######################......#######################",
-    "######################......#######......##########",
-    "########.......#####........#######......##########",
-    "########.......#####.#......#######......#.......##",
-    "########.......#####.#......#######......#.......##",
-    "########.................................+...>...##",
-    "########.......#####.......##########..###.......##",
-    "########.......#####.......##########..############",
-    "###########............................############",
-    "####################.......#####...........########",
-    "####################.###########...........########",
-    "########...................................########",
-    "########.#######........########...........########",
-    "########.#######........############.#.############",
-    "#####.......####........########........###########",
-    "#####.......####........########........###########",
-    "#####....................#######........###########",
-    "#####.......########.........###........###########",
-    "####################.........###........###########",
-    "####################....<....######################",
-    "####################.........######################",
-    "####################.........######################",
-    "###################################################",
-    "###################################################",
+    "#######......##########################.......>####",
+    "######.......#######...###############.........####",
+    "#####.......########....##############..........###",
+    "######.......######.....##############..........###",
+    "######......########.........########..........####",
+    "#######......#..####.........#######..........#####",
+    "######..........####..####...#######.......########",
+    "#######.....###..###..####....#######......########",
+    "#########.#####.####..###.....#######.......#######",
+    "##############...####.###.....####.........########",
+    "##############....###..##....####..#.......########",
+    "#########..####........####...#...###......########",
+    "########..####........######....####......#########",
+    "########.####.........#######...####.....##########",
+    "########..##..........########..#####...###########",
+    "##..#####.###.#........######...#####...###########",
+    "##....###.######.......#######..######....#########",
+    "#.........######.......#######...#####......#######",
+    "#.........#####.......######.....###........#######",
+    "#..<.......#..........######.#######........#######",
+    "#.............#......#################..#...#######",
+    "#...........####.....##############################",
+    "##.##......#######.#.##############################",
+    "#####......########################################",
+    "#####.....#########################################",
     "###################################################"
    ],
    "monsters": [
     {
      "name": "Void Stalker",
      "position": [
-      16,
-      17
+      9,
+      18
      ],
      "health": 300,
      "attack": 53,
@@ -3775,8 +3775,8 @@
     {
      "name": "Grave Knight",
      "position": [
-      25,
-      22
+      17,
+      20
      ],
      "health": 230,
      "attack": 45,
@@ -3786,21 +3786,21 @@
     {
      "name": "Ashen Wyrm",
      "position": [
-      40,
-      6
-     ],
-     "health": 360,
-     "attack": 45,
-     "xp": 420,
-     "inactive": false,
-     "range": 3
-    },
-    {
-     "name": "Void Stalker",
-     "position": [
-      45,
+      21,
       8
      ],
+     "health": 360,
+     "attack": 45,
+     "xp": 420,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Void Stalker",
+     "position": [
+      8,
+      20
+     ],
      "health": 300,
      "attack": 53,
      "xp": 360,
@@ -3809,8 +3809,8 @@
     {
      "name": "Grave Knight",
      "position": [
-      36,
-      5
+      10,
+      12
      ],
      "health": 230,
      "attack": 45,
@@ -3820,8 +3820,8 @@
     {
      "name": "Ashen Wyrm",
      "position": [
-      27,
-      5
+      32,
+      18
      ],
      "health": 360,
      "attack": 45,
@@ -3831,55 +3831,21 @@
     },
     {
      "name": "Void Stalker",
+     "position": [
+      28,
+      5
+     ],
+     "health": 300,
+     "attack": 53,
+     "xp": 360,
+     "inactive": false
+    },
+    {
+     "name": "Grave Knight",
      "position": [
       31,
-      13
-     ],
-     "health": 300,
-     "attack": 53,
-     "xp": 360,
-     "inactive": false
-    },
-    {
-     "name": "Grave Knight",
-     "position": [
-      34,
-      10
-     ],
-     "health": 230,
-     "attack": 45,
-     "xp": 260,
-     "inactive": false
-    },
-    {
-     "name": "Ashen Wyrm",
-     "position": [
-      23,
-      9
-     ],
-     "health": 360,
-     "attack": 45,
-     "xp": 420,
-     "inactive": false,
-     "range": 3
-    },
-    {
-     "name": "Void Stalker",
-     "position": [
-      20,
       15
      ],
-     "health": 300,
-     "attack": 53,
-     "xp": 360,
-     "inactive": false
-    },
-    {
-     "name": "Grave Knight",
-     "position": [
-      38,
-      14
-     ],
      "health": 230,
      "attack": 45,
      "xp": 260,
@@ -3888,8 +3854,8 @@
     {
      "name": "Ashen Wyrm",
      "position": [
-      6,
-      16
+      17,
+      15
      ],
      "health": 360,
      "attack": 45,
@@ -3900,8 +3866,42 @@
     {
      "name": "Void Stalker",
      "position": [
-      27,
+      25,
+      11
+     ],
+     "health": 300,
+     "attack": 53,
+     "xp": 360,
+     "inactive": false
+    },
+    {
+     "name": "Grave Knight",
+     "position": [
+      40,
       13
+     ],
+     "health": 230,
+     "attack": 45,
+     "xp": 260,
+     "inactive": false
+    },
+    {
+     "name": "Ashen Wyrm",
+     "position": [
+      20,
+      18
+     ],
+     "health": 360,
+     "attack": 45,
+     "xp": 420,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Void Stalker",
+     "position": [
+      38,
+      12
      ],
      "health": 300,
      "attack": 53,
@@ -3912,8 +3912,8 @@
    "doors": [
     {
      "doorPosition": [
-      41,
-      7
+      36,
+      10
      ],
      "doorLocked": true,
      "doorKeyName": "Iron Key"
@@ -3923,8 +3923,8 @@
     {
      "itemName": "Voidsteel Edge",
      "itemPosition": [
-      15,
-      13
+      8,
+      23
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Weapon",
@@ -3938,8 +3938,8 @@
     {
      "itemName": "Elixir of the Deep",
      "itemPosition": [
-      36,
-      10
+      19,
+      14
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -3953,8 +3953,8 @@
     {
      "itemName": "Iron Key",
      "itemPosition": [
-      21,
-      20
+      3,
+      21
      ],
      "itemDescription": "It turns one lock.",
      "itemCategory": "Key",
@@ -3968,8 +3968,8 @@
     {
      "itemName": "Coil of Rope",
      "itemPosition": [
-      23,
-      22
+      22,
+      12
      ],
      "itemDescription": "Long enough to reach the floor above.",
      "itemCategory": "Special",
@@ -3983,8 +3983,8 @@
     {
      "itemName": "Cold Ingot",
      "itemPosition": [
-      46,
-      8
+      19,
+      15
      ],
      "itemDescription": "It does not warm in the hand.",
      "itemCategory": "Special",
@@ -4000,8 +4000,8 @@
     {
      "triggerType": "position",
      "target": [
-      23,
-      23
+      7,
+      18
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -4033,7 +4033,40 @@
     {
      "triggerType": "position",
      "target": [
-      19,
+      12,
+      7
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 40
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      34,
       10
      ],
      "requiredItems": null,
@@ -4066,8 +4099,8 @@
     {
      "triggerType": "position",
      "target": [
-      10,
-      9
+      29,
+      8
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -4099,41 +4132,8 @@
     {
      "triggerType": "position",
      "target": [
-      22,
-      16
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 40
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      18,
-      7
+      12,
+      21
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -4175,8 +4175,8 @@
       {
        "actionType": "unlockDoor",
        "actionPosition": [
-        41,
-        7
+        36,
+        10
        ],
        "actionItemName": null,
        "actionMonsterName": null,
@@ -4238,8 +4238,8 @@
       {
        "actionType": "spawnItem",
        "actionPosition": [
-        46,
-        8
+        19,
+        15
        ],
        "actionItemName": "Cold Ingot",
        "actionMonsterName": null,
@@ -4263,8 +4263,8 @@
     {
      "npcName": "The Vaultwright",
      "npcPosition": [
-      26,
-      7
+      42,
+      8
      ],
      "npcMessage": "I cut that lock. I can uncut it, if you have walked far enough."
     }
@@ -4274,39 +4274,39 @@
    "levelNumber": 9,
    "mapGrid": [
     "###################################################",
-    "##^........########################################",
-    "##.........########################################",
-    "##....................#########.##.....############",
-    "##.........#.........##.......#.##.....############",
-    "######................#.......#........##.........#",
-    "######.#####.........##.......#.##.....##.........#",
-    "###...................#...>....+.............<....#",
-    "###......#######.######.......#.####.####.........#",
-    "###...................#.......#.####.####.........#",
-    "###......#######.##############.####.##############",
-    "###......#######.##############.####.##############",
-    "#######.########.##############.####.##############",
-    "#######.########.##########..........##############",
-    "#######.########.##########..........##############",
-    "#######.########.##########..........##........####",
-    "##...........###.##########..........##........####",
-    "##...........###.##############.####.##........####",
-    "##.............................................####",
-    "##...........######......#...........##........####",
-    "##...........######......#...........##........####",
-    "###################..................##############",
-    "###################......#..........###############",
-    "###################......#..........###############",
-    "###################################################",
-    "###################################################",
+    "#########.....................................<..##",
+    "#########......######.###.######.#####...........##",
+    "########.......########################..........##",
+    "#########.....##########################.........##",
+    "########.....##########################....#.....##",
+    "#########....###########.##############.######..###",
+    "#########....##########..##############.#######.###",
+    "#########.....#########...###########...#######.###",
+    "#########.....########.......###..###.###...##..###",
+    "#########.....#####................##.##.........##",
+    "########.........#....##..............##.........##",
+    "#########.............######..........###........##",
+    "############...........#####.......#.#####......###",
+    "##############.........#####......#..#####...######",
+    "##############........########......#####...#######",
+    "##############.......#########...#.####.###########",
+    "##############.......#############..##..###########",
+    "############........##############.....############",
+    "############.^....############...#......###########",
+    "##############.###############...........##########",
+    "#############################.............#########",
+    "############################.......#.....##########",
+    "###########################.......####..###########",
+    "############################......#################",
+    "############################>.....#################",
     "###################################################"
    ],
    "monsters": [
     {
      "name": "Ashen Wyrm",
      "position": [
-      3,
-      4
+      22,
+      14
      ],
      "health": 360,
      "attack": 44,
@@ -4317,7 +4317,109 @@
     {
      "name": "Void Stalker",
      "position": [
-      35,
+      20,
+      12
+     ],
+     "health": 300,
+     "attack": 52,
+     "xp": 360,
+     "inactive": false
+    },
+    {
+     "name": "Bone Colossus",
+     "position": [
+      13,
+      8
+     ],
+     "health": 450,
+     "attack": 60,
+     "xp": 520,
+     "inactive": false
+    },
+    {
+     "name": "Ashen Wyrm",
+     "position": [
+      14,
+      1
+     ],
+     "health": 360,
+     "attack": 44,
+     "xp": 420,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Void Stalker",
+     "position": [
+      10,
+      5
+     ],
+     "health": 300,
+     "attack": 52,
+     "xp": 360,
+     "inactive": false
+    },
+    {
+     "name": "Bone Colossus",
+     "position": [
+      18,
+      14
+     ],
+     "health": 450,
+     "attack": 60,
+     "xp": 520,
+     "inactive": false
+    },
+    {
+     "name": "Ashen Wyrm",
+     "position": [
+      41,
+      9
+     ],
+     "health": 360,
+     "attack": 44,
+     "xp": 420,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Void Stalker",
+     "position": [
+      15,
+      13
+     ],
+     "health": 300,
+     "attack": 52,
+     "xp": 360,
+     "inactive": false
+    },
+    {
+     "name": "Bone Colossus",
+     "position": [
+      16,
+      12
+     ],
+     "health": 450,
+     "attack": 60,
+     "xp": 520,
+     "inactive": false
+    },
+    {
+     "name": "Ashen Wyrm",
+     "position": [
+      43,
+      12
+     ],
+     "health": 360,
+     "attack": 44,
+     "xp": 420,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Void Stalker",
+     "position": [
+      14,
       16
      ],
      "health": 300,
@@ -4328,8 +4430,8 @@
     {
      "name": "Bone Colossus",
      "position": [
-      10,
-      20
+      12,
+      10
      ],
      "health": 450,
      "attack": 60,
@@ -4339,8 +4441,8 @@
     {
      "name": "Ashen Wyrm",
      "position": [
-      46,
-      5
+      23,
+      8
      ],
      "health": 360,
      "attack": 44,
@@ -4350,111 +4452,9 @@
     },
     {
      "name": "Void Stalker",
-     "position": [
-      4,
-      2
-     ],
-     "health": 300,
-     "attack": 52,
-     "xp": 360,
-     "inactive": false
-    },
-    {
-     "name": "Bone Colossus",
-     "position": [
-      43,
-      20
-     ],
-     "health": 450,
-     "attack": 60,
-     "xp": 520,
-     "inactive": false
-    },
-    {
-     "name": "Ashen Wyrm",
-     "position": [
-      36,
-      13
-     ],
-     "health": 360,
-     "attack": 44,
-     "xp": 420,
-     "inactive": false,
-     "range": 3
-    },
-    {
-     "name": "Void Stalker",
-     "position": [
-      3,
-      11
-     ],
-     "health": 300,
-     "attack": 52,
-     "xp": 360,
-     "inactive": false
-    },
-    {
-     "name": "Bone Colossus",
      "position": [
       24,
-      7
-     ],
-     "health": 450,
-     "attack": 60,
-     "xp": 520,
-     "inactive": false
-    },
-    {
-     "name": "Ashen Wyrm",
-     "position": [
-      15,
-      3
-     ],
-     "health": 360,
-     "attack": 44,
-     "xp": 420,
-     "inactive": false,
-     "range": 3
-    },
-    {
-     "name": "Void Stalker",
-     "position": [
-      5,
-      18
-     ],
-     "health": 300,
-     "attack": 52,
-     "xp": 360,
-     "inactive": false
-    },
-    {
-     "name": "Bone Colossus",
-     "position": [
-      14,
-      9
-     ],
-     "health": 450,
-     "attack": 60,
-     "xp": 520,
-     "inactive": false
-    },
-    {
-     "name": "Ashen Wyrm",
-     "position": [
-      37,
-      7
-     ],
-     "health": 360,
-     "attack": 44,
-     "xp": 420,
-     "inactive": false,
-     "range": 3
-    },
-    {
-     "name": "Void Stalker",
-     "position": [
-      10,
-      3
+      1
      ],
      "health": 300,
      "attack": 52,
@@ -4464,8 +4464,8 @@
     {
      "name": "Thing in the Dark",
      "position": [
-      31,
-      4
+      39,
+      19
      ],
      "health": 330,
      "attack": 56,
@@ -4476,8 +4476,8 @@
    "doors": [
     {
      "doorPosition": [
-      31,
-      7
+      34,
+      15
      ],
      "doorLocked": true,
      "doorKeyName": "Bronze Key"
@@ -4487,8 +4487,8 @@
     {
      "itemName": "Dragonhide",
      "itemPosition": [
-      6,
-      7
+      16,
+      13
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Armor",
@@ -4502,8 +4502,8 @@
     {
      "itemName": "Elixir of the Deep",
      "itemPosition": [
-      37,
-      18
+      29,
+      24
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -4517,8 +4517,8 @@
     {
      "itemName": "Ashen Scroll",
      "itemPosition": [
-      18,
-      4
+      21,
+      1
      ],
      "itemDescription": "One word, and the air burns.",
      "itemCategory": "Special",
@@ -4532,8 +4532,8 @@
     {
      "itemName": "Bronze Key",
      "itemPosition": [
-      26,
-      20
+      20,
+      14
      ],
      "itemDescription": "It turns one lock.",
      "itemCategory": "Key",
@@ -4549,173 +4549,173 @@
     {
      "triggerType": "position",
      "target": [
-      7,
-      13
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 44
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      17,
-      7
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 44
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      28,
-      20
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 44
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      28,
-      16
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 44
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      8,
-      5
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 44
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      10,
+      48,
       4
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 44
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      22,
+      10
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 44
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      34,
+      1
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 44
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      31,
+      24
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 44
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      19,
+      10
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 44
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      32,
+      13
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -4747,8 +4747,8 @@
     {
      "triggerType": "position",
      "target": [
-      2,
-      3
+      12,
+      18
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -4760,8 +4760,8 @@
       {
        "actionType": "transportPlayer",
        "actionPosition": [
-        22,
-        19
+        11,
+        11
        ],
        "actionItemName": null,
        "actionMonsterName": null,
@@ -4783,8 +4783,8 @@
     {
      "triggerType": "position",
      "target": [
-      31,
-      3
+      24,
+      6
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -4796,8 +4796,8 @@
       {
        "actionType": "spawnMonster",
        "actionPosition": [
-        31,
-        4
+        24,
+        7
        ],
        "actionItemName": null,
        "actionMonsterName": "Thing in the Dark",
@@ -4829,8 +4829,8 @@
       {
        "actionType": "unlockDoor",
        "actionPosition": [
-        31,
-        7
+        34,
+        15
        ],
        "actionItemName": null,
        "actionMonsterName": null,
@@ -4856,39 +4856,39 @@
    "levelNumber": 10,
    "mapGrid": [
     "###################################################",
-    "###################################################",
-    "###################################################",
-    "####.....###########################........#######",
-    "####.....##......###################........#######",
-    "####.....##......#####.........#####........#######",
-    "####...........................................####",
-    "####.....##......#####....<....##.##........##.####",
-    "####.....####..#######.........##.##........##.####",
-    "#############..#######.........##.######.#####.####",
-    "#############..#######.##########.######.#####.####",
-    "######...........#####.#####...........############",
-    "######...........#####.#####...........#........###",
-    "######...........#####.#####...........#........###",
-    "######...........#####.#####...........#....>...###",
-    "######...........#####.#####...........#........###",
-    "######...........#####.#####...........#####.######",
-    "###########.#..#######.##########.######.###.#.####",
-    "###########.#..#######.##########.######.##......##",
-    "#########........##.......#######.######.##......##",
-    "#########........##.......#####.....####.##......##",
-    "#########........................................##",
-    "#########........................................##",
-    "#########........##.......#####.....#######......##",
-    "#########........##.......#########################",
-    "###################################################",
+    "#########....##############..##.###################",
+    "########.........###.............#####...##########",
+    "#######.......##>###...##.......#####....##########",
+    "#######.......##############....###.......#########",
+    "#######......###############..............#########",
+    "##########.#################...............########",
+    "##########..################.....#.........########",
+    "###########..###############....####......#########",
+    "#########..#.##############....#####.......########",
+    "##########.#....##########......#####........######",
+    "##########.##.#..########........#####............#",
+    "#########......#.#######.........####...##........#",
+    "#########..........######........####..####.......#",
+    "#########........#..#####........#####..####......#",
+    "#########..........######........######.#####.....#",
+    "########.....#####.#######.......######.######..###",
+    "#######......#####.######........#####..###########",
+    "########.....#####.###...........#####..###########",
+    "########.....####..##..............##...###########",
+    "##########..#####...#.....##............###########",
+    "##################........##...........############",
+    "###################....................############",
+    "###################.....................###########",
+    "###################.....................###########",
+    "####################........<...........###########",
     "###################################################"
    ],
    "monsters": [
     {
      "name": "Bone Colossus",
      "position": [
-      40,
-      10
+      24,
+      2
      ],
      "health": 450,
      "attack": 66,
@@ -4898,8 +4898,8 @@
     {
      "name": "Dread Sentinel",
      "position": [
-      41,
-      12
+      38,
+      19
      ],
      "health": 520,
      "attack": 82,
@@ -4908,43 +4908,43 @@
     },
     {
      "name": "Void Stalker",
+     "position": [
+      40,
+      4
+     ],
+     "health": 300,
+     "attack": 56,
+     "xp": 360,
+     "inactive": false
+    },
+    {
+     "name": "Bone Colossus",
+     "position": [
+      28,
+      13
+     ],
+     "health": 450,
+     "attack": 66,
+     "xp": 520,
+     "inactive": false
+    },
+    {
+     "name": "Dread Sentinel",
      "position": [
       21,
-      20
+      23
      ],
-     "health": 300,
-     "attack": 56,
-     "xp": 360,
+     "health": 520,
+     "attack": 82,
+     "xp": 700,
      "inactive": false
     },
     {
-     "name": "Bone Colossus",
+     "name": "Void Stalker",
      "position": [
-      13,
-      20
-     ],
-     "health": 450,
-     "attack": 66,
-     "xp": 520,
-     "inactive": false
-    },
-    {
-     "name": "Dread Sentinel",
-     "position": [
-      47,
+      9,
       18
      ],
-     "health": 520,
-     "attack": 82,
-     "xp": 700,
-     "inactive": false
-    },
-    {
-     "name": "Void Stalker",
-     "position": [
-      26,
-      5
-     ],
      "health": 300,
      "attack": 56,
      "xp": 360,
@@ -4953,8 +4953,8 @@
     {
      "name": "Bone Colossus",
      "position": [
-      40,
-      4
+      35,
+      7
      ],
      "health": 450,
      "attack": 66,
@@ -4964,8 +4964,8 @@
     {
      "name": "Dread Sentinel",
      "position": [
-      8,
-      11
+      37,
+      7
      ],
      "health": 520,
      "attack": 82,
@@ -4975,8 +4975,8 @@
     {
      "name": "Void Stalker",
      "position": [
-      34,
-      16
+      47,
+      13
      ],
      "health": 300,
      "attack": 56,
@@ -4985,53 +4985,20 @@
     },
     {
      "name": "Bone Colossus",
-     "position": [
-      4,
-      6
-     ],
-     "health": 450,
-     "attack": 66,
-     "xp": 520,
-     "inactive": false
-    },
-    {
-     "name": "Dread Sentinel",
-     "position": [
-      15,
-      12
-     ],
-     "health": 520,
-     "attack": 82,
-     "xp": 700,
-     "inactive": false
-    },
-    {
-     "name": "Void Stalker",
-     "position": [
-      7,
-      4
-     ],
-     "health": 300,
-     "attack": 56,
-     "xp": 360,
-     "inactive": false
-    },
-    {
-     "name": "Bone Colossus",
-     "position": [
-      10,
-      24
-     ],
-     "health": 450,
-     "attack": 66,
-     "xp": 520,
-     "inactive": false
-    },
-    {
-     "name": "Dread Sentinel",
      "position": [
       11,
-      17
+      7
+     ],
+     "health": 450,
+     "attack": 66,
+     "xp": 520,
+     "inactive": false
+    },
+    {
+     "name": "Dread Sentinel",
+     "position": [
+      36,
+      25
      ],
      "health": 520,
      "attack": 82,
@@ -5041,8 +5008,41 @@
     {
      "name": "Void Stalker",
      "position": [
-      12,
-      11
+      10,
+      20
+     ],
+     "health": 300,
+     "attack": 56,
+     "xp": 360,
+     "inactive": false
+    },
+    {
+     "name": "Bone Colossus",
+     "position": [
+      39,
+      23
+     ],
+     "health": 450,
+     "attack": 66,
+     "xp": 520,
+     "inactive": false
+    },
+    {
+     "name": "Dread Sentinel",
+     "position": [
+      33,
+      23
+     ],
+     "health": 520,
+     "attack": 82,
+     "xp": 700,
+     "inactive": false
+    },
+    {
+     "name": "Void Stalker",
+     "position": [
+      39,
+      18
      ],
      "health": 300,
      "attack": 56,
@@ -5052,8 +5052,8 @@
     {
      "name": "Larder Warden",
      "position": [
-      47,
-      14
+      31,
+      23
      ],
      "health": 430,
      "attack": 66,
@@ -5066,8 +5066,8 @@
     {
      "itemName": "Wyrmfang",
      "itemPosition": [
-      13,
-      12
+      26,
+      11
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Weapon",
@@ -5081,8 +5081,8 @@
     {
      "itemName": "Elixir of the Deep",
      "itemPosition": [
-      17,
-      22
+      37,
+      23
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -5096,8 +5096,8 @@
     {
      "itemName": "Elixir of the Deep",
      "itemPosition": [
-      7,
-      12
+      12,
+      8
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -5111,8 +5111,8 @@
     {
      "itemName": "Phial of Stillness",
      "itemPosition": [
-      12,
-      15
+      32,
+      12
      ],
      "itemDescription": "Drink, and nothing looks your way.",
      "itemCategory": "Special",
@@ -5126,8 +5126,8 @@
     {
      "itemName": "Gilded Rib",
      "itemPosition": [
-      47,
-      12
+      24,
+      23
      ],
      "itemDescription": "Somebody gilded it, a long time ago.",
      "itemCategory": "Special",
@@ -5143,8 +5143,8 @@
     {
      "triggerType": "position",
      "target": [
-      33,
-      14
+      44,
+      13
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -5176,73 +5176,7 @@
     {
      "triggerType": "position",
      "target": [
-      34,
-      21
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 48
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      39,
-      5
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 48
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      40,
+      11,
       8
      ],
      "requiredItems": null,
@@ -5275,7 +5209,73 @@
     {
      "triggerType": "position",
      "target": [
-      9,
+      25,
+      23
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 48
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      38,
+      10
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 48
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      26,
       13
      ],
      "requiredItems": null,
@@ -5308,7 +5308,7 @@
     {
      "triggerType": "position",
      "target": [
-      9,
+      34,
       6
      ],
      "requiredItems": null,
@@ -5351,8 +5351,8 @@
       {
        "actionType": "spawnItem",
        "actionPosition": [
-        47,
-        12
+        24,
+        23
        ],
        "actionItemName": "Gilded Rib",
        "actionMonsterName": null,
@@ -5374,8 +5374,8 @@
     {
      "triggerType": "position",
      "target": [
-      43,
-      12
+      11,
+      14
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -5387,8 +5387,8 @@
       {
        "actionType": "shiftTile",
        "actionPosition": [
-        43,
-        11
+        17,
+        2
        ],
        "actionItemName": null,
        "actionMonsterName": null,
@@ -5435,174 +5435,38 @@
    "levelNumber": 11,
    "mapGrid": [
     "###################################################",
-    "###################################################",
-    "#######################################.........###",
-    "###########.........###################.........###",
-    "###########.........###################.........###",
-    "###########......................######.........###",
-    "###########.........#######..........######.#######",
-    "###############.###########..........######.#######",
-    "###..........##.##.......##..........######.#######",
-    "###..........##.##.......##..........######.#######",
-    "###..........................................######",
-    "###..........#####.......##..........######..######",
-    "###..........#####.......#######.#######.........##",
-    "######.#########################.#######.........##",
-    "######.###################.......#######....<....##",
-    "######.######.....########.......#######.........##",
-    "######.######.....########.......#######.........##",
-    "######................................#####..######",
-    "######.######.........................#####..######",
-    "######.######.....########......###.....###..######",
-    "##........###.....#################.....###..######",
-    "##........##################......#.....###..######",
-    "##.........................#......#..........######",
-    "##........##################...>............#######",
-    "##........##################......#################",
-    "###################################################",
+    "#############..####################################",
+    "############.....##################################",
+    "#############...<..................################",
+    "#############......#############.....##############",
+    "#############.........##########......#############",
+    "###############.......#########.......#############",
+    "###############.......#########............########",
+    "###############........#######.................####",
+    "##############........########....#.............###",
+    "##############.......#########....#####.........###",
+    "#############.........########.....####..........##",
+    "#####...####..##....#..#######....######........###",
+    "####....####..########.######....##..###........###",
+    "####......##..########.#####..........#.........###",
+    "####..............##....####.......#...........####",
+    "####...........##......######...#######........####",
+    "######........###..##..######..#########..#########",
+    "#######........######..######.#########..##########",
+    "#######........##.###.###...##########...##.#######",
+    "########......##...##.##...##########........######",
+    "########.....####..........##########.......#######",
+    "#########...#####.........###########.......#######",
+    "##########.######........#############.......######",
+    "##################.......##############.....#######",
+    "###################....#################...>#######",
     "###################################################"
    ],
    "monsters": [
     {
      "name": "Dread Sentinel",
      "position": [
-      5,
-      10
-     ],
-     "health": 520,
-     "attack": 78,
-     "xp": 700,
-     "inactive": false
-    },
-    {
-     "name": "Wyrm of the Deep",
-     "position": [
-      29,
-      15
-     ],
-     "health": 640,
-     "attack": 92,
-     "xp": 900,
-     "inactive": false
-    },
-    {
-     "name": "Ashen Wyrm",
-     "position": [
-      18,
-      8
-     ],
-     "health": 360,
-     "attack": 64,
-     "xp": 420,
-     "inactive": false,
-     "range": 3
-    },
-    {
-     "name": "Dread Sentinel",
-     "position": [
-      46,
-      12
-     ],
-     "health": 520,
-     "attack": 78,
-     "xp": 700,
-     "inactive": false
-    },
-    {
-     "name": "Wyrm of the Deep",
-     "position": [
-      7,
-      9
-     ],
-     "health": 640,
-     "attack": 92,
-     "xp": 900,
-     "inactive": false
-    },
-    {
-     "name": "Ashen Wyrm",
-     "position": [
-      43,
-      10
-     ],
-     "health": 360,
-     "attack": 64,
-     "xp": 420,
-     "inactive": false,
-     "range": 3
-    },
-    {
-     "name": "Dread Sentinel",
-     "position": [
-      6,
-      16
-     ],
-     "health": 520,
-     "attack": 78,
-     "xp": 700,
-     "inactive": false
-    },
-    {
-     "name": "Wyrm of the Deep",
-     "position": [
-      39,
-      10
-     ],
-     "health": 640,
-     "attack": 92,
-     "xp": 900,
-     "inactive": false
-    },
-    {
-     "name": "Ashen Wyrm",
-     "position": [
-      8,
-      11
-     ],
-     "health": 360,
-     "attack": 64,
-     "xp": 420,
-     "inactive": false,
-     "range": 3
-    },
-    {
-     "name": "Dread Sentinel",
-     "position": [
-      19,
-      17
-     ],
-     "health": 520,
-     "attack": 78,
-     "xp": 700,
-     "inactive": false
-    },
-    {
-     "name": "Wyrm of the Deep",
-     "position": [
-      38,
-      21
-     ],
-     "health": 640,
-     "attack": 92,
-     "xp": 900,
-     "inactive": false
-    },
-    {
-     "name": "Ashen Wyrm",
-     "position": [
-      23,
-      8
-     ],
-     "health": 360,
-     "attack": 64,
-     "xp": 420,
-     "inactive": false,
-     "range": 3
-    },
-    {
-     "name": "Dread Sentinel",
-     "position": [
-      31,
+      21,
       18
      ],
      "health": 520,
@@ -5613,8 +5477,8 @@
     {
      "name": "Wyrm of the Deep",
      "position": [
-      31,
-      9
+      4,
+      15
      ],
      "health": 640,
      "attack": 92,
@@ -5624,8 +5488,8 @@
     {
      "name": "Ashen Wyrm",
      "position": [
-      13,
-      19
+      17,
+      17
      ],
      "health": 360,
      "attack": 64,
@@ -5636,8 +5500,144 @@
     {
      "name": "Dread Sentinel",
      "position": [
-      22,
+      30,
+      14
+     ],
+     "health": 520,
+     "attack": 78,
+     "xp": 700,
+     "inactive": false
+    },
+    {
+     "name": "Wyrm of the Deep",
+     "position": [
+      42,
+      10
+     ],
+     "health": 640,
+     "attack": 92,
+     "xp": 900,
+     "inactive": false
+    },
+    {
+     "name": "Ashen Wyrm",
+     "position": [
+      18,
+      16
+     ],
+     "health": 360,
+     "attack": 64,
+     "xp": 420,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Dread Sentinel",
+     "position": [
+      39,
+      23
+     ],
+     "health": 520,
+     "attack": 78,
+     "xp": 700,
+     "inactive": false
+    },
+    {
+     "name": "Wyrm of the Deep",
+     "position": [
+      21,
       5
+     ],
+     "health": 640,
+     "attack": 92,
+     "xp": 900,
+     "inactive": false
+    },
+    {
+     "name": "Ashen Wyrm",
+     "position": [
+      14,
+      10
+     ],
+     "health": 360,
+     "attack": 64,
+     "xp": 420,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Dread Sentinel",
+     "position": [
+      39,
+      16
+     ],
+     "health": 520,
+     "attack": 78,
+     "xp": 700,
+     "inactive": false
+    },
+    {
+     "name": "Wyrm of the Deep",
+     "position": [
+      26,
+      19
+     ],
+     "health": 640,
+     "attack": 92,
+     "xp": 900,
+     "inactive": false
+    },
+    {
+     "name": "Ashen Wyrm",
+     "position": [
+      42,
+      16
+     ],
+     "health": 360,
+     "attack": 64,
+     "xp": 420,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Dread Sentinel",
+     "position": [
+      9,
+      16
+     ],
+     "health": 520,
+     "attack": 78,
+     "xp": 700,
+     "inactive": false
+    },
+    {
+     "name": "Wyrm of the Deep",
+     "position": [
+      43,
+      21
+     ],
+     "health": 640,
+     "attack": 92,
+     "xp": 900,
+     "inactive": false
+    },
+    {
+     "name": "Ashen Wyrm",
+     "position": [
+      22,
+      18
+     ],
+     "health": 360,
+     "attack": 64,
+     "xp": 420,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Dread Sentinel",
+     "position": [
+      16,
+      7
      ],
      "health": 520,
      "attack": 78,
@@ -5650,8 +5650,8 @@
     {
      "itemName": "Aegis of the Deep",
      "itemPosition": [
-      39,
-      2
+      36,
+      9
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Armor",
@@ -5665,8 +5665,8 @@
     {
      "itemName": "Elixir of the Deep",
      "itemPosition": [
-      48,
-      16
+      13,
+      1
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -5680,8 +5680,8 @@
     {
      "itemName": "Elixir of the Deep",
      "itemPosition": [
-      11,
-      3
+      42,
+      8
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -5695,8 +5695,8 @@
     {
      "itemName": "Heartstone",
      "itemPosition": [
-      35,
-      18
+      22,
+      14
      ],
      "itemDescription": "It beats, slowly, and so do you.",
      "itemCategory": "Special",
@@ -5710,8 +5710,8 @@
     {
      "itemName": "Coil of Rope",
      "itemPosition": [
-      5,
-      23
+      43,
+      10
      ],
      "itemDescription": "Long enough to reach the floor above.",
      "itemCategory": "Special",
@@ -5725,8 +5725,8 @@
     {
      "itemName": "Watchman's Token",
      "itemPosition": [
-      30,
-      23
+      33,
+      12
      ],
      "itemDescription": "A tally-stick, cut halfway through.",
      "itemCategory": "Special",
@@ -5740,8 +5740,8 @@
     {
      "itemName": "Sealed Reliquary",
      "itemPosition": [
-      20,
-      22
+      47,
+      12
      ],
      "itemDescription": "Whatever is inside has not been opened.",
      "itemCategory": "Special",
@@ -5757,173 +5757,173 @@
     {
      "triggerType": "position",
      "target": [
-      10,
+      29,
+      18
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 52
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      20,
+      9
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 52
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      17,
+      6
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 52
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      9,
+      14
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 52
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      7,
+      16
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 52
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      18,
       17
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 52
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      35,
-      8
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 52
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      35,
-      22
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 52
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      3,
-      22
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 52
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      15,
-      17
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 52
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      28,
-      8
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -5985,8 +5985,8 @@
     {
      "triggerType": "posAndItems",
      "target": [
-      22,
-      22
+      23,
+      24
      ],
      "requiredItems": [
       "Watchman's Token"
@@ -6009,8 +6009,8 @@
       {
        "actionType": "spawnItem",
        "actionPosition": [
-        20,
-        22
+        47,
+        12
        ],
        "actionItemName": "Sealed Reliquary",
        "actionMonsterName": null,
@@ -6064,8 +6064,8 @@
     {
      "npcName": "The Last Watchman",
      "npcPosition": [
-      30,
-      21
+      38,
+      8
      ],
      "npcMessage": "Lay my tally at the shrine below and I am done here. The thing past it does not tire, and does not miss twice."
     }
@@ -6075,53 +6075,53 @@
    "levelNumber": 12,
    "mapGrid": [
     "###################################################",
-    "######^....########################################",
-    "######.....###########################........#####",
-    "######.....###########################........#####",
-    "######.....###############........####........#####",
-    "########......................................#####",
-    "########..######.....#####........####........#####",
-    "####...........#..............................#####",
-    "####...........#.....##.##........#######..########",
-    "####...........#.....##.##........#######..########",
-    "####...........########.######..#########..########",
-    "####...........########.#####......#...........####",
-    "####...........########.#####......#...........####",
-    "####...........................................####",
-    "#.........#############.#####......#...........####",
-    "#.........#########.........#......#...........####",
-    "#........##########.........###.###################",
-    "#........#.......#..............................###",
-    "#........#.......##.........###.########........###",
-    "#........+.......##.........###.########........###",
-    "########.#.......#..............................###",
-    "##########.......######.###.........####........###",
-    "#######################.###.........####........###",
-    "#######################........<....###############",
-    "###########################.........###############",
-    "###########################.........###############",
+    "###################################################",
+    "################.....#################..###########",
+    "################.....########.......#....##########",
+    "#################......####.........#.....#########",
+    "#################.......###........##..#.##########",
+    "################.......####........#...#.....######",
+    "################.......########....##..##.....#####",
+    "#################......########..#####..#.....#####",
+    "##################......######..#########.....#####",
+    "###############.##.......#..###.#########....######",
+    "#############....#.........#####..######....#######",
+    "###########.....##........#######...####....#######",
+    "##########......##.........########.........#######",
+    "##########......###........#########........#######",
+    "##########......###..........#######........#######",
+    "##########..............####.#######........#######",
+    "##########..........########.########.........#####",
+    "##########..........########.#########........#####",
+    "##########..........########.......###.........####",
+    "#####...............##########.#...####........####",
+    "####.......####......#############...###.......####",
+    "####......#####.....################...#.......####",
+    "###........####....####...#######..#...........####",
+    "###..........#.....##......###.................####",
+    "###.^..........#.####..###.................<...####",
     "###################################################"
    ],
    "monsters": [
     {
      "name": "Vault Guardian",
      "position": [
-      40,
-      12
+      19,
+      21
      ],
      "health": 700,
-     "attack": 110,
+     "attack": 104,
      "xp": 1300,
      "inactive": false
     },
     {
      "name": "Wyrm of the Deep",
      "position": [
-      31,
+      44,
       17
      ],
      "health": 640,
-     "attack": 98,
+     "attack": 92,
      "xp": 900,
      "inactive": false
     },
@@ -6129,142 +6129,76 @@
      "name": "Vault Guardian",
      "position": [
       41,
-      21
-     ],
-     "health": 700,
-     "attack": 110,
-     "xp": 1300,
-     "inactive": false
-    },
-    {
-     "name": "Wyrm of the Deep",
-     "position": [
-      20,
-      5
-     ],
-     "health": 640,
-     "attack": 98,
-     "xp": 900,
-     "inactive": false
-    },
-    {
-     "name": "Vault Guardian",
-     "position": [
-      27,
-      15
-     ],
-     "health": 700,
-     "attack": 110,
-     "xp": 1300,
-     "inactive": false
-    },
-    {
-     "name": "Wyrm of the Deep",
-     "position": [
-      11,
-      5
-     ],
-     "health": 640,
-     "attack": 98,
-     "xp": 900,
-     "inactive": false
-    },
-    {
-     "name": "Vault Guardian",
-     "position": [
-      38,
-      7
-     ],
-     "health": 700,
-     "attack": 110,
-     "xp": 1300,
-     "inactive": false
-    },
-    {
-     "name": "Wyrm of the Deep",
-     "position": [
-      42,
-      9
-     ],
-     "health": 640,
-     "attack": 98,
-     "xp": 900,
-     "inactive": false
-    },
-    {
-     "name": "Vault Guardian",
-     "position": [
-      33,
-      5
-     ],
-     "health": 700,
-     "attack": 110,
-     "xp": 1300,
-     "inactive": false
-    },
-    {
-     "name": "Wyrm of the Deep",
-     "position": [
-      28,
-      7
-     ],
-     "health": 640,
-     "attack": 98,
-     "xp": 900,
-     "inactive": false
-    },
-    {
-     "name": "Vault Guardian",
-     "position": [
-      44,
       17
      ],
      "health": 700,
-     "attack": 110,
+     "attack": 104,
      "xp": 1300,
      "inactive": false
     },
     {
      "name": "Wyrm of the Deep",
      "position": [
-      21,
-      15
-     ],
-     "health": 640,
-     "attack": 98,
-     "xp": 900,
-     "inactive": false
-    },
-    {
-     "name": "Vault Guardian",
-     "position": [
-      2,
-      15
-     ],
-     "health": 700,
-     "attack": 110,
-     "xp": 1300,
-     "inactive": false
-    },
-    {
-     "name": "Wyrm of the Deep",
-     "position": [
-      45,
+      46,
       22
      ],
      "health": 640,
-     "attack": 98,
+     "attack": 92,
      "xp": 900,
      "inactive": false
     },
     {
      "name": "Vault Guardian",
      "position": [
-      8,
-      8
+      20,
+      11
      ],
      "health": 700,
-     "attack": 110,
+     "attack": 104,
+     "xp": 1300,
+     "inactive": false
+    },
+    {
+     "name": "Wyrm of the Deep",
+     "position": [
+      26,
+      15
+     ],
+     "health": 640,
+     "attack": 92,
+     "xp": 900,
+     "inactive": false
+    },
+    {
+     "name": "Vault Guardian",
+     "position": [
+      11,
+      19
+     ],
+     "health": 700,
+     "attack": 104,
+     "xp": 1300,
+     "inactive": false
+    },
+    {
+     "name": "Wyrm of the Deep",
+     "position": [
+      17,
+      24
+     ],
+     "health": 640,
+     "attack": 92,
+     "xp": 900,
+     "inactive": false
+    },
+    {
+     "name": "Vault Guardian",
+     "position": [
+      13,
+      15
+     ],
+     "health": 700,
+     "attack": 104,
      "xp": 1300,
      "inactive": false
     },
@@ -6272,43 +6206,109 @@
      "name": "Wyrm of the Deep",
      "position": [
       6,
-      3
+      21
      ],
      "health": 640,
-     "attack": 98,
+     "attack": 92,
      "xp": 900,
      "inactive": false
     },
     {
      "name": "Vault Guardian",
      "position": [
-      31,
-      4
+      23,
+      24
      ],
      "health": 700,
-     "attack": 110,
+     "attack": 104,
+     "xp": 1300,
+     "inactive": false
+    },
+    {
+     "name": "Wyrm of the Deep",
+     "position": [
+      41,
+      15
+     ],
+     "health": 640,
+     "attack": 92,
+     "xp": 900,
+     "inactive": false
+    },
+    {
+     "name": "Vault Guardian",
+     "position": [
+      24,
+      11
+     ],
+     "health": 700,
+     "attack": 104,
+     "xp": 1300,
+     "inactive": false
+    },
+    {
+     "name": "Wyrm of the Deep",
+     "position": [
+      27,
+      15
+     ],
+     "health": 640,
+     "attack": 92,
+     "xp": 900,
+     "inactive": false
+    },
+    {
+     "name": "Vault Guardian",
+     "position": [
+      35,
+      21
+     ],
+     "health": 700,
+     "attack": 104,
+     "xp": 1300,
+     "inactive": false
+    },
+    {
+     "name": "Wyrm of the Deep",
+     "position": [
+      45,
+      25
+     ],
+     "health": 640,
+     "attack": 92,
+     "xp": 900,
+     "inactive": false
+    },
+    {
+     "name": "Vault Guardian",
+     "position": [
+      44,
+      22
+     ],
+     "health": 700,
+     "attack": 104,
      "xp": 1300,
      "inactive": false
     },
     {
      "name": "Dungeon Lord",
      "position": [
-      8,
-      19
+      40,
+      6
      ],
      "health": 1500,
-     "attack": 130,
+     "attack": 124,
      "xp": 14000,
      "inactive": false
     },
     {
      "name": "Sigil Guard",
      "position": [
-      28,
-      4
+      38,
+      17
      ],
      "health": 380,
-     "attack": 74,
+     "attack": 68,
      "xp": 180,
      "inactive": true
     }
@@ -6316,8 +6316,8 @@
    "doors": [
     {
      "doorPosition": [
-      9,
-      19
+      40,
+      5
      ],
      "doorLocked": true,
      "doorKeyName": "Vault Sigil"
@@ -6327,8 +6327,8 @@
     {
      "itemName": "Elixir of the Deep",
      "itemPosition": [
-      33,
-      25
+      43,
+      23
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -6342,8 +6342,8 @@
     {
      "itemName": "Elixir of the Deep",
      "itemPosition": [
-      28,
-      21
+      19,
+      5
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -6357,8 +6357,8 @@
     {
      "itemName": "Vault Sigil",
      "itemPosition": [
-      13,
-      19
+      40,
+      18
      ],
      "itemDescription": "It opens one door.",
      "itemCategory": "Key",
@@ -6372,8 +6372,8 @@
     {
      "itemName": "Crown of the Deep",
      "itemPosition": [
-      13,
-      18
+      36,
+      6
      ],
      "itemDescription": "The reason anyone comes down here.",
      "itemCategory": "Special",
@@ -6387,8 +6387,8 @@
     {
      "itemName": "Hoard of Coin",
      "itemPosition": [
-      12,
-      19
+      37,
+      3
      ],
      "itemDescription": "The reason anyone comes down here.",
      "itemCategory": "Special",
@@ -6402,8 +6402,8 @@
     {
      "itemName": "Star Sapphire",
      "itemPosition": [
-      14,
-      19
+      37,
+      4
      ],
      "itemDescription": "The reason anyone comes down here.",
      "itemCategory": "Special",
@@ -6417,8 +6417,8 @@
     {
      "itemName": "Elixir of the Deep",
      "itemPosition": [
-      14,
-      20
+      34,
+      23
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Healing",
@@ -6434,8 +6434,8 @@
     {
      "triggerType": "position",
      "target": [
-      43,
-      7
+      42,
+      23
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -6467,8 +6467,8 @@
     {
      "triggerType": "position",
      "target": [
-      40,
-      3
+      42,
+      16
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -6500,106 +6500,7 @@
     {
      "triggerType": "position",
      "target": [
-      45,
-      5
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 56
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      4,
-      9
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 56
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      27,
-      22
-     ],
-     "requiredItems": null,
-     "triggerItemName": null,
-     "triggerNpcName": null,
-     "triggerMonsterName": null,
-     "message": "",
-     "recurring": false,
-     "actions": [
-      {
-       "actionType": "harmPlayer",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": null,
-       "actionAmount": 56
-      },
-      {
-       "actionType": "displayMessage",
-       "actionPosition": null,
-       "actionItemName": null,
-       "actionMonsterName": null,
-       "actionTileType": null,
-       "actionMessage": "A blade springs from the floor!",
-       "actionAmount": null
-      }
-     ]
-    },
-    {
-     "triggerType": "position",
-     "target": [
-      12,
+      41,
       8
      ],
      "requiredItems": null,
@@ -6632,8 +6533,107 @@
     {
      "triggerType": "position",
      "target": [
-      43,
-      2
+      16,
+      16
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 56
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      11,
+      24
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 56
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      8,
+      20
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "harmPlayer",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": 56
+      },
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "A blade springs from the floor!",
+       "actionAmount": null
+      }
+     ]
+    },
+    {
+     "triggerType": "position",
+     "target": [
+      18,
+      23
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -6665,8 +6665,8 @@
     {
      "triggerType": "position",
      "target": [
-      8,
-      19
+      36,
+      25
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -6719,8 +6719,8 @@
     {
      "triggerType": "position",
      "target": [
-      16,
-      19
+      37,
+      5
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -6752,8 +6752,8 @@
     {
      "triggerType": "position",
      "target": [
-      27,
-      4
+      23,
+      5
      ],
      "requiredItems": null,
      "triggerItemName": null,
@@ -6765,8 +6765,8 @@
       {
        "actionType": "spawnMonster",
        "actionPosition": [
-        28,
-        4
+        22,
+        5
        ],
        "actionItemName": null,
        "actionMonsterName": "Sigil Guard",

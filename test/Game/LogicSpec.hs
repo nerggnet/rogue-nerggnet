@@ -572,6 +572,27 @@ spec = do
         concat (discovered (currentWorld s)) `shouldSatisfy` and
         packOf s `shouldBe` []
 
+      -- A blink that crosses a locked door is a key. This one put the
+      -- player inside the vault on the bottom floor, where the door wants a
+      -- sigil carried by the thing standing outside it: no way back through
+      -- and nothing left to do.
+      it "Blink will not cross a locked door" $ do
+        let split = mkWorld ["#####", "#...#", "#####"]
+            shut = split {doors = [mkDoor (V2 2 1) True "Vault Sigil"]}
+            potion = mkSpecial "Waystone" Blink 0
+            st = withPlayer (\p -> p {position = V2 1 1, inventory = [potion]})
+                   (mkState shut (V2 1 1))
+        blinkTargets (currentWorld st) (V2 1 1) `shouldBe` [V2 1 1]
+
+    -- so the player stays where they are rather than being put beyond it
+        position (player (useSpecial potion st)) `shouldBe` V2 1 1
+
+      it "Blink still reaches anywhere it can walk to" $ do
+        let open = mkWorld ["#####", "#...#", "#####"]
+            st = mkState open (V2 1 1)
+        blinkTargets (currentWorld st) (V2 1 1)
+          `shouldMatchList` [V2 1 1, V2 2 1, V2 3 1]
+
       it "Blink moves the player onto a floor tile" $ do
         let potion = mkSpecial "Potion" Blink 0
             s = useItem potion (carryingOne potion)
