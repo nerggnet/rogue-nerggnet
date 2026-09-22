@@ -197,7 +197,9 @@ special items have no use count and are never consumed.
 | `†` | A monster died here (the tile underneath is unchanged) |
 
 Unexplored tiles are blank. Tiles you have seen before but cannot currently see
-are drawn dimmed and without their contents.
+are drawn dimmed and without their contents -- but stairs, doors and shafts
+stay drawn as themselves, since they are what you would remember about a room.
+A corpse is only ever drawn on plain floor, so it cannot hide a way out.
 
 ## Gameplay notes
 

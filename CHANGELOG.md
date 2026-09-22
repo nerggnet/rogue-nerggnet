@@ -163,6 +163,14 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- A corpse no longer lies on top of the way out. The marker was drawn over
+  whatever tile it fell on, so something dying on a staircase hid it for the
+  rest of the run: on floor 7 you could stand on the stairs down and be told
+  nothing at all. Corpses are drawn on floor now, and nowhere else.
+- A staircase or door you have seen is remembered as one. Both were drawn as
+  plain floor once out of sight, so a floor mapped by a Miner's Lantern --
+  "maps the whole floor" -- showed everything except the one thing a map is
+  for.
 - A `Revive` charm catches a blade in the floor as well as a monster's blow.
   `harmPlayer` killed outright without consulting it, so "saves you from one
   death" quietly meant "unless the floor does it". Every death the charm can

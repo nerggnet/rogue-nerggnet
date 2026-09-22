@@ -115,6 +115,36 @@ spec = do
       let st = withWorld (\w -> w {monsters = [mkMonster "Goblin" (V2 1 1) 5 1]}) seenBefore
       glyphAt st (V2 1 1) `shouldBe` '.'
 
+    -- A staircase you have walked past is a staircase you remember. Drawing
+    -- it as plain floor meant a floor mapped by a Miner's Lantern showed
+    -- everything except the one thing a map is for.
+    it "remembers a way out it has seen" $ do
+      let withStairs = withCurrentWorld
+            (\w -> w {mapGrid = [[if (x, y) == (3, 1) then DownStair
+                                   else if (x, y) == (5, 1) then Door
+                                   else t | (x, t) <- zip [0 :: Int ..] row]
+                                 | (y, row) <- zip [0 :: Int ..] (mapGrid w)]})
+            seenBefore
+      glyphAt withStairs (V2 3 1) `shouldBe` '>'
+      glyphAt withStairs (V2 5 1) `shouldBe` '+'
+
+  describe "corpses" $ do
+    let died pos = withWorld (\w -> w {corpses = [pos]}) room
+        onStairs = withCurrentWorld
+          (\w -> w {mapGrid = [[if (x, y) == (6, 3) then DownStair else t
+                                | (x, t) <- zip [0 :: Int ..] row]
+                               | (y, row) <- zip [0 :: Int ..] (mapGrid w)]})
+          (died (V2 6 3))
+
+    it "marks where something died" $
+      glyphAt (died (V2 6 3)) (V2 6 3) `shouldBe` '\8224'
+
+    -- Something died on the stairs down on floor 7 and the marker sat on
+    -- top of them for the rest of the run: a player could stand on the way
+    -- down and be told nothing.
+    it "does not lie on top of a way out" $
+      glyphAt onStairs (V2 6 3) `shouldBe` '>'
+
   describe "aiming a ranged attack" $ do
     let bow = mkItem "Bow" Range 6 (V2 0 0)
         withMonsters =

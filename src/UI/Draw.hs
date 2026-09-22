@@ -159,20 +159,30 @@ drawTileWithFog view pos tile lit seen
       withAttr (attrName "item") $ str "!"
   | Set.member pos (viewNpcs view) =
       withAttr (attrName "npc") $ str "N"
-  | Set.member pos (viewCorpses view) =
+  -- A corpse lies on the floor, not over a staircase. Something died on the
+  -- stairs down on floor 7 and the marker sat on top of them for the rest
+  -- of the run: you could stand on the way down and be told nothing.
+  | Set.member pos (viewCorpses view) && tile `elem` [Floor, Start] =
       withAttr (attrName "corpse") $ str "†"
   | otherwise =
       drawTile tile
 
 -- Helper to render a hidden tile (e.g., in fog or discovered but not visible)
+-- Remembered terrain. What is drawn is what a player would still know
+-- about a tile they have been to and cannot currently see: the shape of the
+-- walls, and the way out.
+--
+-- Stairs and doors used to be drawn as plain floor once they were out of
+-- sight, so a floor mapped by a Miner's Lantern showed everything except
+-- the one thing a map is for.
 drawTileHidden :: Tile -> Widget ()
 drawTileHidden Wall      = str "#"
-drawTileHidden Floor     = str "."  -- Use generic appearance for hidden tiles
-drawTileHidden Door      = str "."  -- Doors appear as regular floor when hidden
-drawTileHidden UpStair   = str "."  -- Up stairs appear as regular floor when hidden
-drawTileHidden DownStair = str "."  -- Down stairs appear as regular floor when hidden
-drawTileHidden Start     = str "."  -- Starting position
-drawTileHidden Shaft     = str "^"  -- A shaft stays worth remembering
+drawTileHidden Floor     = str "."
+drawTileHidden Door      = str "+"
+drawTileHidden UpStair   = str "<"
+drawTileHidden DownStair = str ">"
+drawTileHidden Start     = str "."
+drawTileHidden Shaft     = str "^"
 
 -- Draw a single tile
 drawTile :: Tile -> Widget ()
