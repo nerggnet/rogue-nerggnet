@@ -78,6 +78,13 @@ warning. There is no lint config carving out exceptions, on purpose.
 
 ## Adding to the game
 
+### A whole new dungeon
+
+Write one and play it with `--world yours.json`; `example.json` is a single
+floor to start from, and the schema reference in `README.md` is the rest.
+Its save, scoreboard, dead and recordings go under `packs/yours/`, so it
+cannot disturb the dungeon that ships.
+
 ### A new dungeon floor, monster or item
 
 Edit `world.json`; see the schema reference in `README.md`. Then:

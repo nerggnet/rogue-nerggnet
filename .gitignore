@@ -51,3 +51,6 @@ save.json
 scores.json
 graves.json
 replays/
+
+# Everything another dungeon leaves behind
+packs/

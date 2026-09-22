@@ -2,23 +2,18 @@
 --
 -- Runs on disk, and the fingerprint of the dungeon they were played on.
 module File.Replays
-  ( defaultReplayDir
-  , worldDigest
+  ( worldDigest
   , saveReplay
   , loadReplay
   ) where
 
 import Control.Exception (SomeException, try)
 import Data.Aeson (eitherDecodeFileStrict, encode)
-import File.MapIO (defaultWorldFile)
 import Game.Replay
 import Game.Types (GameState)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath ((</>), (<.>))
 import qualified Data.ByteString.Lazy as B
-
-defaultReplayDir :: FilePath
-defaultReplayDir = "replays"
 
 -- | The fingerprint of the dungeon as it stands on disk.
 --
@@ -26,9 +21,9 @@ defaultReplayDir = "replays"
 -- file counts as changing it. A replay is keys pressed at particular
 -- monsters standing in particular places; anything that moves them makes
 -- the recording a different run.
-worldDigest :: IO String
-worldDigest = do
-  raw <- try (B.readFile defaultWorldFile)
+worldDigest :: FilePath -> IO String
+worldDigest world = do
+  raw <- try (B.readFile world)
   pure $ case raw :: Either SomeException B.ByteString of
     Left _ -> ""
     Right bytes -> digestOf (map (toEnum . fromIntegral) (B.unpack bytes))

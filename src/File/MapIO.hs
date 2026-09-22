@@ -1,7 +1,6 @@
 -- src/File/MapIO.hs
 module File.MapIO
-  ( defaultWorldFile
-  , loadNewGame, loadSavedGame, saveGame, persistGame, deleteSave
+  ( loadNewGame, loadSavedGame, saveGame, persistGame, deleteSave
   ) where
 
 import qualified File.Types as FT
@@ -14,27 +13,24 @@ import Data.List (nub)
 import Control.Monad (when)
 import System.Directory (doesFileExist, removeFile)
 
-defaultWorldFile :: FilePath
-defaultWorldFile = "world.json"
-
 -- Read the world file. A file that will not parse is reported, not fatal.
-loadNewGame :: IO (Either Problems FT.GameConfig)
-loadNewGame = do
-  result <- loadMapLevels defaultWorldFile
+loadNewGame :: FilePath -> IO (Either Problems FT.GameConfig)
+loadNewGame world = do
+  result <- loadMapLevels world
   return $ case result of
-    Left err     -> Left [defaultWorldFile ++ ": " ++ err]
+    Left err     -> Left [world ++ ": " ++ err]
     Right config -> Right config
 
 -- A save file that cannot be read is reported rather than fatal, so that the
 -- caller can fall back to starting a new game. Saves written by an older
 -- version of the game fail here.
-loadSavedGame :: FilePath -> IO (Either Problems GameState)
-loadSavedGame saveFile = do
-  rawState <- eitherDecodeFileStrict saveFile
-  rawWorld <- eitherDecodeFileStrict defaultWorldFile
+loadSavedGame :: FilePath -> FilePath -> IO (Either Problems GameState)
+loadSavedGame world savePath = do
+  rawState <- eitherDecodeFileStrict savePath
+  rawWorld <- eitherDecodeFileStrict world
   return $ case (rawState, rawWorld) of
-    (Left err, _) -> Left [saveFile ++ ": " ++ err]
-    (_, Left err) -> Left [defaultWorldFile ++ ": " ++ err]
+    (Left err, _) -> Left [savePath ++ ": " ++ err]
+    (_, Left err) -> Left [world ++ ": " ++ err]
     (Right state, Right worldConfig) ->
       validateGameState
         . recomputeVisibility

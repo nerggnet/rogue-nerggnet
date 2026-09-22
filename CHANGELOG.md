@@ -6,6 +6,16 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- The game will play a dungeon other than its own. `--world <file>` picks
+  one, and everything that run leaves behind goes with it: `world.json`
+  keeps the file names it has always had, and any other dungeon gets a
+  corner of its own under `packs/`. Scores from two dungeons are not
+  comparable, so they are not kept together, and a body from one has no
+  business in the other.
+
+  `example.json` ships as a starting point -- one floor, a locked door, an
+  archer and a way out -- and the test-suite plays it through, so an example
+  that has rotted cannot ship.
 - A run that ends badly leaves a body, and the next run finds it. The grave
   is marked `‡`, distinct from the `†` a kill leaves, and everything the
   dead run was carrying is on the floor with it -- the blade, the armour and

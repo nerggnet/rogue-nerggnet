@@ -9,6 +9,8 @@ import Data.Aeson (Result (..), Value (Object), fromJSON, toJSON)
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KM
 import Control.Monad (when)
+import File.Paths
+import Game.Autoplay (autoplay, outcome, Outcome (..))
 import File.MapIO (deleteSave, loadNewGame, loadSavedGame, persistGame, saveGame)
 import Game.Logic (executeAction, rollDamage)
 import Game.GridUtils (gridLookup)
@@ -33,7 +35,7 @@ withTempSave act = do
 
 -- | A fresh game built from the repository's world.json.
 freshGame :: IO GameState
-freshGame = loadNewGame >>= \config -> shouldSucceed (config >>= newGame testGen)
+freshGame = loadNewGame defaultWorldFile >>= \config -> shouldSucceed (config >>= newGame testGen)
 
 -- Put a corpse on the current level, as combat would.
 withCorpse :: GameState -> GameState
@@ -49,7 +51,7 @@ roundTrip :: GameState -> IO GameState
 roundTrip state =
   withTempSave $ \path -> do
     saveGame path state
-    loaded <- loadSavedGame path
+    loaded <- loadSavedGame defaultWorldFile path
     case loaded of
       Left problems -> fail ("loadSavedGame failed: " ++ unlines problems)
       Right s  -> pure s
@@ -57,6 +59,7 @@ roundTrip state =
 spec :: Spec
 spec = do
   scoresSpec
+  exampleSpec
   effectsSpec
   hasWorld <- runIO (doesFileExist "world.json")
   if not hasWorld
@@ -241,6 +244,28 @@ effectsSpec = describe "the effects the dungeon uses" $
     let placed = [e | w <- levels game, i <- items w, Just e <- [iEffect i]]
     mapM_ (\e -> (e, e `elem` placed) `shouldBe` (e, True))
           ([minBound .. maxBound] :: [ItemEffect])
+
+-- The dungeon that ships is not the only one the engine can play, and an
+-- example that does not load is worse than no example.
+exampleSpec :: Spec
+exampleSpec = describe "the example dungeon" $ do
+  hasIt <- runIO (doesFileExist "example.json")
+  if not hasIt
+    then it "requires example.json" $ pendingWith "run the test-suite from the package root"
+    else do
+      it "loads and builds a game" $ do
+        config <- loadNewGame "example.json"
+        st <- shouldSucceed (config >>= newGame testGen)
+        length (levels st) `shouldBe` 1
+
+      it "can be finished" $ do
+        config <- loadNewGame "example.json"
+        st <- shouldSucceed (config >>= newGame testGen)
+        outcome (autoplay 4000 st) `shouldBe` Escaped
+
+      -- Two dungeons must not share a scoreboard.
+      it "keeps its own files, away from the shipped dungeon's" $
+        scoresFile (pathsFor "example.json") `shouldNotBe` scoresFile (pathsFor defaultWorldFile)
 
 scoresSpec :: Spec
 scoresSpec = describe "the scoreboard file" $ do

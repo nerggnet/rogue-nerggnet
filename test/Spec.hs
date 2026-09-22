@@ -4,6 +4,7 @@ module Main (main) where
 import Test.Hspec
 
 import qualified File.MapIOSpec
+import qualified File.PathsSpec
 import qualified Game.GridUtilsSpec
 import qualified Game.AutoplaySpec
 import qualified Game.LogicSpec
@@ -22,6 +23,7 @@ main = hspec $ do
   describe "Game.Score"     Game.ScoreSpec.spec
   describe "Game.Replay"    Game.ReplaySpec.spec
   describe "File.MapIO"     File.MapIOSpec.spec
+  describe "File.Paths"     File.PathsSpec.spec
   describe "Game.Autoplay"  Game.AutoplaySpec.spec
   describe "UI.Draw"        UI.DrawSpec.spec
   describe "UI.Layout"      UI.LayoutSpec.spec

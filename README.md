@@ -35,6 +35,36 @@ You defeated the Goblin and gained 25 XP!
 :restart
 ```
 
+## Dungeons
+
+`world.json` is the course this game ships with, and the one scores are
+compared on. It is not the only one the engine can play:
+
+```bash
+cabal run rogue-nerggnet -- --world example.json
+```
+
+`example.json` is a single floor with a locked door, an archer and a way
+out — small enough to read in one sitting, and a starting point for writing
+your own. The schema is documented below, and the validator is what makes
+hand-authoring safe: it will not start a dungeon with a room nobody can
+reach, stairs that do not line up, a locked door whose key is nowhere, or a
+trigger that reaches for something that is not there.
+
+Everything a run leaves behind belongs to the dungeon it was played in.
+`world.json` keeps `save.json`, `scores.json`, `graves.json` and `replays/`
+where they have always been; any other dungeon gets a corner of its own:
+
+```
+packs/example/save.json
+packs/example/scores.json
+packs/example/graves.json
+packs/example/replays/
+```
+
+Scores from two different dungeons are not comparable, so they are not kept
+together, and a body from one has no business in the other.
+
 ## Requirements
 
 * GHC 9.12 or 9.14 and `cabal` — easiest via [ghcup](https://www.haskell.org/ghcup/)

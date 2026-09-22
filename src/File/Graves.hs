@@ -2,8 +2,7 @@
 --
 -- Where earlier runs of this dungeon ended, kept between games.
 module File.Graves
-  ( defaultGravesFile
-  , loadGraves
+  ( loadGraves
   , recordGrave
   ) where
 
@@ -12,11 +11,9 @@ import Data.Aeson (eitherDecodeFileStrict, encode)
 import Data.Either (fromRight)
 import Game.State (treasureCarried)
 import Game.Types
-import System.Directory (doesFileExist)
+import System.Directory (createDirectoryIfMissing, doesFileExist)
+import System.FilePath (takeDirectory)
 import qualified Data.ByteString.Lazy as B
-
-defaultGravesFile :: FilePath
-defaultGravesFile = "graves.json"
 
 -- | How many of the dead are kept. Enough that a bad week is visible in the
 -- dungeon, few enough that the floors do not fill up with bodies.
@@ -50,7 +47,12 @@ recordGrave path worldDigest when state
             , graveTreasure = treasureCarried state
             }
           kept = take keptGraves (grave : existing)
-      written <- try (B.writeFile path (encode kept))
+      -- A dungeon of its own keeps its files in a corner of its own, which
+      -- may not exist yet. Without this the scoreboard for a pack was
+      -- written nowhere, quietly, because the write is guarded.
+      written <- try $ do
+        createDirectoryIfMissing True (takeDirectory path)
+        B.writeFile path (encode kept)
       pure $ case written :: Either SomeException () of
         -- A grave that cannot be written is not worth ending the run over.
         Left _ -> Nothing

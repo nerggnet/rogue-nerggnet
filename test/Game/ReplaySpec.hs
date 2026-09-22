@@ -4,6 +4,7 @@
 -- back the keys it pressed, which is a recorded run with no keyboard in it.
 module Game.ReplaySpec (spec) where
 
+import File.Paths (defaultWorldFile)
 import File.MapIO (loadNewGame)
 import Game.Autoplay (stepOnce)
 import Game.Replay
@@ -20,7 +21,7 @@ import Fixtures
 -- Play the dungeon and keep every key, which is what the keyboard would.
 recordRunOf :: Int -> IO (Replay, GameState)
 recordRunOf seed = do
-  config <- loadNewGame >>= shouldSucceed
+  config <- loadNewGame defaultWorldFile >>= shouldSucceed
   start <- shouldSucceed (newGame (mkStdGen seed) config)
   let go n s
         | gameOver s || gameWon s || n > (20000 :: Int) = s
@@ -44,7 +45,7 @@ spec = do
         `shouldBe` [16, 16, 16]
 
   describe "playing a run back" $ do
-    let config = loadNewGame >>= shouldSucceed
+    let config = loadNewGame defaultWorldFile >>= shouldSucceed
         dungeon = digestOf "a dungeon"
 
     it "refuses a run recorded against another dungeon" $ do
@@ -92,7 +93,7 @@ spec = do
     if not hasWorld
       then it "requires world.json" $ pendingWith "run the test-suite from the package root"
       else it "replays the shipped dungeon to the same ending, twice over" $ do
-        cfg <- loadNewGame >>= shouldSucceed
+        cfg <- loadNewGame defaultWorldFile >>= shouldSucceed
         (rec, _) <- recordRunOf 2
         let once = replay (digestOf "a dungeon") cfg rec
             twice = replay (digestOf "a dungeon") cfg rec

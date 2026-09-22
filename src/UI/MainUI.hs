@@ -16,7 +16,8 @@ import Data.Either (fromRight)
 import File.Graves
 import File.Replays
 import File.Scores
-import File.MapIO (defaultWorldFile, loadNewGame, loadSavedGame, persistGame)
+import File.MapIO (loadNewGame, loadSavedGame, persistGame)
+import File.Paths
 import Game.Replay
 import Game.Score (runOf, runScore)
 import Game.State (layGraves, newGame, treasureCarried)
@@ -31,9 +32,6 @@ import System.Directory (doesFileExist)
 import System.Exit (exitFailure)
 import System.Random (initStdGen, mkStdGen, uniformR)
 import System.IO (hPutStrLn, stderr)
-
-saveFile :: FilePath
-saveFile = "save.json"
 
 -- App definition
 app :: App GameState e ()
@@ -51,11 +49,11 @@ chooseCursor state crsrs
   | otherwise = neverShowCursor state crsrs
 
 -- Main function to start the game
-startGame :: IO ()
-startGame = do
-  saveExists <- doesFileExist saveFile
+startGame :: Paths -> IO ()
+startGame paths = do
+  saveExists <- doesFileExist (saveFile paths)
   resumed <- if saveExists
-    then loadSavedGame saveFile
+    then loadSavedGame (worldFile paths) (saveFile paths)
     else pure (Left [])
   started <- case resumed of
     -- A resumed game is somebody else's run as far as a recording goes: the
@@ -65,8 +63,8 @@ startGame = do
     Left problems -> do
       -- An unreadable save is not fatal; it just means starting over.
       when saveExists $
-        report ("Could not read " ++ saveFile ++ ", starting a new game") problems
-      config <- loadNewGame
+        report ("Could not read " ++ saveFile paths ++ ", starting a new game") problems
+      config <- loadNewGame (worldFile paths)
       -- The seed is drawn and kept, rather than taken from a generator and
       -- forgotten: a run cannot be written down without the number it
       -- started from.
@@ -75,37 +73,37 @@ startGame = do
 
   -- A scoreboard that will not parse is reported and then ignored. Losing
   -- the history is not a reason to refuse to play.
-  board <- loadScores defaultScoresFile
+  board <- loadScores (scoresFile paths)
   case board of
     Left err -> report "Could not read the scoreboard, starting an empty one" [err]
     Right _  -> pure ()
 
   case started of
     Left problems -> do
-      report ("Could not start a game from " ++ defaultWorldFile) problems
+      report ("Could not start a game from " ++ worldFile paths) problems
       exitFailure
     Right (seed, loaded) -> do
-      digest <- worldDigest
+      digest <- worldDigest (worldFile paths)
       -- The dead of earlier runs go back where they fell, with what they
       -- were carrying. Only this dungeon's dead; layGraves checks.
-      dead <- loadGraves defaultGravesFile
+      dead <- loadGraves (gravesFile paths)
       case dead of
         Left err -> report "Could not read the graves, starting with none" [err]
         Right _ -> pure ()
       let initialState = layGraves digest (fromRight [] dead)
                            loaded {scoreboard = fromRight [] board}
       finalState <- runGame initialState
-      persistGame saveFile finalState
+      persistGame (saveFile paths) finalState
       stamped <- timestampNow
-      placed <- recordRun defaultScoresFile stamped finalState
+      placed <- recordRun (scoresFile paths) stamped finalState
       filmed <- if seed == 0 then pure Nothing
-                  else saveReplay defaultReplayDir digest seed stamped finalState
-      buried <- recordGrave defaultGravesFile digest stamped finalState
+                  else saveReplay (replayDir paths) digest seed stamped finalState
+      buried <- recordGrave (gravesFile paths) digest stamped finalState
       let watchable = maybe "" (\p -> " Recorded to " ++ p ++ ".") filmed
           remembered = maybe "" (const " Your body is still down there.") buried
           standing = case placed of
             Just (_, place, outOf) | place > 0 ->
-              " Placed " ++ show place ++ " of " ++ show outOf ++ " in " ++ defaultScoresFile ++ "."
+              " Placed " ++ show place ++ " of " ++ show outOf ++ " in " ++ scoresFile paths ++ "."
             Just _ -> " The scoreboard could not be written."
             Nothing -> ""
       putStrLn $ (++ (standing ++ watchable ++ remembered)) $ case (gameWon finalState, gameOver finalState) of
@@ -147,14 +145,14 @@ data Tick = Tick
 -- The same keys through the same applyKey the keyboard uses, on a clock
 -- instead of a person. Space holds it, "+" and "-" change the pace, "." is
 -- a single step while held, and "q" gives up on it.
-watchReplay :: FilePath -> IO ()
-watchReplay path = do
+watchReplay :: Paths -> FilePath -> IO ()
+watchReplay paths path = do
   loaded <- loadReplay path
   case loaded of
     Left err -> hPutStrLn stderr err >> exitFailure
     Right rec -> do
-      digest <- worldDigest
-      config <- loadNewGame
+      digest <- worldDigest (worldFile paths)
+      config <- loadNewGame (worldFile paths)
       case config >>= \cfg -> either (\d -> Left [show d]) Right (replayStart digest cfg rec) of
         Left problems -> report "Cannot watch this run" problems >> exitFailure
         Right start -> do
@@ -226,16 +224,16 @@ step w = case pending w of
 -- This is what makes a score worth comparing: the scoreboard says somebody
 -- carried thirteen thousand out of floor 12, and anybody with the same
 -- dungeon can check it rather than take their word.
-verifyReplay :: FilePath -> IO ()
-verifyReplay path = do
+verifyReplay :: Paths -> FilePath -> IO ()
+verifyReplay paths path = do
   loaded <- loadReplay path
   case loaded of
     Left err -> hPutStrLn stderr err >> exitFailure
     Right rec -> do
-      digest <- worldDigest
-      config <- loadNewGame
+      digest <- worldDigest (worldFile paths)
+      config <- loadNewGame (worldFile paths)
       case config of
-        Left problems -> report ("Could not read " ++ defaultWorldFile) problems >> exitFailure
+        Left problems -> report ("Could not read " ++ worldFile paths) problems >> exitFailure
         Right cfg -> case replay digest cfg rec of
           Right ended -> case runOf (replayKeys rec `seq` "replay") ended of
             Nothing -> putStrLn "The run does not end; the keys run out first."
@@ -251,7 +249,7 @@ verifyReplay path = do
                ++ written ++ ", this one is " ++ digest ++ ").")
             exitFailure
           Left (WouldNotStart problems) ->
-            report ("Could not start a game from " ++ defaultWorldFile) problems >> exitFailure
+            report ("Could not start a game from " ++ worldFile paths) problems >> exitFailure
           Left (EndedDifferently written got) -> do
             hPutStrLn stderr "The run does not come out as recorded."
             hPutStrLn stderr ("  recorded: " ++ show written)
@@ -298,7 +296,7 @@ handleEvent _ = return ()
 executeCommand :: String -> EventM () GameState ()
 executeCommand ":q" = halt -- Quit the game
 executeCommand ":restart" = do -- Restart the game
-  config <- liftIO loadNewGame
+  config <- liftIO (loadNewGame defaultWorldFile)
   gen <- liftIO initStdGen
   case config >>= newGame gen of
     -- A restart is a new run, so the keys recorded so far are not part of

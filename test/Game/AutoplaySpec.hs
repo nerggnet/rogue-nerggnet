@@ -4,6 +4,7 @@
 -- finished. This plays it.
 module Game.AutoplaySpec (spec) where
 
+import File.Paths (defaultWorldFile)
 import File.MapIO (loadNewGame)
 import Game.Autoplay
 import Game.State
@@ -112,7 +113,7 @@ spec = do
     then it "requires world.json" $ pendingWith "run the test-suite from the package root"
     else describe "the dungeon in world.json" $ do
       let played seed = do
-            config <- loadNewGame
+            config <- loadNewGame defaultWorldFile
             start <- shouldSucceed (config >>= newGame (mkStdGen seed))
             pure (autoplay 12000 start, start)
 

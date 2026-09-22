@@ -2,8 +2,7 @@
 --
 -- The scoreboard on disk. One line of history per finished run.
 module File.Scores
-  ( defaultScoresFile
-  , loadScores
+  ( loadScores
   , recordRun
   , timestampNow
   ) where
@@ -17,11 +16,9 @@ import Data.Time.Format (defaultTimeLocale, formatTime)
 import Data.Time.LocalTime (getCurrentTimeZone, utcToLocalTime)
 import Game.Score
 import Game.Types (GameState, Run)
-import System.Directory (doesFileExist)
+import System.Directory (createDirectoryIfMissing, doesFileExist)
+import System.FilePath (takeDirectory)
 import qualified Data.ByteString.Lazy as B
-
-defaultScoresFile :: FilePath
-defaultScoresFile = "scores.json"
 
 -- | How many runs are kept. Enough to be a history, not so many that the
 -- file grows without end.
@@ -56,7 +53,12 @@ recordRun path when state =
     Just run -> do
       existing <- fromRight [] <$> loadScores path
       let kept = take keptRuns (ranked (run : existing))
-      written <- try (B.writeFile path (encode kept))
+      -- A dungeon of its own keeps its files in a corner of its own, which
+      -- may not exist yet. Without this the scoreboard for a pack was
+      -- written nowhere, quietly, because the write is guarded.
+      written <- try $ do
+        createDirectoryIfMissing True (takeDirectory path)
+        B.writeFile path (encode kept)
       case written :: Either SomeException () of
         -- A scoreboard that cannot be written must not take the run down
         -- with it. The player still gets told how they did.

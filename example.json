@@ -1,0 +1,136 @@
+{
+ "xpLevels": [
+  {
+   "xpLevel": 1,
+   "xpThreshold": 0,
+   "xpHealth": 60,
+   "xpAttack": 6,
+   "xpResistance": 2
+  },
+  {
+   "xpLevel": 2,
+   "xpThreshold": 60,
+   "xpHealth": 110,
+   "xpAttack": 10,
+   "xpResistance": 4
+  }
+ ],
+ "levels": [
+  {
+   "levelNumber": 1,
+   "mapGrid": [
+    "###############",
+    "#S..........+.#",
+    "#.####..###...#",
+    "#....#..#.....#",
+    "#.##.#..#.###.#",
+    "#.#..........>#",
+    "###############"
+   ],
+   "monsters": [
+    {
+     "name": "Sump Rat",
+     "position": [
+      7,
+      3
+     ],
+     "health": 14,
+     "attack": 5,
+     "xp": 40,
+     "inactive": false,
+     "range": null
+    },
+    {
+     "name": "Pale Archer",
+     "position": [
+      4,
+      5
+     ],
+     "health": 12,
+     "attack": 7,
+     "xp": 40,
+     "inactive": false,
+     "range": 3
+    }
+   ],
+   "doors": [
+    {
+     "doorPosition": [
+      12,
+      1
+     ],
+     "doorLocked": true,
+     "doorKeyName": "Rusted Key"
+    }
+   ],
+   "items": [
+    {
+     "itemName": "Rusted Key",
+     "itemPosition": [
+      4,
+      3
+     ],
+     "itemDescription": "Orange with rust.",
+     "itemCategory": "Key",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": 1,
+     "itemValue": null,
+     "itemEffect": null
+    },
+    {
+     "itemName": "Tin Whistle",
+     "itemPosition": [
+      13,
+      1
+     ],
+     "itemDescription": "It still sounds.",
+     "itemCategory": "Special",
+     "itemEffectValue": 0,
+     "itemHidden": false,
+     "itemInactive": false,
+     "itemUses": null,
+     "itemValue": 250,
+     "itemEffect": "Keepsake"
+    }
+   ],
+   "npcs": [],
+   "triggers": [
+    {
+     "triggerType": "position",
+     "target": [
+      13,
+      5
+     ],
+     "requiredItems": null,
+     "triggerItemName": null,
+     "triggerNpcName": null,
+     "triggerMonsterName": null,
+     "message": "",
+     "recurring": false,
+     "actions": [
+      {
+       "actionType": "displayMessage",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": "Daylight, and the smell of rain.",
+       "actionAmount": null
+      },
+      {
+       "actionType": "setGameWon",
+       "actionPosition": null,
+       "actionItemName": null,
+       "actionMonsterName": null,
+       "actionTileType": null,
+       "actionMessage": null,
+       "actionAmount": null
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
