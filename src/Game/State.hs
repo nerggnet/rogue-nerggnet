@@ -108,6 +108,7 @@ helpPages =
       , ":q         Save and quit"
       , ":restart   Start a new dungeon"
       , ":scores    Runs finished so far"
+      , ":log       Look back through the messages"
       ]
     )
   ]
@@ -172,8 +173,12 @@ maxInventorySize :: Int
 maxInventorySize = 15
 
 -- How many log lines are kept, and how many of those the message pane shows
+-- How many log lines are kept. Far more than the pane shows, because ":log"
+-- exists to look back at the ones that have scrolled off it: a trigger's
+-- message, an NPC's answer or what a fight cost is worth being able to
+-- re-read, and at ten there was barely anything behind the five on screen.
 maxLogMessages :: Int
-maxLogMessages = 10
+maxLogMessages = 200
 
 visibleLogMessages :: Int
 visibleLogMessages = 5
@@ -239,6 +244,7 @@ newGame gen config = do
         , turnCount = 0
         , scoreboard = []
         , showScores = False
+        , showLog = False
         , lastInteractedNpc = Nothing
         , aimingState = Nothing
         , gameOver = False

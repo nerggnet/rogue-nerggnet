@@ -141,6 +141,11 @@ places with it.
 | `:q` | Quit (and save) |
 | `:restart` | Start a new game from `world.json` |
 | `:scores` | Show the runs finished so far (any key closes it) |
+| `:log` | Look back through the messages (any key closes it) |
+
+The message pane shows the last five lines. `:log` shows the history behind
+them -- two hundred lines are kept -- which is where a trigger's message or
+an NPC's answer has gone by the time you wonder about it.
 
 `:` opens the command line at the bottom of the screen, which is blank until
 then. What you type appears there as you type it, `Enter` runs it, `Backspace`

@@ -23,6 +23,7 @@ import qualified Data.Set as Set
 drawUI :: GameState -> [Widget ()]
 drawUI state =
   [ drawScoresPopup state | showScores state ] ++
+  [ drawLogPopup state | showLog state ] ++
   [ drawLegendPopup (legendPage state) | legendPage state > 0 ] ++
   [ drawInventoryPopup mode (player state) | Just mode <- [inventoryMode state] ] ++
   [ drawVictoryScreen state | gameWon state ] ++
@@ -253,6 +254,33 @@ scoreLines highlight runs
     row place run
       | Just run == highlight = "> " ++ drop 2 (scoreRow place run)
       | otherwise = scoreRow place run
+
+-- | The messages, as far back as they are kept.
+--
+-- The pane on the main screen shows five, which is enough to follow a fight
+-- and not enough to look anything up: a trigger's message, or what an NPC
+-- said, is gone by the time the player wonders about it.
+--
+-- Oldest at the top and newest at the bottom, the way the pane reads, so
+-- the last line of this is the last line of that.
+drawLogPopup :: GameState -> Widget ()
+drawLogPopup state =
+  C.centerLayer $
+    B.borderWithLabel (str label) $
+      padAll 1 $ hLimit width $ padRight Max $ vBox (map str body)
+  where
+    kept = message state
+    shown = reverse (take loggedOnScreen kept)
+    label = "Messages (" ++ show (length shown) ++ " of " ++ show (length kept) ++ ")"
+    body
+      | null kept = ["Nothing has happened yet."]
+      | otherwise = shown ++ [" ", "Press any key to close."]
+    width = maximum (length label : map length body)
+
+-- | How much of the history the popup shows. Enough to be worth opening,
+-- few enough that the whole of it fits a terminal of twenty-four rows.
+loggedOnScreen :: Int
+loggedOnScreen = 16
 
 drawScoresPopup :: GameState -> Widget ()
 drawScoresPopup state =

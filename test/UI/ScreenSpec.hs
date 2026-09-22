@@ -5,7 +5,7 @@
 -- other end, which is the part a player would notice being wrong.
 module UI.ScreenSpec (spec) where
 
-import Data.List (dropWhileEnd, isInfixOf, isPrefixOf)
+import Data.List (dropWhileEnd, isInfixOf, isPrefixOf, isSuffixOf)
 import Game.GridUtils (keyedInventory)
 import Game.Logic (getVisibleMonsters)
 import Game.State (withCurrentWorld)
@@ -285,6 +285,38 @@ spec = do
 
     it "says nothing at all while the line is closed" $
       showsText room "Command" `shouldBe` False
+
+  describe "the message history" $ do
+    let said n = ["line " ++ show i | i <- [n, n - 1 .. 1 :: Int]]  -- newest first
+        looking n = room {message = said n, showLog = True}
+
+    it "shows nothing until it is asked for" $
+      showsText room {message = said 3} "Messages (" `shouldBe` False
+
+    -- The pane on the main screen shows five; the point of this is the ones
+    -- that have gone past it.
+    it "shows messages the pane has scrolled past" $ do
+      showsText (looking 12) "line 1" `shouldBe` True
+      showsText (looking 12) "line 12" `shouldBe` True
+
+    it "reads oldest first, the way the pane does" $ do
+      let rows = screen (looking 6)
+          rowOf needle = length (takeWhile (not . (needle `isInfixOf`)) rows)
+      rowOf "line 6" `shouldSatisfy` (> rowOf "line 1")
+
+    it "says how much of the history it is showing" $
+      showsText (looking 40) "Messages (16 of 40)" `shouldBe` True
+
+    it "says so when nothing has happened yet" $
+      showsText room {message = [], showLog = True} "Nothing has happened yet" `shouldBe` True
+
+    -- Sixteen lines plus a border and a hint is what fits the shortest
+    -- terminal the game supports.
+    it "fits an 80x24 terminal" $ do
+      let rows = renderRows (80, 24) (drawUI (looking 60))
+          titleRow = filter ("Messages (" `isInfixOf`) rows
+      map (dropWhileEnd (== ' ')) titleRow `shouldSatisfy` all (("\9488" :: String) `isSuffixOf`)
+      rows `shouldSatisfy` any ("Press any key to close" `isInfixOf`)
 
   describe "the scoreboard" $ do
     let aRun n = Run { runWhen = "2026-01-0" ++ show n ++ " 12:00", runEnding = GotOut

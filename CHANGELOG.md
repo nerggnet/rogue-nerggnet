@@ -6,6 +6,11 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- `:log` looks back through the messages. The pane shows five lines and only
+  ten were kept, so a trigger's message, an NPC's answer or what a fight
+  cost had scrolled away by the time anyone wondered about it. Two hundred
+  lines are kept now and the last sixteen are shown, oldest at the top the
+  way the pane reads.
 - A trap that goes off leaves a mark. `harmPlayer` only wrote a line to the
   log, which scrolls away, so the map said nothing about what had just taken
   a tenth of the player's health. The tile is marked `*` from then on, and

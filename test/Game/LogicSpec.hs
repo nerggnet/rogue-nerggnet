@@ -3,7 +3,7 @@ module Game.LogicSpec (spec) where
 
 import Data.List (isInfixOf, nub, unfoldr, (\\))
 import Game.Logic
-import Game.State (currentWorld, evalTriggerCondition, helpPages, maxInventorySize, maxLogMessages, treasureCarried, visibleMonsters)
+import Game.State (currentWorld, evalTriggerCondition, helpPages, maxInventorySize, maxLogMessages, treasureCarried, visibleLogMessages, visibleMonsters)
 import Game.Types
 import System.Random (mkStdGen)
 import Linear.V2 (V2 (..))
@@ -435,6 +435,18 @@ spec = do
       let opened = promptUseItem holding
           chosen = handleCommandInputInternal (Just 'a') False opened opened
       inventoryMode chosen `shouldBe` Nothing
+
+  describe "looking back through the messages" $ do
+    -- Keeping only what the pane shows would make the history pointless.
+    it "keeps far more than the pane has room for" $
+      maxLogMessages `shouldSatisfy` (> 4 * visibleLogMessages)
+
+    it "closes on any key, and that is not a turn" $ do
+      let open = baseState {showLog = True, turnCount = 7}
+          closed = handleMovementInternal (Just 'd') open
+      showLog closed `shouldBe` False
+      turnCount closed `shouldBe` 7
+      position (player closed) `shouldBe` position (player baseState)
 
   describe "stacking" $ do
     let potion = (mkItem "Health Potion" Healing 60 (V2 4 3)) {iUses = Just 2, iValue = 120}
@@ -1086,7 +1098,7 @@ spec = do
 
   describe "processTurn" $ do
     it "trims the message log" $ do
-      let noisy = baseState {message = map show [1 .. 30 :: Int]}
+      let noisy = baseState {message = map show [1 .. maxLogMessages * 2]}
       length (message (processTurn noisy)) `shouldBe` maxLogMessages
 
     it "cycles the turn clock so NPCs step every third turn" $

@@ -141,6 +141,7 @@ handleCommandInput key = do
 executeCommand :: String -> EventM () GameState ()
 executeCommand ":q" = halt -- Quit the game
 executeCommand ":scores" = modify (\s -> s {showScores = not (showScores s)})
+executeCommand ":log" = modify (\s -> s {showLog = not (showLog s)})
 executeCommand ":restart" = do -- Restart the game
   config <- liftIO loadNewGame
   gen <- liftIO initStdGen
