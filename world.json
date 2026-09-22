@@ -707,7 +707,7 @@
       7
      ],
      "health": 16,
-     "attack": 9,
+     "attack": 6,
      "xp": 10,
      "inactive": false
     },
@@ -718,7 +718,7 @@
       9
      ],
      "health": 16,
-     "attack": 9,
+     "attack": 6,
      "xp": 10,
      "inactive": false
     },
@@ -729,7 +729,7 @@
       25
      ],
      "health": 16,
-     "attack": 9,
+     "attack": 6,
      "xp": 10,
      "inactive": false
     },
@@ -740,7 +740,7 @@
       20
      ],
      "health": 22,
-     "attack": 10,
+     "attack": 6,
      "xp": 12,
      "inactive": false
     },
@@ -751,7 +751,7 @@
       18
      ],
      "health": 22,
-     "attack": 10,
+     "attack": 6,
      "xp": 12,
      "inactive": false
     },
@@ -762,7 +762,7 @@
       18
      ],
      "health": 22,
-     "attack": 10,
+     "attack": 6,
      "xp": 12,
      "inactive": false
     },
@@ -773,7 +773,7 @@
       17
      ],
      "health": 16,
-     "attack": 9,
+     "attack": 6,
      "xp": 10,
      "inactive": false
     },
@@ -784,7 +784,7 @@
       18
      ],
      "health": 26,
-     "attack": 12,
+     "attack": 7,
      "xp": 14,
      "inactive": false
     },
@@ -795,7 +795,7 @@
       10
      ],
      "health": 22,
-     "attack": 10,
+     "attack": 6,
      "xp": 12,
      "inactive": false
     },
@@ -806,7 +806,7 @@
       18
      ],
      "health": 26,
-     "attack": 12,
+     "attack": 7,
      "xp": 14,
      "inactive": false
     },
@@ -817,7 +817,7 @@
       14
      ],
      "health": 26,
-     "attack": 12,
+     "attack": 7,
      "xp": 14,
      "inactive": false
     },
@@ -828,7 +828,7 @@
       3
      ],
      "health": 22,
-     "attack": 10,
+     "attack": 6,
      "xp": 12,
      "inactive": false
     },
@@ -839,7 +839,7 @@
       22
      ],
      "health": 26,
-     "attack": 12,
+     "attack": 7,
      "xp": 14,
      "inactive": false
     },
@@ -850,7 +850,7 @@
       3
      ],
      "health": 16,
-     "attack": 9,
+     "attack": 6,
      "xp": 10,
      "inactive": false
     },
@@ -861,7 +861,7 @@
       11
      ],
      "health": 26,
-     "attack": 12,
+     "attack": 7,
      "xp": 14,
      "inactive": false
     },
@@ -872,7 +872,7 @@
       16
      ],
      "health": 26,
-     "attack": 12,
+     "attack": 7,
      "xp": 14,
      "inactive": false
     },
@@ -883,7 +883,7 @@
       20
      ],
      "health": 26,
-     "attack": 12,
+     "attack": 7,
      "xp": 14,
      "inactive": false
     },
@@ -894,7 +894,7 @@
       1
      ],
      "health": 30,
-     "attack": 11,
+     "attack": 7,
      "xp": 22,
      "inactive": true
     }
@@ -1004,7 +1004,7 @@
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Armor",
-     "itemEffectValue": 8,
+     "itemEffectValue": 3,
      "itemHidden": false,
      "itemInactive": false,
      "itemUses": null,
@@ -1153,7 +1153,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 16
+       "actionAmount": 6
       },
       {
        "actionType": "displayMessage",
@@ -1186,7 +1186,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 16
+       "actionAmount": 6
       },
       {
        "actionType": "displayMessage",
@@ -1379,8 +1379,8 @@
       16
      ],
      "health": 34,
-     "attack": 15,
-     "xp": 36,
+     "attack": 11,
+     "xp": 48,
      "inactive": false
     },
     {
@@ -1390,8 +1390,8 @@
       16
      ],
      "health": 30,
-     "attack": 15,
-     "xp": 40,
+     "attack": 11,
+     "xp": 52,
      "inactive": false,
      "range": 4
     },
@@ -1402,8 +1402,8 @@
       3
      ],
      "health": 26,
-     "attack": 13,
-     "xp": 28,
+     "attack": 10,
+     "xp": 40,
      "inactive": false
     },
     {
@@ -1413,8 +1413,8 @@
       25
      ],
      "health": 34,
-     "attack": 15,
-     "xp": 36,
+     "attack": 11,
+     "xp": 48,
      "inactive": false
     },
     {
@@ -1424,8 +1424,8 @@
       3
      ],
      "health": 30,
-     "attack": 15,
-     "xp": 40,
+     "attack": 11,
+     "xp": 52,
      "inactive": false,
      "range": 4
     },
@@ -1436,32 +1436,9 @@
       15
      ],
      "health": 26,
-     "attack": 13,
-     "xp": 28,
-     "inactive": false
-    },
-    {
-     "name": "Rust Beetle",
-     "position": [
-      17,
-      22
-     ],
-     "health": 34,
-     "attack": 15,
-     "xp": 36,
-     "inactive": false
-    },
-    {
-     "name": "Bone Archer",
-     "position": [
-      15,
-      23
-     ],
-     "health": 30,
-     "attack": 15,
+     "attack": 10,
      "xp": 40,
-     "inactive": false,
-     "range": 4
+     "inactive": false
     }
    ],
    "doors": [
@@ -1557,7 +1534,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 12
+       "actionAmount": 8
       },
       {
        "actionType": "displayMessage",
@@ -1590,7 +1567,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 12
+       "actionAmount": 8
       },
       {
        "actionType": "displayMessage",
@@ -1623,7 +1600,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 12
+       "actionAmount": 8
       },
       {
        "actionType": "displayMessage",
@@ -1765,8 +1742,8 @@
       13
      ],
      "health": 60,
-     "attack": 19,
-     "xp": 70,
+     "attack": 13,
+     "xp": 87,
      "inactive": false
     },
     {
@@ -1776,8 +1753,8 @@
       7
      ],
      "health": 75,
-     "attack": 18,
-     "xp": 80,
+     "attack": 13,
+     "xp": 97,
      "inactive": false
     },
     {
@@ -1787,8 +1764,8 @@
       17
      ],
      "health": 30,
-     "attack": 13,
-     "xp": 40,
+     "attack": 11,
+     "xp": 57,
      "inactive": false,
      "range": 4
     },
@@ -1799,8 +1776,8 @@
       5
      ],
      "health": 60,
-     "attack": 19,
-     "xp": 70,
+     "attack": 13,
+     "xp": 87,
      "inactive": false
     },
     {
@@ -1810,8 +1787,8 @@
       18
      ],
      "health": 75,
-     "attack": 18,
-     "xp": 80,
+     "attack": 13,
+     "xp": 97,
      "inactive": false
     },
     {
@@ -1821,8 +1798,8 @@
       10
      ],
      "health": 30,
-     "attack": 13,
-     "xp": 40,
+     "attack": 11,
+     "xp": 57,
      "inactive": false,
      "range": 4
     },
@@ -1833,32 +1810,9 @@
       15
      ],
      "health": 60,
-     "attack": 19,
-     "xp": 70,
-     "inactive": false
-    },
-    {
-     "name": "Grave Rat Swarm",
-     "position": [
-      42,
-      2
-     ],
-     "health": 75,
-     "attack": 18,
-     "xp": 80,
-     "inactive": false
-    },
-    {
-     "name": "Bone Archer",
-     "position": [
-      46,
-      21
-     ],
-     "health": 30,
      "attack": 13,
-     "xp": 40,
-     "inactive": false,
-     "range": 4
+     "xp": 87,
+     "inactive": false
     },
     {
      "name": "Blade's Keeper",
@@ -1867,7 +1821,7 @@
       2
      ],
      "health": 70,
-     "attack": 18,
+     "attack": 13,
      "xp": 40,
      "inactive": true
     }
@@ -1980,7 +1934,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 14
+       "actionAmount": 11
       },
       {
        "actionType": "displayMessage",
@@ -2013,7 +1967,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 14
+       "actionAmount": 11
       },
       {
        "actionType": "displayMessage",
@@ -2046,7 +2000,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 14
+       "actionAmount": 11
       },
       {
        "actionType": "displayMessage",
@@ -2154,7 +2108,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 14
+       "actionAmount": 11
       },
       {
        "actionType": "displayMessage",
@@ -2218,7 +2172,7 @@
       23
      ],
      "health": 95,
-     "attack": 25,
+     "attack": 19,
      "xp": 110,
      "inactive": false
     },
@@ -2229,7 +2183,7 @@
       10
      ],
      "health": 60,
-     "attack": 20,
+     "attack": 14,
      "xp": 70,
      "inactive": false
     },
@@ -2240,7 +2194,7 @@
       19
      ],
      "health": 130,
-     "attack": 23,
+     "attack": 17,
      "xp": 130,
      "inactive": false
     },
@@ -2251,7 +2205,7 @@
       5
      ],
      "health": 95,
-     "attack": 25,
+     "attack": 19,
      "xp": 110,
      "inactive": false
     },
@@ -2262,7 +2216,7 @@
       22
      ],
      "health": 60,
-     "attack": 20,
+     "attack": 14,
      "xp": 70,
      "inactive": false
     },
@@ -2273,7 +2227,7 @@
       13
      ],
      "health": 130,
-     "attack": 23,
+     "attack": 17,
      "xp": 130,
      "inactive": false
     },
@@ -2284,7 +2238,7 @@
       5
      ],
      "health": 95,
-     "attack": 25,
+     "attack": 19,
      "xp": 110,
      "inactive": false
     },
@@ -2295,7 +2249,7 @@
       23
      ],
      "health": 60,
-     "attack": 20,
+     "attack": 14,
      "xp": 70,
      "inactive": false
     },
@@ -2306,7 +2260,7 @@
       5
      ],
      "health": 130,
-     "attack": 23,
+     "attack": 17,
      "xp": 130,
      "inactive": false
     },
@@ -2317,7 +2271,7 @@
       6
      ],
      "health": 95,
-     "attack": 25,
+     "attack": 19,
      "xp": 110,
      "inactive": false
     },
@@ -2328,7 +2282,7 @@
       9
      ],
      "health": 150,
-     "attack": 27,
+     "attack": 21,
      "xp": 40,
      "inactive": true
     }
@@ -2352,7 +2306,7 @@
      ],
      "itemDescription": "Found in the deep.",
      "itemCategory": "Armor",
-     "itemEffectValue": 14,
+     "itemEffectValue": 8,
      "itemHidden": false,
      "itemInactive": false,
      "itemUses": null,
@@ -2456,7 +2410,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 17
+       "actionAmount": 15
       },
       {
        "actionType": "displayMessage",
@@ -2489,7 +2443,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 17
+       "actionAmount": 15
       },
       {
        "actionType": "displayMessage",
@@ -2522,7 +2476,7 @@
        "actionMonsterName": null,
        "actionTileType": null,
        "actionMessage": null,
-       "actionAmount": 17
+       "actionAmount": 15
       },
       {
        "actionType": "displayMessage",
@@ -2709,7 +2663,7 @@
       16
      ],
      "health": 180,
-     "attack": 32,
+     "attack": 23,
      "xp": 190,
      "inactive": false
     },
@@ -2720,7 +2674,7 @@
       5
      ],
      "health": 95,
-     "attack": 24,
+     "attack": 21,
      "xp": 110,
      "inactive": false
     },
@@ -2731,7 +2685,7 @@
       7
      ],
      "health": 130,
-     "attack": 22,
+     "attack": 20,
      "xp": 130,
      "inactive": false
     },
@@ -2742,7 +2696,7 @@
       7
      ],
      "health": 180,
-     "attack": 32,
+     "attack": 23,
      "xp": 190,
      "inactive": false
     },
@@ -2753,7 +2707,7 @@
       1
      ],
      "health": 95,
-     "attack": 24,
+     "attack": 21,
      "xp": 110,
      "inactive": false
     },
@@ -2764,7 +2718,7 @@
       15
      ],
      "health": 130,
-     "attack": 22,
+     "attack": 20,
      "xp": 130,
      "inactive": false
     },
@@ -2775,7 +2729,7 @@
       13
      ],
      "health": 180,
-     "attack": 32,
+     "attack": 23,
      "xp": 190,
      "inactive": false
     },
@@ -2786,7 +2740,7 @@
       6
      ],
      "health": 95,
-     "attack": 24,
+     "attack": 21,
      "xp": 110,
      "inactive": false
     },
@@ -2797,7 +2751,7 @@
       11
      ],
      "health": 130,
-     "attack": 22,
+     "attack": 20,
      "xp": 130,
      "inactive": false
     },
@@ -2808,7 +2762,7 @@
       15
      ],
      "health": 180,
-     "attack": 32,
+     "attack": 23,
      "xp": 190,
      "inactive": false
     },
@@ -2819,7 +2773,7 @@
       15
      ],
      "health": 95,
-     "attack": 24,
+     "attack": 21,
      "xp": 110,
      "inactive": false
     }
@@ -3206,7 +3160,7 @@
       23
      ],
      "health": 230,
-     "attack": 48,
+     "attack": 47,
      "xp": 260,
      "inactive": false
     },
@@ -3217,7 +3171,7 @@
       6
      ],
      "health": 180,
-     "attack": 40,
+     "attack": 38,
      "xp": 190,
      "inactive": false
     },
@@ -3228,7 +3182,7 @@
       9
      ],
      "health": 170,
-     "attack": 44,
+     "attack": 42,
      "xp": 220,
      "inactive": false
     },
@@ -3239,7 +3193,7 @@
       6
      ],
      "health": 230,
-     "attack": 48,
+     "attack": 47,
      "xp": 260,
      "inactive": false
     },
@@ -3250,7 +3204,7 @@
       9
      ],
      "health": 180,
-     "attack": 40,
+     "attack": 38,
      "xp": 190,
      "inactive": false
     },
@@ -3261,7 +3215,7 @@
       8
      ],
      "health": 170,
-     "attack": 44,
+     "attack": 42,
      "xp": 220,
      "inactive": false
     },
@@ -3272,7 +3226,7 @@
       18
      ],
      "health": 230,
-     "attack": 48,
+     "attack": 47,
      "xp": 260,
      "inactive": false
     },
@@ -3283,7 +3237,7 @@
       20
      ],
      "health": 180,
-     "attack": 40,
+     "attack": 38,
      "xp": 190,
      "inactive": false
     },
@@ -3294,7 +3248,7 @@
       11
      ],
      "health": 170,
-     "attack": 44,
+     "attack": 42,
      "xp": 220,
      "inactive": false
     },
@@ -3305,7 +3259,7 @@
       10
      ],
      "health": 230,
-     "attack": 48,
+     "attack": 47,
      "xp": 260,
      "inactive": false
     },
@@ -3316,7 +3270,7 @@
       14
      ],
      "health": 180,
-     "attack": 40,
+     "attack": 38,
      "xp": 190,
      "inactive": false
     },
@@ -3327,7 +3281,7 @@
       23
      ],
      "health": 170,
-     "attack": 44,
+     "attack": 42,
      "xp": 220,
      "inactive": false
     },
@@ -3338,7 +3292,7 @@
       9
      ],
      "health": 190,
-     "attack": 43,
+     "attack": 41,
      "xp": 70,
      "inactive": true
     },
@@ -3349,7 +3303,7 @@
       18
      ],
      "health": 190,
-     "attack": 43,
+     "attack": 41,
      "xp": 70,
      "inactive": true
     },
@@ -3360,7 +3314,7 @@
       17
      ],
      "health": 260,
-     "attack": 50,
+     "attack": 49,
      "xp": 160,
      "inactive": false
     }

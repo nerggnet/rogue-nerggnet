@@ -84,6 +84,24 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- The armour progression is redrawn, and the first half of the dungeon with
+  it. Damage is attack minus resistance, so what a fight costs turns on the
+  gap between them; Scale Mail was worth +8 against a base resistance of 4,
+  so one item nearly tripled what the player resisted and the floors under
+  it had nothing left to say. Scale Mail is worth 3 now and Chain Hauberk 8.
+  The deep pieces are untouched; they were never the problem.
+
+  Every floor's monster attack is then derived from what a hit ought to cost
+  at that depth rather than set by hand, and blade traps are scaled to the
+  player's health the same way. Floors 3 and 4 carry six and seven monsters
+  rather than eight and nine, each worth the experience of the ones removed:
+  a floor crowded with things that cannot hurt you is not a floor.
+
+      a trap used to be worth   20, 24, 14, 10 monster hits on floors 3-6
+      it is now worth           4, 3, 2, 3 -- and 1 to 2 below that
+
+      before   90 72 70 58 53 50 52 39 46 37 37 37
+      after    90 81 70 57 56 55 57 40 46 36 37 37
 - Blade traps on floors 3 to 6 are cut by about two fifths, and those floors'
   monsters hit a little harder. A trap on floor 3 was taking a seventh of the
   player's health while a monster took a fiftieth, so the only real danger in
