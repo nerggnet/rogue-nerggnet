@@ -2663,7 +2663,7 @@
       16
      ],
      "health": 180,
-     "attack": 23,
+     "attack": 24,
      "xp": 190,
      "inactive": false
     },
@@ -2674,7 +2674,7 @@
       5
      ],
      "health": 95,
-     "attack": 21,
+     "attack": 23,
      "xp": 110,
      "inactive": false
     },
@@ -2696,7 +2696,7 @@
       7
      ],
      "health": 180,
-     "attack": 23,
+     "attack": 24,
      "xp": 190,
      "inactive": false
     },
@@ -2707,7 +2707,7 @@
       1
      ],
      "health": 95,
-     "attack": 21,
+     "attack": 23,
      "xp": 110,
      "inactive": false
     },
@@ -2729,7 +2729,7 @@
       13
      ],
      "health": 180,
-     "attack": 23,
+     "attack": 24,
      "xp": 190,
      "inactive": false
     },
@@ -2740,7 +2740,7 @@
       6
      ],
      "health": 95,
-     "attack": 21,
+     "attack": 23,
      "xp": 110,
      "inactive": false
     },
@@ -2762,7 +2762,7 @@
       15
      ],
      "health": 180,
-     "attack": 23,
+     "attack": 24,
      "xp": 190,
      "inactive": false
     },
@@ -2773,7 +2773,7 @@
       15
      ],
      "health": 95,
-     "attack": 21,
+     "attack": 23,
      "xp": 110,
      "inactive": false
     }
@@ -3171,7 +3171,7 @@
       6
      ],
      "health": 180,
-     "attack": 38,
+     "attack": 42,
      "xp": 190,
      "inactive": false
     },
@@ -3182,7 +3182,7 @@
       9
      ],
      "health": 170,
-     "attack": 42,
+     "attack": 47,
      "xp": 220,
      "inactive": false
     },
@@ -3204,7 +3204,7 @@
       9
      ],
      "health": 180,
-     "attack": 38,
+     "attack": 42,
      "xp": 190,
      "inactive": false
     },
@@ -3215,7 +3215,7 @@
       8
      ],
      "health": 170,
-     "attack": 42,
+     "attack": 47,
      "xp": 220,
      "inactive": false
     },
@@ -3237,7 +3237,7 @@
       20
      ],
      "health": 180,
-     "attack": 38,
+     "attack": 42,
      "xp": 190,
      "inactive": false
     },
@@ -3248,7 +3248,7 @@
       11
      ],
      "health": 170,
-     "attack": 42,
+     "attack": 47,
      "xp": 220,
      "inactive": false
     },
@@ -3270,7 +3270,7 @@
       14
      ],
      "health": 180,
-     "attack": 38,
+     "attack": 42,
      "xp": 190,
      "inactive": false
     },
@@ -3281,7 +3281,7 @@
       23
      ],
      "health": 170,
-     "attack": 42,
+     "attack": 47,
      "xp": 220,
      "inactive": false
     },
@@ -3292,7 +3292,7 @@
       9
      ],
      "health": 190,
-     "attack": 41,
+     "attack": 46,
      "xp": 70,
      "inactive": true
     },
@@ -3303,7 +3303,7 @@
       18
      ],
      "health": 190,
-     "attack": 41,
+     "attack": 46,
      "xp": 70,
      "inactive": true
     },
@@ -3314,7 +3314,7 @@
       17
      ],
      "health": 260,
-     "attack": 49,
+     "attack": 55,
      "xp": 160,
      "inactive": false
     }

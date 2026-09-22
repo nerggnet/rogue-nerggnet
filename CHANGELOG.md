@@ -123,6 +123,20 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Floors 6 and 7 hit harder. Measured over a hundred bot runs, the worst
+  health a floor drove the player to used to read 57, 56, 55, 57 for floors
+  4 to 7 -- four floors in a row at the same difficulty, and then a cliff to
+  40 on floor 8. Damage is attack minus resistance, so the gap is what
+  matters, not the attack number: a Mire Troll swinging 23 into resistance 16
+  took seven points off a 320-point bar, which made floor 6 gentler than
+  floor 4. Floor 7 was worse in its own way -- it costs more than a full
+  health bar, but it also hands out the Runed Plate and the Thirsting Band,
+  so it healed and armoured the player faster than it hurt them.
+
+  Floor 6's Shriekers and Mire Trolls and floor 7's Trolls, Hounds and the
+  Kennelmaster now swing harder. The curve reads 57, 56, 49, 44, 37 for
+  floors 4 to 8, and all hundred runs still get out alive. No monster on
+  floor 7 out-hits its floor 8 counterpart.
 - Three rows of blank decoration are gone from the screen: the blank line
   under the title bar, one of the two above the log, and the one above the
   command line. They cost nothing to look at and a row of dungeon each to
