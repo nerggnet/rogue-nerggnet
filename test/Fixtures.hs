@@ -130,6 +130,7 @@ mkState world pos =
     , scoreboard        = []
     , showScores        = False
     , showLog           = False
+    , keysPressed       = ""
     }
 
 -- | The standard fixture: the open room with the player on the start tile.

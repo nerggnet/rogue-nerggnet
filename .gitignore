@@ -46,6 +46,7 @@ output.txt
 debug.txt
 [Bb]ackup*/
 
-# Game save file and scoreboard
+# Game save file, scoreboard and recorded runs
 save.json
 scores.json
+replays/

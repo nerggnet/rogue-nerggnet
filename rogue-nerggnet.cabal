@@ -32,6 +32,7 @@ library
     hs-source-dirs:   src
     exposed-modules:  Game.Types
                       Game.Autoplay
+                      Game.Replay
                       Game.Score
                       Game.State
                       Game.Logic
@@ -39,6 +40,7 @@ library
                       File.Types
                       File.MapIO
                       File.Scores
+                      File.Replays
                       UI.Draw
                       UI.MainUI
     build-depends:    base               >= 4.21  && < 4.23
@@ -49,6 +51,7 @@ library
                     , directory          >= 1.3   && < 1.4
                     , linear             >= 1.22  && < 1.24
                     , random             >= 1.2   && < 1.4
+                    , filepath           >= 1.4   && < 1.6
                     , splitmix           >= 0.1   && < 0.2
                     , time               >= 1.12  && < 1.16
                     , vty                >= 6.0   && < 7
@@ -72,6 +75,7 @@ test-suite spec
     main-is:          Spec.hs
     other-modules:    Fixtures
                       Game.GridUtilsSpec
+                      Game.ReplaySpec
                       Game.ScoreSpec
                       Game.StateSpec
                       Game.LogicSpec

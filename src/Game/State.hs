@@ -245,6 +245,7 @@ newGame gen config = do
         , scoreboard = []
         , showScores = False
         , showLog = False
+        , keysPressed = ""
         , lastInteractedNpc = Nothing
         , aimingState = Nothing
         , gameOver = False

@@ -752,6 +752,49 @@ levelUp plyr lvls =
              ])
        Nothing -> (plyr, [])
 
+-- | What one keystroke does.
+--
+-- The single place that says what a key means, so that the keyboard, the
+-- bot and a replay cannot drift apart: a recorded run is only a run if
+-- replaying its keys does what pressing them did.
+--
+-- Escape arrives as \ESC, Enter as \n and Backspace as \b, which are the
+-- characters a terminal would never send as an ordinary key.
+applyKey :: Char -> GameState -> GameState
+applyKey c state
+  | commandToExecute stepped =
+      case applyCommand (commandBuffer stepped) stepped of
+        Just done -> done {commandToExecute = False, commandBuffer = ""}
+        -- Quitting and restarting reach outside the state; whoever is
+        -- running the game answers those.
+        Nothing -> stepped
+  | otherwise = stepped
+  where
+    escaped = c == '\ESC'
+    keyChar = if escaped then Nothing else Just c
+    stepped
+      | commandMode state = handleCommandInputInternal keyChar escaped state state
+      | otherwise = handleMovementInternal keyChar state
+
+-- | What a typed command does to the game.
+--
+-- Nothing for the two that cannot be answered from the state alone: ":q"
+-- ends the process and ":restart" reads the world file afresh.
+applyCommand :: String -> GameState -> Maybe GameState
+applyCommand cmd state = case cmd of
+  ":q" -> Nothing
+  ":restart" -> Nothing
+  ":scores" -> Just state {showScores = not (showScores state)}
+  ":log" -> Just state {showLog = not (showLog state)}
+  ":heal" -> Just state {player = plyr {health = maxHealth state}, gameOver = False}
+  ":super" -> Just state
+    { player = plyr {health = 1000, attack = 100, resistance = 100}
+    , gameOver = False
+    }
+  _ -> Just state {message = ("Unknown command: " ++ cmd) : message state}
+  where
+    plyr = player state
+
 -- | Whether a monster is able to shoot the player where it stands.
 --
 -- It needs a range, the player inside it, and a clear line. The same line

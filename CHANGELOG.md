@@ -6,6 +6,19 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Recorded runs. The game is deterministic, so a run is its seed and its
+  keystrokes and nothing else; both are written to `replays/` when a run
+  ends, and `--replay <file>` plays them back against the dungeon and says
+  whether it comes out as recorded. A replay carries a fingerprint of
+  `world.json` and is refused if the dungeon has changed since.
+
+  This is what the fixed dungeon was for. A score was previously a number
+  somebody typed at you; it is now something anybody holding the same twelve
+  floors can check.
+
+  It also buys a kind of test that could not be written before: play a
+  recorded winning run against the dungeon as it stands and see whether it
+  still wins.
 - `:log` looks back through the messages. The pane shows five lines and only
   ten were kept, so a trigger's message, an NPC's answer or what a fight
   cost had scrolled away by the time anyone wondered about it. Two hundred

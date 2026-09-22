@@ -51,7 +51,7 @@ data Report = Report
 stepOnce :: GameState -> Maybe ([Char], GameState)
 stepOnce state = do
   keys <- decide state
-  pure (keys, foldl (flip press) state keys)
+  pure (keys, foldl (flip applyKey) state keys)
 
 -- | Play until the game ends or the turn limit runs out.
 autoplay :: Int -> GameState -> Report
@@ -63,7 +63,7 @@ autoplay limit = go 0 100
       | turns >= limit = report Stuck turns low' state
       | otherwise = case decide state of
           Nothing -> report Stuck turns low' state
-          Just keys -> go (turns + 1) low' (foldl (flip press) state keys)
+          Just keys -> go (turns + 1) low' (foldl (flip applyKey) state keys)
       where
         low' = min low (healthPct state)
 
@@ -78,12 +78,6 @@ autoplay limit = go 0 100
       , lowestHealth = low
       , transcript = message state
       }
-
--- One keystroke, dispatched the way the user interface dispatches it.
-press :: Char -> GameState -> GameState
-press c state
-  | commandMode state = handleCommandInputInternal (Just c) False state state
-  | otherwise = handleMovementInternal (Just c) state
 
 -- What to do this turn, as a keystroke or two. Nothing means out of ideas.
 decide :: GameState -> Maybe [Char]

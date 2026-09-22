@@ -95,6 +95,38 @@ A missing `scores.json` is simply an empty board. One that cannot be read is
 reported and then ignored, because losing the history is not a reason to
 refuse to play.
 
+## Replays
+
+Every finished run is written to `replays/`, as the seed it started from and
+the keys that were pressed. That is the whole run: the game is deterministic,
+so the same seed and the same keys against the same dungeon give the same
+result every time.
+
+```bash
+cabal run rogue-nerggnet -- --replay replays/2026-09-22-12-00.json
+```
+```
+Verified. GotOut on floor 12 with 9340 in treasure, 3200 turns,
+scoring 10540 (seed 4242, 3259 keys).
+```
+
+This is what makes a score worth comparing. The scoreboard says somebody
+carried 9,340 out of the bottom; the replay is the proof, and anybody with
+the same dungeon can check it rather than take their word.
+
+A replay records a fingerprint of `world.json` and is refused if the dungeon
+has changed since — the keys would still be pressed, but they would be
+pressed at different things:
+
+```
+This run was played on a different world.json
+(it wants 93f77698377d6e4f, this one is 8e81e02893003a58).
+```
+
+A game resumed from a save is not recorded: the keys that got it there are
+gone, so there is no run to write down. Playing straight through from a new
+dungeon is.
+
 ## Saving
 
 * On exit the full game state is written to `save.json`.

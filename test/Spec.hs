@@ -7,6 +7,7 @@ import qualified File.MapIOSpec
 import qualified Game.GridUtilsSpec
 import qualified Game.AutoplaySpec
 import qualified Game.LogicSpec
+import qualified Game.ReplaySpec
 import qualified Game.ScoreSpec
 import qualified Game.StateSpec
 import qualified UI.DrawSpec
@@ -19,6 +20,7 @@ main = hspec $ do
   describe "Game.State"     Game.StateSpec.spec
   describe "Game.Logic"     Game.LogicSpec.spec
   describe "Game.Score"     Game.ScoreSpec.spec
+  describe "Game.Replay"    Game.ReplaySpec.spec
   describe "File.MapIO"     File.MapIOSpec.spec
   describe "Game.Autoplay"  Game.AutoplaySpec.spec
   describe "UI.Draw"        UI.DrawSpec.spec
