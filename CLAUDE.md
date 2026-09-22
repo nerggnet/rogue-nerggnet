@@ -13,7 +13,7 @@ plus the things that are easy to get wrong.
 
 ```bash
 cabal build all                       # library, executable and test-suite
-cabal test --test-show-details=direct # 419 examples
+cabal test --test-show-details=direct # 570 examples
 cabal run rogue-nerggnet              # play it
 hlint src test app                    # must print "No hints"
 cabal check                           # package metadata

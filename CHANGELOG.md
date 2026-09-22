@@ -123,6 +123,12 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Three rows of blank decoration are gone from the screen: the blank line
+  under the title bar, one of the two above the log, and the one above the
+  command line. They cost nothing to look at and a row of dungeon each to
+  keep. The shipped dungeon's floors are 27 rows tall and now fit whole in a
+  37-row window instead of a 40-row one -- on a terminal three rows short of
+  the old figure, the last rows of the map were scrolling out of sight.
 - The game code now lives in a `library` stanza; the executable is a thin
   wrapper around it. This is what lets the test-suite import the modules.
 - Triggers are now plain data. A trigger's firing condition is a

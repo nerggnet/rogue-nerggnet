@@ -149,6 +149,15 @@ spec = describe "the game screen" $ do
     it "is exactly as wide as the dungeon when the terminal has room to spare" $
       borderWidth (screen (150, 50) onItem) `shouldBe` foldr (max . length) 0 bigMap
 
+    -- The chrome around the map is a title bar, one blank line, five lines of
+    -- log and the command prompt, plus the two rows of border itself: ten
+    -- rows. Every blank line added to the layout is a row of dungeon that
+    -- scrolls out of sight on a terminal that was just tall enough, so the
+    -- budget is asserted rather than left to drift. @onItem@ carries a full
+    -- log, which is the tallest the rest of the screen ever gets.
+    it "shows a whole floor in a window ten rows taller than the map" $
+      borderHeight (screen (100, length bigMap + 10) onItem) `shouldBe` length bigMap
+
     -- The limits must only ever take room away. Making the map a fixed size
     -- would have vBox measure it before the panes around it, and on a short
     -- terminal it would take its full height off the top and leave the log

@@ -38,8 +38,8 @@ drawUI state =
                 , padTop (Pad 1) $ drawInventory (player state)
                 ]
           ]
-      , padTop (Pad 2) $ drawMessages updatedMessages
-      , padTop (Pad 1) $ drawCommandInput state
+      , padTop (Pad 1) $ drawMessages updatedMessages
+      , drawCommandInput state
       ]
   ]
 
@@ -61,9 +61,14 @@ drawUI state =
 -- The stats box calls the player's experience level "Level", so depth is
 -- named "Floor" here and never abbreviated, and says how far down the
 -- dungeon goes so the number means something on its own.
+--
+-- No blank line under it, and only one above the log rather than two. Three
+-- rows of decoration is three rows of dungeon on a terminal that has not
+-- got them to spare: this layout wanted 40 rows to show a floor whole, and
+-- wants 37 now.
 drawTitleBar :: GameState -> Widget ()
 drawTitleBar state =
-      padBottom (Pad 1) $ C.hCenter (str title)
+      C.hCenter (str title)
   where
     title = "Rogue nerggnet - Floor " ++ show (currentLevel state + 1)
               ++ " of " ++ show (length (levels state))

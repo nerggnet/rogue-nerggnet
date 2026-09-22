@@ -75,7 +75,7 @@ together, and a body from one has no business in the other.
   is told by colour alone
 
 The map scrolls to follow the player, so the window does not need to be tall
-enough to show a whole dungeon level at once. It takes 40 rows to see a whole
+enough to show a whole dungeon level at once. It takes 37 rows to see a whole
 floor of the shipped dungeon without scrolling; below that the map scrolls
 under the player and everything else stays where it is.
 
