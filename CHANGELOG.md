@@ -19,6 +19,10 @@ All notable changes to this project are documented in this file.
   It also buys a kind of test that could not be written before: play a
   recorded winning run against the dungeon as it stands and see whether it
   still wins.
+- `--watch <file>` plays a recorded run back on screen, on a clock rather
+  than a keyboard. Space holds it, `+` and `-` change the pace, `.` steps a
+  key at a time while it is held, `q` gives up. The keys go through the same
+  handler the keyboard uses, so it is the run and not a reconstruction.
 - `:log` looks back through the messages. The pane shows five lines and only
   ten were kept, so a trigger's message, an NPC's answer or what a fight
   cost had scrolled away by the time anyone wondered about it. Two hundred

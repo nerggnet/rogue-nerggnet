@@ -110,6 +110,20 @@ Verified. GotOut on floor 12 with 9340 in treasure, 3200 turns,
 scoring 10540 (seed 4242, 3259 keys).
 ```
 
+You can also watch one play itself:
+
+```bash
+cabal run rogue-nerggnet -- --watch replays/2026-09-22-12-00.json
+```
+```
+[replay] 57/3259  playing  speed 5   space hold   + - speed   . step   q stop
+```
+
+Space holds it, `+` and `-` change the pace, `.` steps one key at a time
+while it is held, and `q` gives up on it. The keys go through the same
+handler the keyboard does, so what you are watching is the run and not a
+reconstruction of it.
+
 This is what makes a score worth comparing. The scoreboard says somebody
 carried 9,340 out of the bottom; the replay is the proof, and anybody with
 the same dungeon can check it rather than take their word.

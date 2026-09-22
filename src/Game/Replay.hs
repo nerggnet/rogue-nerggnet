@@ -19,6 +19,7 @@ module Game.Replay
   , digestOf
   , recordOf
   , replay
+  , replayStart
   , Divergence (..)
   ) where
 
@@ -83,13 +84,19 @@ data Divergence
 -- been edited since is not a failed run, it is a question that cannot be
 -- asked.
 replay :: String -> FT.GameConfig -> Replay -> Either Divergence GameState
-replay worldDigest config rec
+replay worldDigest config rec = do
+  start <- replayStart worldDigest config rec
+  let ended = foldl (flip applyKey) start (replayKeys rec)
+  case (replayRun rec, runOf "replay" ended) of
+    (Just written, Just got) | written /= got -> Left (EndedDifferently written got)
+    _ -> Right ended
+
+-- | The game as it stood before the first key, for a watcher to step
+-- through. The same checks as replay, minus the playing.
+replayStart :: String -> FT.GameConfig -> Replay -> Either Divergence GameState
+replayStart worldDigest config rec
   | replayWorld rec /= worldDigest =
       Left (WrongDungeon (replayWorld rec) worldDigest)
   | otherwise = case newGame (mkStdGen (replaySeed rec)) config of
       Left problems -> Left (WouldNotStart problems)
-      Right start ->
-        let ended = foldl' (flip applyKey) start (replayKeys rec)
-         in case (replayRun rec, runOf "replay" ended) of
-              (Just written, Just got) | written /= got -> Left (EndedDifferently written got)
-              _ -> Right ended
+      Right start -> Right start

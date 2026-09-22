@@ -1,12 +1,15 @@
 {-# LANGUAGE TupleSections #-}
 -- src/UI/MainUI.hs
-module UI.MainUI (startGame, verifyReplay, defaultAttrMap) where
+module UI.MainUI (startGame, verifyReplay, watchReplay, defaultAttrMap) where
 
 import Brick
 import Graphics.Vty
   ( Event(..), Key(..), rgbColor, withBackColor, withForeColor, withStyle, defAttr, dim, reverseVideo
   , black, white, yellow, green, red, blue, magenta, cyan
   )
+import qualified Brick.Widgets.Center as C
+import Brick.BChan (newBChan, writeBChan)
+import Control.Concurrent (forkIO, threadDelay)
 import Graphics.Vty.CrossPlatform (mkVty)
 import Graphics.Vty.Config (defaultConfig)
 import Data.Either (fromRight)
@@ -19,7 +22,7 @@ import Game.State (newGame, treasureCarried)
 import Game.Logic
 import UI.Draw
 import Game.Types
-import Control.Monad (when)
+import Control.Monad (forever, when)
 import Data.List (intercalate)
 import Data.Maybe (isJust)
 import Control.Monad.IO.Class (liftIO)
@@ -115,6 +118,97 @@ runGame initialState = do
   let buildVty = mkVty defaultConfig
   vty <- buildVty
   customMain vty buildVty Nothing app initialState
+
+-- | A recorded run, part way through being watched.
+data Watching = Watching
+  { watched :: GameState
+  , pending :: String -- ^ Keys not pressed yet
+  , played  :: Int
+  , wholeRun :: Int
+  , paused  :: Bool
+  , pace    :: Int    -- ^ Ticks between keys; bigger is slower
+  , waited  :: Int
+  }
+
+data Tick = Tick
+
+-- | Watch a recorded run play itself.
+--
+-- The same keys through the same applyKey the keyboard uses, on a clock
+-- instead of a person. Space holds it, "+" and "-" change the pace, "." is
+-- a single step while held, and "q" gives up on it.
+watchReplay :: FilePath -> IO ()
+watchReplay path = do
+  loaded <- loadReplay path
+  case loaded of
+    Left err -> hPutStrLn stderr err >> exitFailure
+    Right rec -> do
+      digest <- worldDigest
+      config <- loadNewGame
+      case config >>= \cfg -> either (\d -> Left [show d]) Right (replayStart digest cfg rec) of
+        Left problems -> report "Cannot watch this run" problems >> exitFailure
+        Right start -> do
+          chan <- newBChan 16
+          _ <- forkIO $ forever $ writeBChan chan Tick >> threadDelay 25000
+          let buildVty = mkVty defaultConfig
+              keys = replayKeys rec
+          vty <- buildVty
+          done <- customMain vty buildVty (Just chan) watchApp Watching
+            { watched = start, pending = keys, played = 0
+            , wholeRun = length keys, paused = False, pace = 4, waited = 0 }
+          putStrLn (finished (watched done) (played done) (wholeRun done))
+  where
+    report headline problems = do
+      hPutStrLn stderr (headline ++ ":")
+      mapM_ (hPutStrLn stderr . ("  - " ++)) problems
+    finished st n total
+      | gameWon st = "The run got out, " ++ progress n total
+      | gameOver st = "The run ended there, " ++ progress n total
+      | otherwise = "Stopped, " ++ progress n total
+    progress n total = show n ++ " of " ++ show total ++ " keys played."
+
+watchApp :: App Watching Tick ()
+watchApp = App
+  { appDraw = drawWatching
+  , appChooseCursor = neverShowCursor
+  , appHandleEvent = handleWatching
+  , appStartEvent = return ()
+  , appAttrMap = const defaultAttrMap
+  }
+
+drawWatching :: Watching -> [Widget ()]
+drawWatching w = banner : drawUI (watched w)
+  where
+    banner = padTop Max $ C.hCenter $ str $
+      "[replay] " ++ show (played w) ++ "/" ++ show (wholeRun w)
+        ++ (if paused w then "  paused" else "  playing")
+        ++ "  speed " ++ show (9 - pace w)
+        ++ "   space hold   + - speed   . step   q stop"
+
+handleWatching :: BrickEvent () Tick -> EventM () Watching ()
+handleWatching (VtyEvent (EvKey key [])) = case key of
+  KChar ' ' -> modify (\w -> w {paused = not (paused w)})
+  KChar '+' -> modify (\w -> w {pace = max 1 (pace w - 1)})
+  KChar '=' -> modify (\w -> w {pace = max 1 (pace w - 1)})
+  KChar '-' -> modify (\w -> w {pace = min 8 (pace w + 1)})
+  KChar '.' -> modify step
+  KChar 'q' -> halt
+  KEsc      -> halt
+  _         -> return ()
+handleWatching (AppEvent Tick) = do
+  w <- get
+  if paused w
+    then return ()
+    else if waited w + 1 >= pace w
+      then put (step w) {waited = 0}
+      else put w {waited = waited w + 1}
+handleWatching _ = return ()
+
+-- One key of the recording, through the same door the keyboard uses.
+step :: Watching -> Watching
+step w = case pending w of
+  [] -> w
+  (c : rest) -> w {watched = applyKey c (watched w), pending = rest, played = played w + 1}
 
 -- | Play a recorded run against the dungeon as it stands, and say whether
 -- it comes out as it was written down.
