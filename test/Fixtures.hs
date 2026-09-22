@@ -131,6 +131,7 @@ mkState world pos =
     , scoreboard        = []
     , showScores        = False
     , showLog           = False
+    , logScroll         = 0
     , keysPressed       = ""
     }
 

@@ -6,6 +6,16 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- The message history scrolls. `:log` keeps two hundred lines and shows
+  sixteen, and until now the other hundred and eighty-four were unreachable:
+  any key closed the popup, so the count in its title named messages there
+  was no way to read. `k` scrolls back a line, `j` forward, `g` jumps to the
+  oldest message kept and `G` to the newest; any other key still closes it.
+  None of it costs a turn.
+
+  The title says which lines are on screen rather than how many --
+  `Messages (23-38 of 38)` instead of `Messages (16 of 38)` -- because the
+  old wording read the same on every line of the history.
 - The game will play a dungeon other than its own. `--world <file>` picks
   one, and everything that run leaves behind goes with it: `world.json`
   keeps the file names it has always had, and any other dungeon gets a

@@ -398,6 +398,7 @@ data GameState = GameState
   , scoreboard        :: [Run] -- Finished runs, best first; read at startup
   , showScores        :: Bool  -- Whether the scoreboard popup is open
   , showLog           :: Bool  -- Whether the message history is open
+  , logScroll         :: Int   -- Lines back the open history is scrolled
   , keysPressed       :: String -- The run so far, newest first, for a replay
   } deriving (Generic)
 
@@ -435,4 +436,5 @@ instance FromJSON GameState where
       <*> pure []
       <*> pure False
       <*> pure False
+      <*> pure 0
       <*> pure ""

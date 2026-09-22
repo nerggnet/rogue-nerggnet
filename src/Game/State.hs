@@ -109,7 +109,7 @@ helpPages =
       , ":q         Save and quit"
       , ":restart   Start a new dungeon"
       , ":scores    Runs finished so far"
-      , ":log       Look back through the messages"
+      , ":log       Look back through the messages (j/k scrolls)"
       ]
     )
   ]
@@ -206,6 +206,26 @@ maxLogMessages = 200
 visibleLogMessages :: Int
 visibleLogMessages = 5
 
+-- | How many lines ":log" shows at once.
+--
+-- Enough to be worth opening, few enough that the whole popup fits a
+-- terminal of twenty-four rows. It lives here rather than with the drawing
+-- because scrolling has to clamp against it, and the clamping is part of
+-- what a keystroke means.
+loggedOnScreen :: Int
+loggedOnScreen = 16
+
+-- | Where the open history should sit after scrolling @by@ lines.
+--
+-- The offset counts messages back from the newest, so scrolling up -- older,
+-- further back -- raises it. It stops at the oldest message kept rather than
+-- running off the end into blank space, and a history shorter than the
+-- window cannot scroll at all.
+scrolledLog :: Int -> GameState -> Int
+scrolledLog by state = max 0 (min ceiling' (logScroll state + by))
+  where
+    ceiling' = max 0 (length (message state) - loggedOnScreen)
+
 -- Initialize the game state
 -- Build a new game from a freshly loaded configuration.
 --
@@ -268,6 +288,7 @@ newGame gen config = do
         , scoreboard = []
         , showScores = False
         , showLog = False
+        , logScroll = 0
         , keysPressed = ""
         , lastInteractedNpc = Nothing
         , aimingState = Nothing

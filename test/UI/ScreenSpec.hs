@@ -352,19 +352,39 @@ spec = do
           rowOf needle = length (takeWhile (not . (needle `isInfixOf`)) rows)
       rowOf "line 6" `shouldSatisfy` (> rowOf "line 1")
 
-    it "says how much of the history it is showing" $
-      showsText (looking 40) "Messages (16 of 40)" `shouldBe` True
+    -- Naming the range rather than the count is what makes scrolling
+    -- legible: "16 of 40" looks the same on every line of the history.
+    it "says which lines of the history it is showing" $
+      showsText (looking 40) "Messages (25-40 of 40)" `shouldBe` True
+
+    it "says so again after scrolling back" $ do
+      let back = (looking 40) {logScroll = 10}
+      showsText back "Messages (15-30 of 40)" `shouldBe` True
+      showsText back "line 15" `shouldBe` True
+      showsText back "line 30" `shouldBe` True
+      showsText back "line 31" `shouldBe` False
+
+    it "offers the scrolling keys when there is more than one screenful" $
+      showsText (looking 40) "j/k to scroll" `shouldBe` True
+
+    -- Nothing to scroll, so nothing to say about scrolling.
+    it "offers them nowhere else" $
+      showsText (looking 3) "j/k to scroll" `shouldBe` False
 
     it "says so when nothing has happened yet" $
       showsText room {message = [], showLog = True} "Nothing has happened yet" `shouldBe` True
 
     -- Sixteen lines plus a border and a hint is what fits the shortest
-    -- terminal the game supports.
+    -- terminal the game supports. Both ends of the window and the hint
+    -- under it have to survive, or the popup is being clipped by the
+    -- terminal rather than sized to it.
     it "fits an 80x24 terminal" $ do
       let rows = renderRows (80, 24) (drawUI (looking 60))
           titleRow = filter ("Messages (" `isInfixOf`) rows
       map (dropWhileEnd (== ' ')) titleRow `shouldSatisfy` all (("\9488" :: String) `isSuffixOf`)
-      rows `shouldSatisfy` any ("Press any key to close" `isInfixOf`)
+      rows `shouldSatisfy` any ("line 45" `isInfixOf`)
+      rows `shouldSatisfy` any ("line 60" `isInfixOf`)
+      rows `shouldSatisfy` any ("any other key closes" `isInfixOf`)
 
   describe "the scoreboard" $ do
     let aRun n = Run { runWhen = "2026-01-0" ++ show n ++ " 12:00", runEnding = GotOut

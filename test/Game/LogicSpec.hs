@@ -3,7 +3,7 @@ module Game.LogicSpec (spec) where
 
 import Data.List (isInfixOf, nub, unfoldr, (\\))
 import Game.Logic
-import Game.State (currentWorld, evalTriggerCondition, helpPages, maxInventorySize, maxLogMessages, seesFrom, treasureCarried, visibleLogMessages, visibleMonsters)
+import Game.State (currentWorld, evalTriggerCondition, helpPages, loggedOnScreen, maxInventorySize, maxLogMessages, seesFrom, treasureCarried, visibleLogMessages, visibleMonsters)
 import Game.Types
 import System.Random (mkStdGen)
 import Linear.V2 (V2 (..))
@@ -447,6 +447,44 @@ spec = do
       showLog closed `shouldBe` False
       turnCount closed `shouldBe` 7
       position (player closed) `shouldBe` position (player baseState)
+
+    -- A history two hundred lines deep behind a window of sixteen is only
+    -- worth keeping if there is a way back through it.
+    let long = baseState {message = ["line " ++ show i | i <- [40, 39 .. 1 :: Int]]
+                         , showLog = True, turnCount = 7}
+        press cs st = foldl (flip applyKey) st cs
+
+    it "scrolls back a line at a time on k" $
+      logScroll (press "kkk" long) `shouldBe` 3
+
+    it "comes forward again on j" $
+      logScroll (press "kkkj" long) `shouldBe` 2
+
+    it "jumps to the oldest on g and the newest on G" $ do
+      logScroll (press "g" long) `shouldBe` 40 - loggedOnScreen
+      logScroll (press "gG" long) `shouldBe` 0
+
+    -- Running off either end would show a screenful of nothing.
+    it "stops at the oldest message kept" $
+      logScroll (press (replicate 99 'k') long) `shouldBe` 40 - loggedOnScreen
+
+    it "stops at the newest" $
+      logScroll (press "j" long) `shouldBe` 0
+
+    it "cannot scroll a history that fits the window" $
+      logScroll (press "kg" long {message = ["just the one"]}) `shouldBe` 0
+
+    it "stays open while scrolling, and none of it is a turn" $ do
+      let scrolled = press "kkjgG" long
+      showLog scrolled `shouldBe` True
+      turnCount scrolled `shouldBe` 7
+      position (player scrolled) `shouldBe` position (player baseState)
+
+    -- Where it was left last time is not where the player wants to start.
+    it "opens on the newest line however far back it was left" $ do
+      let reopened = press ":log\n" (press ":log\n" (press "kkkk" long))
+      showLog reopened `shouldBe` True
+      logScroll reopened `shouldBe` 0
 
   describe "stacking" $ do
     let potion = (mkItem "Health Potion" Healing 60 (V2 4 3)) {iUses = Just 2, iValue = 120}

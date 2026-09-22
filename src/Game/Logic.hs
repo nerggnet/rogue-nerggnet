@@ -4,7 +4,7 @@ module Game.Logic where
 import Game.State
   ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
   , updateVisibility, evalTriggerCondition, visibleMonsters
-  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid, whatItDoes, seesFrom
+  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid, whatItDoes, seesFrom, scrolledLog
   )
 import Game.GridUtils (updateTile, gridLookup, orthogonal, keyedInventory)
 import Game.Types
@@ -19,7 +19,17 @@ handleMovementInternal :: Maybe Char -> GameState -> GameState
 -- The scoreboard is a sheet of paper held up in front of the game. Any key
 -- puts it down again, and putting it down is not a turn.
 handleMovementInternal _ state | showScores state = state {showScores = False}
-handleMovementInternal _ state | showLog state = state {showLog = False}
+-- The history is a sheet of paper too, but a long one: it can hold two
+-- hundred lines and shows sixteen, so it has to be possible to walk back
+-- through it. "j" and "k" move a line at a time and "g" and "G" jump to the
+-- ends, the way the command line reads; anything else puts the paper down.
+-- Reading is not a turn either, so none of this advances the game.
+handleMovementInternal key state | showLog state = case key of
+  Just 'j' -> state {logScroll = scrolledLog (-1) state}
+  Just 'k' -> state {logScroll = scrolledLog 1 state}
+  Just 'G' -> state {logScroll = 0}
+  Just 'g' -> state {logScroll = scrolledLog (length (message state)) state}
+  _        -> state {showLog = False}
 handleMovementInternal key state =
   case aimingState state of
     -- Delegate to the aiming logic, which hands back a state transformer
@@ -830,7 +840,8 @@ applyCommand cmd state = case cmd of
   ":q" -> Nothing
   ":restart" -> Nothing
   ":scores" -> Just state {showScores = not (showScores state)}
-  ":log" -> Just state {showLog = not (showLog state)}
+  -- Always opens on the newest line, however far back it was left last time.
+  ":log" -> Just state {showLog = not (showLog state), logScroll = 0}
   ":heal" -> Just state {player = plyr {health = maxHealth state}, gameOver = False}
   ":super" -> Just state
     { player = plyr {health = 1000, attack = 100, resistance = 100}

@@ -11,7 +11,7 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import Game.Types
 import Game.Score (ranked, runOf, runScore)
-import Game.State (helpPages, maxInventorySize, nextXPLevel, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld, whatItDoes)
+import Game.State (helpPages, loggedOnScreen, maxInventorySize, nextXPLevel, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld, whatItDoes)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
 import Data.List (intercalate, zip4)
@@ -288,17 +288,25 @@ drawLogPopup state =
       padAll 1 $ hLimit width $ padRight Max $ vBox (map str body)
   where
     kept = message state
-    shown = reverse (take loggedOnScreen kept)
-    label = "Messages (" ++ show (length shown) ++ " of " ++ show (length kept) ++ ")"
+    -- The list runs newest first, so the offset counts from its head and
+    -- the window is turned round to read oldest at the top.
+    shown = reverse (take loggedOnScreen (drop (logScroll state) kept))
+    -- Which lines these are, numbered from the oldest, so that scrolling
+    -- shows where in the history it has got to rather than only how much of
+    -- it is on screen.
+    newest = length kept - logScroll state
+    oldest = newest - length shown + 1
+    label
+      | null kept = "Messages"
+      | otherwise = "Messages (" ++ show oldest ++ "-" ++ show newest
+                      ++ " of " ++ show (length kept) ++ ")"
+    footer
+      | length kept <= loggedOnScreen = "Press any key to close."
+      | otherwise = "j/k to scroll, g/G for the ends, any other key closes."
     body
       | null kept = ["Nothing has happened yet."]
-      | otherwise = shown ++ [" ", "Press any key to close."]
+      | otherwise = shown ++ [" ", footer]
     width = maximum (length label : map length body)
-
--- | How much of the history the popup shows. Enough to be worth opening,
--- few enough that the whole of it fits a terminal of twenty-four rows.
-loggedOnScreen :: Int
-loggedOnScreen = 16
 
 drawScoresPopup :: GameState -> Widget ()
 drawScoresPopup state =
