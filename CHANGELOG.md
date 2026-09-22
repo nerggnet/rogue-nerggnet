@@ -84,6 +84,19 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Floors 7 to 12 are retuned against a player who opens their pack. They
+  were measured against a bot that carried its Empower and Fortify charms to
+  the surface unopened, and banking those is eight more attack and eight
+  more resistance -- which, on a floor whose monsters hit for 30 against a
+  resistance of 25, is most of the fight. Monster attack rises by 3 to 12
+  depending on the floor, and the bottom keeps four fewer doses of elixir.
+  The Dungeon Lord is back to 130, near the 138 he was cut from when a
+  weaker bot could not survive him.
+
+      before this pass   72 82 69 49 40 38   (floors 7-12)
+      after              57 46 40 38 39 33
+
+  The second half descends again instead of flattening out.
 - Autoplay retreats and uses what it is carrying. It used to walk past every
   permanent upgrade in its pack and never fire a scroll, so every difficulty
   figure this project has quoted came from a player who could not do two
