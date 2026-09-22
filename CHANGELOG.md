@@ -220,6 +220,11 @@ All notable changes to this project are documented in this file.
 
 ### Fixed
 
+- Every door below floor 2 is drawn again. Redrawing those floors as caves
+  moved each door entity to a new position without putting a door tile under
+  it, so the door still locked, still wanted its key and still stopped the
+  player dead -- with plain floor on the screen and nothing to say why. The
+  validator now refuses a door the map does not draw as one.
 - Blinking can no longer cross a locked door, which means it can no longer
   strand the player. A blink went anywhere on the floor, so it could put you
   inside the vault at the bottom -- whose door wants a sigil carried by the

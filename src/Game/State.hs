@@ -697,6 +697,15 @@ checkLevelReachable world = case entryTile world of
             | n <- npcs world, stranded (npcPosition n) ]
           , [ "the door at " ++ showPos (dePosition d) ++ " is inside a wall"
             | d <- doors world, gridLookup (mapGrid world) (dePosition d) == Just Wall ]
+            -- A door entity locks and unlocks; the tile under it is what is
+            -- drawn. Put one on a floor tile and it stops the player dead
+            -- with nothing on the screen to say why.
+          , [ "the door at " ++ showPos (dePosition d) ++ " is not drawn as a door;"
+              ++ " the tile there is " ++ maybe "off the map" show tile
+            | d <- doors world
+            , let tile = gridLookup (mapGrid world) (dePosition d)
+            , tile /= Just Wall
+            , tile /= Just Door ]
           ]
 
 -- What a trigger's actions reach for has to be there.

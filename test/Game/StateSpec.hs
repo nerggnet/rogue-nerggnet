@@ -192,7 +192,7 @@ spec = do
         `shouldReport` "could never arrive"
 
     it "counts a locked door as passable, since a key opens it" $ do
-      let behindADoor = ["#####", "#S..#", "#####"]
+      let behindADoor = ["#####", "#S+.#", "#####"]
       st <- shouldSucceed $ oneLevel behindADoor $ \l -> l
         { FT.doors = [jsonDoorAt (2, 1) True "Iron Key"]
         , FT.monsters = [jsonMonsterAt "Rat" (3, 1)]
@@ -291,6 +291,28 @@ spec = do
         [potion 60, (potion 60) {FT.itemPosition = (3, 1), FT.itemUses = Just 3}])
       length (levels st) `shouldBe` 1
 
+  describe "checking a door is drawn as one" $ do
+    let room = ["#####", "#S..#", "#####"]
+        withDoorAt grid = newGame testGen (jsonConfig
+          [(jsonLevel grid) {FT.doors = [jsonDoorAt (2, 1) True "Iron Key"]
+                            , FT.items = [(jsonItemOf "Iron Key" "Key") {FT.itemUses = Just 1}]}])
+
+    it "accepts a door standing on a door tile" $ do
+      st <- shouldSucceed (withDoorAt ["#####", "#S+.#", "#####"])
+      length (levels st) `shouldBe` 1
+
+    -- The entity locks and unlocks; the tile under it is what is drawn. A
+    -- door on a floor tile stops the player dead with nothing on the screen
+    -- to say why -- which is what every door below floor 2 was doing.
+    it "reports a door the map draws as floor" $
+      withDoorAt room `shouldReport` "is not drawn as a door"
+
+    it "says what the tile there is instead" $
+      withDoorAt room `shouldReport` "the tile there is Floor"
+
+    it "still reports a door walled in, in its own words" $
+      withDoorAt ["#####", "#S#.#", "#####"] `shouldReport` "inside a wall"
+
   describe "checking what can shoot" $ do
     let room = ["#####", "#S..#", "#####"]
         withReach r = newGame testGen (jsonConfig
@@ -344,6 +366,8 @@ spec = do
 
   describe "checking locked doors can be opened" $ do
     let room = ["#####", "#S..#", "#####"]
+        -- A door entity wants a door tile under it; these say so.
+        doorway = ["#####", "#S+.#", "#####"]
 
     it "reports a door whose key is nowhere to be found" $
       newGame testGen (jsonConfig [(jsonLevel room) {FT.doors = [jsonDoorAt (2, 1) True "Brass Key"]}])
@@ -351,7 +375,7 @@ spec = do
 
     it "accepts a door whose key is on the same level" $ do
       st <- shouldSucceed $ newGame testGen $ jsonConfig
-        [ (jsonLevel room)
+        [ (jsonLevel doorway)
             { FT.doors = [jsonDoorAt (2, 1) True "Iron Key"]
             , FT.items = [(jsonItemOf "Iron Key" "Key") {FT.itemUses = Just 1}]
             }
@@ -362,7 +386,7 @@ spec = do
       st <- shouldSucceed $ newGame testGen $ jsonConfig
         [ (jsonLevel ["#####", "#S.>#", "#####"])
             {FT.items = [(jsonItemOf "Iron Key" "Key") {FT.itemUses = Just 1}]}
-        , (jsonLevel ["#####", "#..<#", "#####"])
+        , (jsonLevel ["#####", "#.+<#", "#####"])
             {FT.doors = [jsonDoorAt (2, 1) True "Iron Key"]}
         ]
       length (levels st) `shouldBe` 2
