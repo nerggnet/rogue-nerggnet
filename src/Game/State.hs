@@ -896,6 +896,17 @@ currentXPLevel :: GameState -> Maybe XPLevel
 currentXPLevel state =
   find ((== playerXPLevel (player state)) . xpLevel) (xpLevels state)
 
+-- | The next rung of the experience table, and how much more experience is
+-- wanted to reach it. Nothing once there is no rung above.
+--
+-- The rung is found the way levelUp finds it -- the first entry above the
+-- level the player is on -- so the figure shown is the one that will
+-- actually set the level off, whatever order the table is written in.
+nextXPLevel :: GameState -> Maybe (XPLevel, Int)
+nextXPLevel state = do
+  rung <- find ((> playerXPLevel (player state)) . xpLevel) (xpLevels state)
+  pure (rung, max 0 (xpThreshold rung - xp (player state)))
+
 -- Maximum health at the player's current XP level. Falls back to the health
 -- they already have, so a missing entry can never heal them.
 maxHealth :: GameState -> Int

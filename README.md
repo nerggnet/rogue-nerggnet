@@ -225,7 +225,8 @@ A corpse is only ever drawn on plain floor, so it cannot hide a way out.
   Where a monster falls is marked with `†`, which does not disturb the tile
   underneath.
 * **XP levels** — defined in `world.json`. Crossing a threshold raises your
-  base attack and resistance and restores you to the new maximum health.
+  base attack and resistance and restores you to the new maximum health. The
+  stats box says how much more experience the next one wants.
 * **Inventory** — limited to 15 slots.
 * **Getting out** — `^` is a shaft with daylight behind it. Standing on one
   costs nothing and says so; using an item with the `Escape` effect there

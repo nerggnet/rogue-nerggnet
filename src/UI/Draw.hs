@@ -11,7 +11,7 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import Game.Types
 import Game.Score (ranked, runOf, runScore)
-import Game.State (helpPages, maxInventorySize, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld, whatItDoes)
+import Game.State (helpPages, maxInventorySize, nextXPLevel, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld, whatItDoes)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
 import Data.List (intercalate, zip4)
@@ -33,7 +33,7 @@ drawUI state =
           [ padRight (Pad 2) $ drawMap world (player state) (aimingState state)
           , padLeft (Pad 2) $
               vBox
-                [ padTop (Pad 1) $ drawStatsBox (player state)
+                [ padTop (Pad 1) $ drawStatsBox state
                 , padTop (Pad 1) $ drawInventory (player state)
                 ]
           ]
@@ -353,8 +353,8 @@ drawLegendPopup page =
               padAll 1 $ hLimit width $ padRight Max $ vBox (map str body)
 
 -- Draw the stats box with Health, Attack, and Resistance
-drawStatsBox :: Player -> Widget ()
-drawStatsBox plyr =
+drawStatsBox :: GameState -> Widget ()
+drawStatsBox state =
     hLimit 30 $
       B.borderWithLabel (str "Stats") $
         vBox
@@ -362,9 +362,17 @@ drawStatsBox plyr =
           , padRight Max $ str $ "HP: " ++ show (health plyr)
           , padRight Max $ str $ "Attack: " ++ show (attack plyr) ++ " (Base: " ++ show (baseAttack plyr) ++ ")"
           , padRight Max $ str $ "Resistance: " ++ show (resistance plyr) ++ " (Base: " ++ show (baseResistance plyr) ++ ")"
-          , padRight Max $ str $ "XP: " ++ show (xp plyr)
+          , padRight Max $ str $ "XP: " ++ show (xp plyr) ++ toNextLevel
           , padRight Max $ str $ "Treasure: " ++ show (sum (map iValue (inventory plyr)))
           ]
+  where
+    plyr = player state
+    -- How much more is wanted for the next rung, on the same line as the
+    -- experience itself: the box is thirty columns wide and a player wants
+    -- to read the two figures against each other anyway.
+    toNextLevel = case nextXPLevel state of
+      Nothing -> " (top level)"
+      Just (_, wanted) -> " (" ++ show wanted ++ " to next)"
 
 -- Draw the inventory, highlighting equipped weapon and armor
 drawInventory :: Player -> Widget ()

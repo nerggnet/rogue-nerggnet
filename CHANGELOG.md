@@ -84,6 +84,10 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- The stats box says how much more experience the next level wants:
+  `XP: 3877 (123 to next)`, and `(top level)` at the top of the table. It is
+  read off the same rung `levelUp` will fire on, so the figure shown is the
+  one that counts however the table is written.
 - Remembered ground is marked with the dim style as well as the dark shade.
   The shade is the only 24-bit colour in the game and the only thing telling
   ground you have seen from ground you can see, so on an 8-colour terminal,

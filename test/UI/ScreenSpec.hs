@@ -202,6 +202,30 @@ spec = do
       let st = withPlayer (\p -> p {health = 17, xp = 42, playerXPLevel = 3}) room
       mapM_ (\t -> showsText st t `shouldBe` True) ["Level: 3", "HP: 17", "XP: 42", "Attack:", "Resistance:"]
 
+    -- The table in the fixture goes 0, 100, 250 and stops.
+    it "says how much more experience the next level wants" $ do
+      let st = withPlayer (\p -> p {xp = 42, playerXPLevel = 1}) room
+      showsText st "XP: 42 (58 to next)" `shouldBe` True
+
+    it "counts from the rung above, not from the one just passed" $ do
+      let st = withPlayer (\p -> p {xp = 120, playerXPLevel = 2}) room
+      showsText st "XP: 120 (130 to next)" `shouldBe` True
+
+    it "says so at the top of the table, where there is no next" $ do
+      let st = withPlayer (\p -> p {xp = 900, playerXPLevel = 3}) room
+      showsText st "XP: 900 (top level)" `shouldBe` True
+
+    -- The stats box is thirty columns including its border, and the numbers
+    -- deepest in the dungeon are five digits each. Asserting the line is
+    -- short enough proves nothing, because Brick clips it to the box either
+    -- way; what has to be true is that the whole of it survives.
+    it "shows the whole line with the dungeon's largest numbers" $ do
+      let deep = [XPLevel {xpLevel = 19, xpThreshold = 75000, xpHealth = 2140,
+                           xpAttack = 50, xpResistance = 30}]
+          st = (withPlayer (\p -> p {xp = 68533, playerXPLevel = 18}) room)
+                 {xpLevels = deep}
+      showsText st "XP: 68533 (6467 to next)" `shouldBe` True
+
     it "says when the inventory is empty" $
       showsText room "No items collected" `shouldBe` True
 
