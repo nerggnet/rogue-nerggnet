@@ -6,6 +6,12 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- A trap that goes off leaves a mark. `harmPlayer` only wrote a line to the
+  log, which scrolls away, so the map said nothing about what had just taken
+  a tenth of the player's health. The tile is marked `*` from then on, and
+  while the player is standing on it -- covering it -- their own `@` is
+  drawn in its colours instead. Like a corpse, the mark is only drawn on
+  plain floor, so it cannot hide a way out.
 - Monsters that strike from a distance. Every monster fought the same way --
   walk up, swing -- so the Bone Archer walked up and punched you. A monster
   may now have a `range`: it holds its ground while it has a clear line to
