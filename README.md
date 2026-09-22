@@ -170,6 +170,7 @@ game rather than failing.
 | `d` / `l` | Move right |
 | `<` | Ascend stairs (standing on `<`) |
 | `>` | Descend stairs (standing on `>`) |
+| `c` | Pull shut a door you are standing next to |
 | `g` | Pick up the item you are standing on |
 | `u` | Use / equip an item from the inventory |
 | `x` | Drop an item from the inventory |
@@ -246,7 +247,8 @@ special items have no use count and are never consumed.
 | `!` | Item on the floor |
 | `#` | Wall |
 | `.` | Floor |
-| `+` | Door (yellow; locked doors block movement until unlocked) |
+| `+` | A door that is shut, or locked |
+| `'` | A doorway standing open |
 | `<` / `>` | Stairs up / down |
 | `^` | A shaft, with daylight behind it |
 | `†` | A monster died here (the tile underneath is unchanged) |
@@ -264,6 +266,10 @@ covering the mark.
 
 * **Fog of war** — you see 5 tiles (Manhattan distance) with line of sight;
   walls and locked doors block sight.
+* **Doors** — `c` pulls a door shut if you are standing beside one and the
+  doorway is clear; you cannot shut a door through a monster. Walking into a
+  shut door pushes it open and costs the turn. Monsters cannot open doors at
+  all, so a door pulled shut behind you is a wall to them.
 * **Monsters** — chase you when they are within 4 steps of you, counted
   along the way they would have to walk, so one behind a wall or a locked
   door stays put. One with a `range` (drawn `A`) does not chase at all while
@@ -452,8 +458,14 @@ setting. The world file is checked for it.
 { "doorPosition": [7, 4], "doorLocked": true, "doorKeyName": "Iron Key" }
 ```
 
-A door entity should sit on a `+` tile. Locked doors block both movement and
-line of sight until opened with the matching key or by an `unlockDoor` action.
+A door entity should sit on a `+` tile. `doorLocked` starts it locked, which
+also starts it shut.
+
+Shut and locked are different things. A locked door wants its key; a shut one
+only wants pushing, and pushing it is your turn. Either one stops movement
+and line of sight, which is what makes `c` worth having: pull a door shut
+behind you and the archer on the other side loses its shot, and whatever was
+chasing you has to come the long way -- monsters do not open doors.
 
 #### `items`
 

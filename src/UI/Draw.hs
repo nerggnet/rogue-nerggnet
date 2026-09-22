@@ -84,6 +84,7 @@ data MapView = MapView
   , viewNpcs     :: Set.Set (V2 Int)
   , viewCorpses  :: Set.Set (V2 Int)
   , viewSprung   :: Set.Set (V2 Int)  -- Where something in the floor went off
+  , viewOpenDoors :: Set.Set (V2 Int) -- Doorways standing open
   }
 
 mapView :: World -> Player -> Maybe AimingState -> MapView
@@ -101,6 +102,7 @@ mapView world plyr amngState =
     , viewNpcs     = Set.fromList (map npcPosition (npcs world))
     , viewCorpses  = Set.fromList (corpses world)
     , viewSprung   = Set.fromList (sprung world)
+    , viewOpenDoors = Set.fromList [dePosition d | d <- doors world, not (deBlocks d)]
     }
 
 -- Draw the map
@@ -175,6 +177,11 @@ drawTileWithFog view pos tile lit seen
   -- Left on the floor once the player moves off it, so the way they came is
   -- marked with what it cost them. Not "^": that is a shaft, and a way up
   -- is not a thing to confuse with a blade.
+  -- A doorway you can walk through against one you cannot: the difference
+  -- decides whether a corridor is a way out or a wall, and it changes as
+  -- the player opens and shuts them.
+  | Set.member pos (viewOpenDoors view), tile == Door =
+      withAttr (attrName "door") $ str "\''"
   | Set.member pos (viewSprung view) && tile `elem` [Floor, Start] =
       withAttr (attrName "sprung") $ str "*"
   | otherwise =

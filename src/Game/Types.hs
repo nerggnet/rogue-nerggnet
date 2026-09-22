@@ -200,14 +200,30 @@ instance FromJSON Item where
       <*> v .:? Key.fromString "iEffect" .!= Nothing
       <*> v .:? Key.fromString "iValue" .!= 0
 
+-- | A door. Shut and locked are different things: a locked door wants its
+-- key, a shut one only wants pushing. Both stop what is on the other side,
+-- which is the whole use of being able to shut one.
 data DoorEntity = DoorEntity
   { dePosition :: V2 Int
   , deLocked   :: Bool
+  , deShut     :: Bool
   , deKeyName  :: String
   } deriving (Show, Eq, Generic)
 
+-- | Whether a door stands in the way -- of walking through it, and of
+-- seeing past it.
+deBlocks :: DoorEntity -> Bool
+deBlocks d = deLocked d || deShut d
+
 instance ToJSON DoorEntity
-instance FromJSON DoorEntity
+
+instance FromJSON DoorEntity where
+  parseJSON = withObject "DoorEntity" $ \v ->
+    DoorEntity
+      <$> v .:  Key.fromString "dePosition"
+      <*> v .:  Key.fromString "deLocked"
+      <*> v .:? Key.fromString "deShut" .!= False
+      <*> v .:  Key.fromString "deKeyName"
 
 -- | What makes a trigger fire.
 --

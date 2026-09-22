@@ -3,7 +3,7 @@ module Game.LogicSpec (spec) where
 
 import Data.List (isInfixOf, nub, unfoldr, (\\))
 import Game.Logic
-import Game.State (currentWorld, evalTriggerCondition, helpPages, maxInventorySize, maxLogMessages, treasureCarried, visibleLogMessages, visibleMonsters)
+import Game.State (currentWorld, evalTriggerCondition, helpPages, maxInventorySize, maxLogMessages, seesFrom, treasureCarried, visibleLogMessages, visibleMonsters)
 import Game.Types
 import System.Random (mkStdGen)
 import Linear.V2 (V2 (..))
@@ -824,6 +824,65 @@ spec = do
     it "is walked over like any other floor" $
       position (player (movePlayer West (withPlayer (\pl -> pl {position = V2 2 1}) onShaft)))
         `shouldBe` V2 1 1
+
+  describe "shutting a door" $ do
+    -- A corridor with a doorway in it, the player beside the doorway.
+    let corridor = mkWorld ["#######", "#..+..#", "#######"]
+        withDoor d = withWorld (\w -> w {doors = [d]})
+                       (mkState corridor (V2 2 1))
+        open = withDoor (mkDoor (V2 3 1) False "Iron Key")
+        doorNow s = case doors (currentWorld s) of (d : _) -> Just d; _ -> Nothing
+
+    it "pulls an open door beside the player shut" $ do
+      let s = closeDoor open
+      fmap deShut (doorNow s) `shouldBe` Just True
+      latest s `shouldSatisfy` ("pull the door shut" `isInfixOf`)
+
+    it "does not lock what it shuts" $
+      fmap deLocked (doorNow (closeDoor open)) `shouldBe` Just False
+
+    it "says so when there is no door within reach" $ do
+      let away = withWorld (\w -> w {doors = [mkDoor (V2 5 1) False "Iron Key"]})
+                   (mkState corridor (V2 1 1))
+      latest (closeDoor away) `shouldSatisfy` ("no door within reach" `isInfixOf`)
+
+    -- The moment anyone would most like to shut a door is the moment
+    -- something is standing in it, and that is exactly when they cannot.
+    it "will not shut a door with something standing in the way" $ do
+      let blocked = withWorld (\w -> w {monsters = [mkMonster "Rat" (V2 3 1) 10 2]}) open
+          s = closeDoor blocked
+      fmap deShut (doorNow s) `shouldBe` Just False
+      latest s `shouldSatisfy` ("nothing here you can pull shut" `isInfixOf`)
+
+    it "will not shut one that is already shut" $ do
+      let s = closeDoor (closeDoor open)
+      latest s `shouldSatisfy` ("nothing here you can pull shut" `isInfixOf`)
+
+  describe "a shut door" $ do
+    let corridor = mkWorld ["#######", "#..+..#", "#######"]
+        shut = closeDoor (withWorld (\w -> w {doors = [mkDoor (V2 3 1) False "Iron Key"]})
+                            (mkState corridor (V2 2 1)))
+
+    -- Pushing it open is the turn. That is what shutting one buys: it costs
+    -- whatever is chasing you a turn as well.
+    it "opens for a push, and the push is the turn" $ do
+      let pushed = movePlayer East shut
+      position (player pushed) `shouldBe` V2 2 1
+      map deShut (doors (currentWorld pushed)) `shouldBe` [False]
+      latest pushed `shouldSatisfy` ("push the door open" `isInfixOf`)
+
+    it "lets the player through on the next step" $
+      position (player (movePlayer East (movePlayer East shut))) `shouldBe` V2 3 1
+
+    it "stops what is on the other side getting through" $
+      isWalkable (currentWorld shut) (V2 3 1) `shouldBe` False
+
+    -- The reason to shut one on an archer.
+    it "breaks a line of sight that was clear a moment ago" $ do
+      let standingOpen = withWorld (\w -> w {doors = [mkDoor (V2 3 1) False "Iron Key"]})
+                     (mkState corridor (V2 2 1))
+      seesFrom (currentWorld standingOpen) 4 (V2 5 1) (V2 2 1) `shouldBe` True
+      seesFrom (currentWorld shut) 4 (V2 5 1) (V2 2 1) `shouldBe` False
 
   describe "monsters that strike at range" $ do
     -- openMap is a 9x7 room, so there is space to stand off in it.

@@ -34,6 +34,7 @@ handleMovementInternal key state =
             Just c | c == 'd' || c == 'l' -> movePlayer East state
             Just '<' -> goUp state
             Just '>' -> goDown state
+            Just 'c' -> closeDoor state
             Just 'g' -> pickUpItem state
             Just 'u' -> promptUseItem state
             Just 'x' -> promptDropItem state
@@ -148,6 +149,33 @@ pickUpItem state =
               , message = invMsgs ++ message state
               }
 
+-- | Pull a door shut.
+--
+-- Only one standing open beside the player, and only with the doorway
+-- clear: a door cannot be shut through a monster, which is exactly the
+-- moment somebody would most like to.
+closeDoor :: GameState -> GameState
+closeDoor state = case find closable (doors world) of
+  Nothing
+    | any (isAdjacent here . dePosition) (doors world) ->
+        say "There is nothing here you can pull shut."
+    | otherwise -> say "There is no door within reach."
+  Just door ->
+    setCurrentWorld
+      (world {doors = map (\d -> if d == door then d {deShut = True} else d) (doors world)})
+      (say "You pull the door shut.")
+  where
+    world = currentWorld state
+    here = position (player state)
+    say msg = state {message = msg : message state}
+    occupied pos =
+      pos == here
+        || any (\m -> not (mInactive m) && mPosition m == pos) (monsters world)
+        || any ((== pos) . npcPosition) (npcs world)
+        || any (\i -> not (iInactive i) && iPosition i == pos) (items world)
+    closable d =
+      not (deBlocks d) && isAdjacent here (dePosition d) && not (occupied (dePosition d))
+
 -- Player has requested to use an item, prompt which item to use
 promptUseItem :: GameState -> GameState
 promptUseItem state =
@@ -179,7 +207,7 @@ useItem :: Item -> GameState -> GameState
 useItem itm state =
   let plyr = player state
       doorToUnlock = find (isAdjacent (position plyr) . dePosition)
-                          (filter deLocked (doors (currentWorld state)))
+                          (filter deBlocks (doors (currentWorld state)))
       recalculateEffectiveStats p = p
         { attack = baseAttack p + maybe 0 iEffectValue (equippedWeapon p)
         , resistance = baseResistance p + maybe 0 iEffectValue (equippedArmor p) }
@@ -446,7 +474,7 @@ isAdjacent (V2 x1 y1) (V2 x2 y2) =
 -- Helper function to actually unlock a door using a specific key
 unlockDoor :: GameState -> Player -> DoorEntity -> Item -> GameState
 unlockDoor state plyr door key =
-  let updatedDoors = map (\d -> if d == door then d { deLocked = False } else d)
+  let updatedDoors = map (\d -> if d == door then d { deLocked = False, deShut = False } else d)
                            (doors (currentWorld state))
       updatedWorld = (currentWorld state) { doors = updatedDoors }
       updatedInventory = reduceUses key (inventory plyr) -- Remove or decrement key stack
@@ -626,8 +654,15 @@ movePlayer dir state =
         in noticed nPos $ setCurrentWorld updatedWorld $
              state { player = (player state) { position = nPos } }
   in case (doorAt newPos, monsterAt newPos, npcAt newPos) of
-       (Just door, _, _) | deLocked door -> -- Locked door case
+       (Just door, _, _) | deLocked door ->
          state { message = "The door in front of you is locked and is blocking your way." : message state }
+       -- A shut door opens for a push, and the push is the turn. That is
+       -- what makes shutting one worth doing: it costs whatever is chasing
+       -- you a turn as well.
+       (Just door, _, _) | deShut door ->
+         setCurrentWorld
+           (world {doors = map (\d -> if d == door then d {deShut = False} else d) (doors world)})
+           state {message = "You push the door open." : message state}
        (_, Nothing, Nothing) | canMove newPos -> -- No monster or NPC
          internalHandleMovement newPos
        (_, Just monster, _) -> -- Monster
@@ -880,7 +915,7 @@ catchDeath state wounded
 isWalkable :: World -> V2 Int -> Bool
 isWalkable world pos =
   gridLookup (mapGrid world) pos `notElem` [Nothing, Just Wall]
-    && not (any (\d -> dePosition d == pos && deLocked d) (doors world))
+    && not (any (\d -> dePosition d == pos && deBlocks d) (doors world))
 
 -- How many steps each tile is from the player, out to a limit.
 --
@@ -1010,7 +1045,7 @@ isValidMove world playerPos pos =
      pos /= playerPos &&              -- Not the player's position
      not (any (\m -> mPosition m == pos) activeMonsters) && -- Check active monsters
      case doorAt of
-       Just door -> not (deLocked door) -- Locked doors block movement
+       Just door -> not (deBlocks door) -- A shut or locked door blocks
        Nothing   -> True -- No door, movement is allowed
 
 processTriggers :: GameState -> GameState
@@ -1047,7 +1082,7 @@ executeAction state (SpawnMonster name pos) =
 
 executeAction state (UnlockDoor pos) =
   let world = currentWorld state
-      updatedDoors = map (\d -> if dePosition d == pos then d { deLocked = False } else d) (doors world)
+      updatedDoors = map (\d -> if dePosition d == pos then d { deLocked = False, deShut = False } else d) (doors world)
       updatedWorld = world { doors = updatedDoors }
    in setCurrentWorld updatedWorld state
 

@@ -185,7 +185,7 @@ mkNPC n pos =
 
 mkDoor :: V2 Int -> Bool -> String -> DoorEntity
 mkDoor pos locked keyName =
-  DoorEntity {dePosition = pos, deLocked = locked, deKeyName = keyName}
+  DoorEntity {dePosition = pos, deLocked = locked, deShut = locked, deKeyName = keyName}
 
 mkTrigger :: TriggerCondition -> [Action] -> Bool -> Trigger
 mkTrigger cond as recurring =

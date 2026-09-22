@@ -120,6 +120,21 @@ spec = do
       [n | n <- named, attrForeColor (attrOf n) `notElem` map SetTo plain]
         `shouldBe` []
 
+  describe "doorways" $ do
+    let withDoor d = withWorld (\w -> w {doors = [d]}) (withCurrentWorld putDoor room)
+        putDoor w = w {mapGrid = [[if (x, y) == (6, 3) then Door else t
+                                   | (x, t) <- zip [0 :: Int ..] row]
+                                  | (y, row) <- zip [0 :: Int ..] (mapGrid w)]}
+
+    -- Whether a doorway can be walked through decides whether a corridor
+    -- is a way out or a wall, and it changes as the player works the door.
+    it "draws one standing open apart from one that is shut" $ do
+      glyphAt (withDoor (mkDoor (V2 6 3) False "Iron Key")) (V2 6 3) `shouldBe` '\''
+      glyphAt (withDoor ((mkDoor (V2 6 3) False "Iron Key") {deShut = True})) (V2 6 3) `shouldBe` '+'
+
+    it "draws a locked one shut, because it is" $
+      glyphAt (withDoor (mkDoor (V2 6 3) True "Iron Key")) (V2 6 3) `shouldBe` '+'
+
   describe "a trap that has gone off" $ do
     let atTrap = withWorld (\w -> w {sprung = [V2 6 3]}) room
         standingIn = withPlayer (\p -> p {position = V2 6 3}) atTrap

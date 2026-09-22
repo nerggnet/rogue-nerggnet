@@ -6,6 +6,13 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Doors can be pulled shut, with `c`. Shut and locked have come apart: a
+  locked door wants its key, a shut one only wants pushing, and pushing it
+  costs the turn. Either stops movement and line of sight, and monsters
+  cannot open doors -- so shutting one behind you takes an archer's shot
+  away and makes whatever is chasing you come the long way. A doorway
+  standing open is drawn `'` and one that is shut `+`, because which it is
+  decides whether a corridor is a way out or a wall.
 - Recorded runs. The game is deterministic, so a run is its seed and its
   keystrokes and nothing else; both are written to `replays/` when a run
   ends, and `--replay <file>` plays them back against the dungeon and says

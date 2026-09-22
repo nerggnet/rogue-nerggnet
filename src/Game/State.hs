@@ -69,6 +69,7 @@ helpPages =
       , "d or l     Move right"
       , "<          Ascend the stairs you are on"
       , ">          Descend the stairs you are on"
+      , "c          Pull a door shut"
       , "g          Pick up what you are standing on"
       , "u          Use or equip an item"
       , "x          Drop an item"
@@ -289,7 +290,7 @@ seesFrom world radius src dest
     clear point = point == src || point == dest || isPassable point
     isPassable (V2 x y) =
       let inBounds = y >= 0 && y < mapRows world && x >= 0 && x < mapCols world
-          shut = any (\door -> dePosition door == V2 x y && deLocked door) (doors world)
+          shut = any (\door -> dePosition door == V2 x y && deBlocks door) (doors world)
        in inBounds && not shut && mapGrid world !! y !! x /= Wall
 
 bresenhamLine :: V2 Int -> V2 Int -> [V2 Int]
@@ -502,6 +503,9 @@ transformDoorEntity :: FT.JSONDoorEntity -> DoorEntity
 transformDoorEntity jsonDoor = DoorEntity
   { dePosition = uncurry V2 (FT.doorPosition jsonDoor)
   , deLocked   = FT.doorLocked jsonDoor
+    -- A door the dungeon says is locked is shut as well; one it says
+    -- is open starts open, and can be shut by whoever walks through it.
+  , deShut     = FT.doorLocked jsonDoor
   , deKeyName  = FT.doorKeyName jsonDoor
   }
 

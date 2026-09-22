@@ -429,6 +429,7 @@ nextStep state targets = search (Map.singleton here here) [here]
     passable pos =
       gridLookup (mapGrid world) pos `notElem` [Nothing, Just Wall]
         && case find ((== pos) . dePosition) (doors world) of
+             -- A shut door is only a push away; a locked one wants the key.
              Just door -> not (deLocked door) || haveKey (deKeyName door)
              Nothing -> True
 
