@@ -199,11 +199,15 @@ special items have no use count and are never consumed.
 | `<` / `>` | Stairs up / down |
 | `^` | A shaft, with daylight behind it |
 | `†` | A monster died here (the tile underneath is unchanged) |
+| `*` | Something in the floor went off here |
 
 Unexplored tiles are blank. Tiles you have seen before but cannot currently see
 are drawn dimmed and without their contents -- but stairs, doors and shafts
 stay drawn as themselves, since they are what you would remember about a room.
-A corpse is only ever drawn on plain floor, so it cannot hide a way out.
+A corpse, and the mark a sprung trap leaves, are only ever drawn on plain
+floor, so neither can hide a way out. While you are standing in a trap that
+has just gone off, your own `@` is drawn in its colours, since you are
+covering the mark.
 
 ## Gameplay notes
 

@@ -3,7 +3,7 @@ module UI.MainUI (startGame, defaultAttrMap) where
 
 import Brick
 import Graphics.Vty
-  ( Event(..), Key(..), rgbColor, withBackColor, withForeColor, withStyle, defAttr, dim
+  ( Event(..), Key(..), rgbColor, withBackColor, withForeColor, withStyle, defAttr, dim, reverseVideo
   , black, white, yellow, green, red, blue, magenta, cyan
   )
 import Graphics.Vty.CrossPlatform (mkVty)
@@ -178,6 +178,8 @@ defaultAttrMap = attrMap defAttr
   , (attrName "shooter", withForeColor defAttr magenta)
   , (attrName "aimingMonster", withForeColor defAttr yellow)
   , (attrName "corpse", withForeColor defAttr red)
+  , (attrName "sprung", withForeColor defAttr red)
+  , (attrName "hurt", withStyle (withForeColor defAttr red) reverseVideo)
   , (attrName "npc", withForeColor defAttr cyan)
   , (attrName "item", withForeColor defAttr magenta)
   ]

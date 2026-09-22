@@ -675,11 +675,21 @@ spec = do
       it "Revive catches a blade in the floor, not only a monster" $ do
         let knot = mkSpecial "Widow's Knot" Revive 0
             frail = withPlayer (\p -> p {health = 5, inventory = [knot]}) baseState
-            sprung = executeAction frail (HarmPlayer 40)
-        gameOver sprung `shouldBe` False
-        health (player sprung) `shouldSatisfy` (> 5)
-        inventory (player sprung) `shouldBe` []
-        latest sprung `shouldSatisfy` ("burns up" `isInfixOf`)
+            hit = executeAction frail (HarmPlayer 40)
+        gameOver hit `shouldBe` False
+        health (player hit) `shouldSatisfy` (> 5)
+        inventory (player hit) `shouldBe` []
+        latest hit `shouldSatisfy` ("burns up" `isInfixOf`)
+
+      it "leaves the blade on the map where it went off" $ do
+        let here = position (player baseState)
+            hit = executeAction baseState (HarmPlayer 5)
+        sprung (currentWorld hit) `shouldBe` [here]
+
+      it "does not mark the same tile twice" $ do
+        let first = executeAction baseState (HarmPlayer 5)
+            twice = executeAction first (HarmPlayer 5)
+        length (sprung (currentWorld twice)) `shouldBe` 1
 
       it "lets a blade in the floor kill when nothing is there to catch it" $ do
         let frail = withPlayer (\p -> p {health = 5}) baseState

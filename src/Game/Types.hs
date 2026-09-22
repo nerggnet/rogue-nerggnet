@@ -265,6 +265,7 @@ data World = World
   , discoveredCoords   :: [(Int, Int)]
   , tileOverrides      :: [(V2 Int, Tile)]
   , corpses            :: [V2 Int]  -- Where monsters have been defeated
+  , sprung             :: [V2 Int]  -- Where something in the floor has gone off
   } deriving (Generic)
 
 instance ToJSON World where
@@ -303,6 +304,7 @@ instance FromJSON World where
     vsblt <- v .: Key.fromString "visibility"
     tileOvrrds <- v .: Key.fromString "tileOverrides"
     crpses <- v .:? Key.fromString "corpses" .!= []
+    sprng <- v .:? Key.fromString "sprung" .!= []
     return World
       { mapGrid = grid
       , mapRows = gridRows
@@ -317,6 +319,7 @@ instance FromJSON World where
       , discoveredCoords = dscvrdCoords
       , tileOverrides = tileOvrrds
       , corpses = crpses
+      , sprung = sprng
       }
 
 -- Convert a list of discovered coordinates back to a 2D grid.

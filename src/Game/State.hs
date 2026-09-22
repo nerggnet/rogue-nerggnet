@@ -361,6 +361,7 @@ transformFileWorld fileWorld = do
         , discoveredCoords = []
         , tileOverrides = []
         , corpses = []
+        , sprung = []
         }
   pure built
   where

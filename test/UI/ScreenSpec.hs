@@ -120,6 +120,30 @@ spec = do
       [n | n <- named, attrForeColor (attrOf n) `notElem` map SetTo plain]
         `shouldBe` []
 
+  describe "a trap that has gone off" $ do
+    let atTrap = withWorld (\w -> w {sprung = [V2 6 3]}) room
+        standingIn = withPlayer (\p -> p {position = V2 6 3}) atTrap
+
+    -- A line in the log scrolls away; a mark on the floor is still there
+    -- when the player looks up.
+    it "leaves a mark on the floor" $
+      glyphAt atTrap (V2 6 3) `shouldBe` '*'
+
+    -- Standing in one, the player covers it, so the player has to show it.
+    it "shows on the player while they are standing in it" $
+      glyphAt standingIn (V2 6 3) `shouldBe` '@'
+
+    it "is not the shaft mark; a way up is not a blade" $
+      glyphAt atTrap (V2 6 3) `shouldNotBe` '^'
+
+    it "does not lie on top of a way out, any more than a corpse does" $ do
+      let onStairs = withCurrentWorld
+            (\w -> w {mapGrid = [[if (x, y) == (6, 3) then DownStair else t
+                                  | (x, t) <- zip [0 :: Int ..] row]
+                                 | (y, row) <- zip [0 :: Int ..] (mapGrid w)]})
+            atTrap
+      glyphAt onStairs (V2 6 3) `shouldBe` '>'
+
   describe "fog of war" $ do
     -- A fresh world has been neither seen nor visited.
     let dark = baseState

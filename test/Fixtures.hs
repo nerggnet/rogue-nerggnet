@@ -66,6 +66,7 @@ mkWorld rows =
     , discoveredCoords   = []
     , tileOverrides      = []
     , corpses            = []
+    , sprung             = []
     }
   where
     nRows = length rows

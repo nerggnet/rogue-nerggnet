@@ -1012,14 +1012,18 @@ executeAction state (UnlockDoor pos) =
 executeAction state (HarmPlayer amount) =
   let struck = health (player state) - amount
       (hurt, pack, rescued) = catchDeath state struck
-   in state { player = (player state) { health = max 0 hurt, inventory = pack }
+      -- Leave the thing that did it on the map. A line in the log scrolls
+      -- away; a mark on the floor is still there when the player looks up.
+      marked = withCurrentWorld
+        (\w -> w {sprung = addCorpse (position (player state)) (sprung w)}) state
+   in marked { player = (player state) { health = max 0 hurt, inventory = pack }
             , gameOver = hurt <= 0
               -- Newest first, so the order here is the reverse of the order
               -- it happened in: the blade, then whatever came of it.
             , message = rescued
                         ++ ["You have died! Game Over." | hurt <= 0]
                         ++ ("You take " ++ show amount ++ " damage!")
-                        : message state }
+                        : message marked }
 
 executeAction state (HealPlayer amount) =
   let mended = min (maxHealth state) (health (player state) + amount)

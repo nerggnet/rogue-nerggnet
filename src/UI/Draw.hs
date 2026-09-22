@@ -82,6 +82,7 @@ data MapView = MapView
   , viewItems    :: Set.Set (V2 Int)  -- Items that are on the floor and visible
   , viewNpcs     :: Set.Set (V2 Int)
   , viewCorpses  :: Set.Set (V2 Int)
+  , viewSprung   :: Set.Set (V2 Int)  -- Where something in the floor went off
   }
 
 mapView :: World -> Player -> Maybe AimingState -> MapView
@@ -98,6 +99,7 @@ mapView world plyr amngState =
         [iPosition i | i <- items world, not (iHidden i), not (iInactive i)]
     , viewNpcs     = Set.fromList (map npcPosition (npcs world))
     , viewCorpses  = Set.fromList (corpses world)
+    , viewSprung   = Set.fromList (sprung world)
     }
 
 -- Draw the map
@@ -143,6 +145,11 @@ drawTileWithFog view pos tile lit seen
       withAttr (attrName "fog") $ str " "
   | not lit =
       withAttr (attrName "discovered") $ drawTileHidden tile
+  -- Standing in one, the player covers it, so the player is what has to
+  -- show it: a blade in the floor is worth seeing at the moment it goes
+  -- off, and the log line saying so scrolls away.
+  | viewPlayer view == pos, Set.member pos (viewSprung view) =
+      visible $ withAttr (attrName "hurt") $ str "@"
   | viewPlayer view == pos =
       visible $ withAttr (attrName "player") $ str "@"
   | viewAiming view
@@ -164,6 +171,11 @@ drawTileWithFog view pos tile lit seen
   -- of the run: you could stand on the way down and be told nothing.
   | Set.member pos (viewCorpses view) && tile `elem` [Floor, Start] =
       withAttr (attrName "corpse") $ str "†"
+  -- Left on the floor once the player moves off it, so the way they came is
+  -- marked with what it cost them. Not "^": that is a shaft, and a way up
+  -- is not a thing to confuse with a blade.
+  | Set.member pos (viewSprung view) && tile `elem` [Floor, Start] =
+      withAttr (attrName "sprung") $ str "*"
   | otherwise =
       drawTile tile
 
