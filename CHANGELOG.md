@@ -133,6 +133,13 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- The stats box says `XP level` where it said `Level`. The game had two
+  things called a level -- the rung the player is on and the floor they are
+  standing on -- and only the second had been renamed, to `Floor` in the
+  title bar. Levelling up now reads "You reached XP level 5!", the top of
+  the table reads `(top XP level)`, and the two messages that refused a
+  staircase say "top floor" and "bottom floor", which is what they were
+  always about.
 - Floors 6 and 7 hit harder. Measured over a hundred bot runs, the worst
   health a floor drove the player to used to read 57, 56, 55, 57 for floors
   4 to 7 -- four floors in a row at the same difficulty, and then a cliff to

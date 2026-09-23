@@ -93,7 +93,7 @@ goUp state =
            in state { currentLevel = newLevel
                     , levels = replaceLevel state newLevel updatedWorld
                     , message = "You ascend the stairs." : message state }
-      | otherwise -> state { message = "You are already on the top level." : message state }
+      | otherwise -> state { message = "You are already on the top floor." : message state }
     _ -> state { message = "No stairs to go up here!" : message state }
 
 -- Go down stairs
@@ -108,7 +108,7 @@ goDown state =
                     , deepestLevel = max (deepestLevel state) newLevel
                     , levels = replaceLevel state newLevel updatedWorld
                     , message = "You descend the stairs." : message state }
-      | otherwise -> state { message = "You are already on the bottom level." : message state }
+      | otherwise -> state { message = "You are already on the bottom floor." : message state }
     _ -> state { message = "No stairs to go down here!" : message state }
 
 -- Picking something up is the moment its description is worth reading: it
@@ -800,7 +800,7 @@ levelUp plyr lvls =
                }
              recalculatedPlayer = calculateEffectiveStats updatedPlayer
          in (recalculatedPlayer,
-             [ "You leveled up to level " ++ show (xpLevel lvl) ++ "!"
+             [ "You reached XP level " ++ show (xpLevel lvl) ++ "!"
              , "Health increased to " ++ show (xpHealth lvl) ++ "."
              , "Base attack increased to " ++ show (xpAttack lvl) ++ "."
              , "Base resistance increased to " ++ show (xpResistance lvl) ++ "."

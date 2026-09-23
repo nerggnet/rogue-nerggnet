@@ -58,9 +58,10 @@ drawUI state =
     -- Combine the tile-specific message with the general log
     updatedMessages = if null itemsUnderfoot then message state else currentTileMessage : message state
 
--- The stats box calls the player's experience level "Level", so depth is
--- named "Floor" here and never abbreviated, and says how far down the
--- dungeon goes so the number means something on its own.
+-- Depth is named "Floor" here and never abbreviated. The stats box calls
+-- the player's experience level "XP level", so the two cannot be read for
+-- one another; the title also says how far down the dungeon goes, so the
+-- number means something on its own.
 --
 -- No blank line under it, and only one above the log rather than two. Three
 -- rows of decoration is three rows of dungeon on a terminal that has not
@@ -424,7 +425,7 @@ drawStatsBox state =
     hLimit 30 $
       B.borderWithLabel (str "Stats") $
         vBox
-          [ padRight Max $ str $ "Level: " ++ show (playerXPLevel plyr)
+          [ padRight Max $ str $ "XP level: " ++ show (playerXPLevel plyr)
           , padRight Max $ str $ "HP: " ++ show (health plyr)
           , padRight Max $ str $ "Attack: " ++ show (attack plyr) ++ " (Base: " ++ show (baseAttack plyr) ++ ")"
           , padRight Max $ str $ "Resistance: " ++ show (resistance plyr) ++ " (Base: " ++ show (baseResistance plyr) ++ ")"
@@ -437,7 +438,7 @@ drawStatsBox state =
     -- experience itself: the box is thirty columns wide and a player wants
     -- to read the two figures against each other anyway.
     toNextLevel = case nextXPLevel state of
-      Nothing -> " (top level)"
+      Nothing -> " (top XP level)"
       Just (_, wanted) -> " (" ++ show wanted ++ " to next)"
 
 -- Draw the inventory, highlighting equipped weapon and armor

@@ -182,7 +182,7 @@ spec = do
           onStairs = withPlayer (\p -> p {position = V2 3 1}) s
       tileAt (V2 3 1) (currentWorld s) `shouldBe` DownStair
       corpses (currentWorld s) `shouldBe` [V2 3 1]
-      latest (goDown onStairs) `shouldSatisfy` ("bottom level" `isInfixOf`)
+      latest (goDown onStairs) `shouldSatisfy` ("bottom floor" `isInfixOf`)
 
     it "does not record the same corpse tile twice" $ do
       let rat n = mkMonster n (V2 5 3) 3 1
@@ -797,13 +797,13 @@ spec = do
       currentLevel s `shouldBe` 0
       latest s `shouldSatisfy` ("ascend" `isInfixOf`)
 
-    it "will not descend past the bottom level" $
+    it "will not descend past the bottom floor" $
       latest (goDown (mkState downStairs (V2 1 1)))
-        `shouldSatisfy` ("bottom level" `isInfixOf`)
+        `shouldSatisfy` ("bottom floor" `isInfixOf`)
 
-    it "will not ascend past the top level" $
+    it "will not ascend past the top floor" $
       latest (goUp (mkState upStairs (V2 1 1)))
-        `shouldSatisfy` ("top level" `isInfixOf`)
+        `shouldSatisfy` ("top floor" `isInfixOf`)
 
     it "remembers the furthest down the player went" $ do
       let descended = goDown twoLevels

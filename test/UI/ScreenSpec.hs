@@ -272,7 +272,7 @@ spec = do
   describe "the side panels" $ do
     it "shows the player's stats" $ do
       let st = withPlayer (\p -> p {health = 17, xp = 42, playerXPLevel = 3}) room
-      mapM_ (\t -> showsText st t `shouldBe` True) ["Level: 3", "HP: 17", "XP: 42", "Attack:", "Resistance:"]
+      mapM_ (\t -> showsText st t `shouldBe` True) ["XP level: 3", "HP: 17", "XP: 42", "Attack:", "Resistance:"]
 
     -- The table in the fixture goes 0, 100, 250 and stops.
     it "says how much more experience the next level wants" $ do
@@ -285,7 +285,7 @@ spec = do
 
     it "says so at the top of the table, where there is no next" $ do
       let st = withPlayer (\p -> p {xp = 900, playerXPLevel = 3}) room
-      showsText st "XP: 900 (top level)" `shouldBe` True
+      showsText st "XP: 900 (top XP level)" `shouldBe` True
 
     -- The stats box is thirty columns including its border, and the numbers
     -- deepest in the dungeon are five digits each. Asserting the line is
@@ -297,6 +297,16 @@ spec = do
           st = (withPlayer (\p -> p {xp = 68533, playerXPLevel = 18}) room)
                  {xpLevels = deep}
       showsText st "XP: 68533 (6467 to next)" `shouldBe` True
+
+    -- "(top XP level)" is three characters longer than the "(top level)" it
+    -- replaced, and a player standing on the top rung of the shipped table
+    -- has six digits of experience to put in front of it.
+    it "shows the whole of the top-of-table line at those numbers too" $ do
+      let top = [XPLevel {xpLevel = 20, xpThreshold = 92000, xpHealth = 2350,
+                          xpAttack = 53, xpResistance = 32}]
+          st = (withPlayer (\p -> p {xp = 123456, playerXPLevel = 20}) room)
+                 {xpLevels = top}
+      showsText st "XP: 123456 (top XP level)" `shouldBe` True
 
     it "says when the inventory is empty" $
       showsText room "No items collected" `shouldBe` True

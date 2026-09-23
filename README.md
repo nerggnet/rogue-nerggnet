@@ -17,7 +17,7 @@ a run is judged on how far down it got and what it carried back up.
               Rogue nerggnet - Floor 2 of 12 (press ? for help)
 
 ┌───────────────────────────────────────────────────┐   ┌────Stats───────────┐
-│##############################################     │   │Level: 2            │
+│##############################################     │   │XP level: 2         │
 │#S....>#......#.....................#........#     │   │HP: 84              │
 │#.N#####......#..####......#####....#.....#..###   │   │Attack: 27 (Base: 7)│
 │#..#..##...####..#!.###.####...#....##....#....#   │   │Resistance: 4 ...   │
@@ -445,7 +445,7 @@ Everything lives in `world.json`:
 
 ### `xpLevels`
 
-One entry per player level, in ascending order:
+One entry per XP level, in ascending order:
 
 ```json
 { "xpLevel": 2, "xpThreshold": 100, "xpHealth": 100, "xpAttack": 7, "xpResistance": 4 }
