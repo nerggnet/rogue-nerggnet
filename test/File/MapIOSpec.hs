@@ -6,6 +6,7 @@ module File.MapIOSpec (spec) where
 
 import Control.Exception (evaluate, finally)
 import Data.Aeson (Result (..), Value (Object), fromJSON, toJSON)
+import Data.List (nub)
 import qualified Data.Aeson.Key as Key
 import qualified Data.Aeson.KeyMap as KM
 import Control.Monad (when)
@@ -90,6 +91,32 @@ spec = do
         state <- freshGame
         playerXPLevel (player state) `shouldBe` 1
         health (player state) `shouldSatisfy` (> 0)
+
+      -- A monster that hits softer a floor deeper than it did above reads
+      -- as a descent in the file and plays as a reprieve, and nothing in
+      -- the game says so: three of these were found only by measuring how
+      -- much health a floor cost, one of them twice over. The rule is not
+      -- that a name has to grow as the dungeon goes down, only that it must
+      -- never shrink; where a floor fields several of a name, the weakest
+      -- of them is what the next floor down has to match.
+      it "never makes a monster weaker further down" $ do
+        state <- freshGame
+        let named = nub [mName m | world <- levels state, m <- monsters world]
+            appearances n =
+              [ (depth, minimum (map mAttack ms), minimum (map mHealth ms))
+              | (depth, world) <- zip [1 :: Int ..] (levels state)
+              , let ms = [m | m <- monsters world, mName m == n]
+              , not (null ms)
+              ]
+            weakening n =
+              [ n ++ " is " ++ stats a1 h1 ++ " on floor " ++ show d1
+                  ++ " but " ++ stats a2 h2 ++ " on floor " ++ show d2
+              | ((d1, a1, h1), (d2, a2, h2)) <- zip seen (drop 1 seen)
+              , a2 < a1 || h2 < h1
+              ]
+              where seen = appearances n
+            stats a h = show a ++ "/" ++ show h
+        concatMap weakening named `shouldBe` []
 
       describe "loading an older save" $
         it "fills in on-screen fields the save does not have" $ do

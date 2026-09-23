@@ -140,6 +140,17 @@ All notable changes to this project are documented in this file.
   the table reads `(top XP level)`, and the two messages that refused a
   staircase say "top floor" and "bottom floor", which is what they were
   always about.
+- The last two monsters that got weaker further down are fixed, and a test
+  now says they cannot come back. Floor 7's Grave Knights swung 47 where
+  floor 8's swung 45, and floor 10's Dread Sentinels 82 against floor 11's
+  78: the same monster, deeper, hitting softer. Both deeper copies now match
+  the shallower one rather than fall short of it.
+
+  This is the third time this has been found, and every time it took a
+  balance measurement to see it -- nothing in the dungeon file or the game
+  says a monster has got easier. The test walks every name that appears on
+  more than one floor and fails if its attack or health ever drops going
+  down, naming the floors and the numbers.
 - Floor 9 hits harder. It was the one floor in the dungeon that cost less
   than the floor above it: three quarters of a health bar against floor 8's
   full one and floor 10's one and a half, which left it reading 46 on the
