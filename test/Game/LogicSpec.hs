@@ -2,8 +2,9 @@
 module Game.LogicSpec (spec) where
 
 import Data.List (isInfixOf, nub, unfoldr, (\\))
+import Data.Maybe (fromMaybe, isJust)
 import Game.Logic
-import Game.State (currentWorld, evalTriggerCondition, helpPages, loggedOnScreen, maxInventorySize, maxLogMessages, maxRoused, monsterBlow, rousedBy, rousingInterval, seesFrom, treasureCarried, visibleLogMessages, visibleMonsters)
+import Game.State (currentWorld, evalTriggerCondition, helpPages, loggedOnScreen, maxInventorySize, maxLogMessages, maxRoused, monsterBlow, rousedBy, rousingInterval, boonsOwed, boonCap, offerBoons, withEffectiveStats, maxHealth, seesFrom, treasureCarried, visibleLogMessages, visibleMonsters)
 import Game.Types
 import System.Random (mkStdGen)
 import Linear.V2 (V2 (..))
@@ -1083,6 +1084,90 @@ spec = do
     it "leaves a monster that is not adjacent alone" $ do
       let far = withWorld (\w -> w {monsters = [mkMonster "Goblin" (V2 7 3) 100 5]}) baseState
       health (player (monstersAttack (monstersAttack far))) `shouldBe` 20
+
+  describe "choosing what a level up is worth" $ do
+    let atLevel n st = st {player = (player st) {playerXPLevel = n}}
+        -- Escape funnels past the offer without meaning anything to it,
+        -- which is where one gets opened.
+        poke = applyKey '\ESC'
+        opened n = poke (atLevel n baseState)
+        offerOf = boonChoice
+        offered st = fromMaybe [] (boonChoice st)
+
+    it "owes one boon for every rung above the first" $ do
+      boonsOwed (atLevel 1 baseState) `shouldBe` 0
+      boonsOwed (atLevel 4 baseState) `shouldBe` 3
+      boonsOwed (atLevel 4 baseState) {boons = [Sinew, Edge]} `shouldBe` 1
+
+    it "opens an offer of three once one is owed" $
+      length (offered (opened 2)) `shouldBe` 3
+
+    it "offers no two the same" $
+      nub (offered (opened 2)) `shouldBe` offered (opened 2)
+
+    it "offers nothing while none is owed" $
+      offerOf (poke baseState) `shouldBe` Nothing
+
+    -- A haul of experience that crosses two rungs owes two choices.
+    it "asks again while more are owed" $ do
+      let took = applyKey 'a' (opened 3)
+      boons took `shouldBe` take 1 (offered (opened 3))
+      offerOf took `shouldSatisfy` isJust
+
+    it "stops asking once they are all taken" $ do
+      let done = foldl (flip applyKey) (opened 3) "aa"
+      offerOf done `shouldBe` Nothing
+      length (boons done) `shouldBe` 2
+
+    -- The offer is a reward, not an interruption: there is no key that puts
+    -- it down unspent, and the game does not move on without it. The keys
+    -- tried here are the ones that would otherwise walk, descend, shut a
+    -- door and open the help; a, b and c are the offer's own.
+    it "lets nothing else happen until it is answered" $ do
+      let waiting = opened 2
+          mashed = foldl (flip applyKey) waiting "wsdhjkl><?u x"
+      offerOf mashed `shouldSatisfy` isJust
+      position (player mashed) `shouldBe` position (player waiting)
+      turnCount mashed `shouldBe` turnCount waiting
+
+    -- Every boon is a trade, and both halves of it have to land.
+    it "gives what it says and takes what it says" $ do
+      let strong = withEffectiveStats
+                     (withPlayer (\p -> p {baseAttack = 100}) (atLevel 2 baseState))
+          with bs = withEffectiveStats strong {boons = bs}
+      maxHealth (with [Sinew]) `shouldSatisfy` (> maxHealth strong)
+      attack (player (with [Sinew])) `shouldSatisfy` (< attack (player strong))
+      attack (player (with [Edge])) `shouldSatisfy` (> attack (player strong))
+      maxHealth (with [Edge]) `shouldSatisfy` (< maxHealth strong)
+
+    -- Flat trades fell almost entirely on the early floors, where the
+    -- player's numbers are small; these are shares, so a boon is worth the
+    -- same fraction of the player wherever in the run it is taken.
+    it "is worth a share of the player, not a fixed number" $ do
+      let gain n =
+            let base = withEffectiveStats (withPlayer (\p -> p {baseAttack = n}) baseState)
+                edged = withEffectiveStats base {boons = [Edge]}
+             in attack (player edged) - attack (player base)
+      gain 100 `shouldSatisfy` (> gain 10)
+
+    it "never offers a boon that is already at its cap" $
+      fst (offerBoons (replicate (boonCap Calm) Calm) (rng baseState))
+        `shouldSatisfy` notElem Calm
+
+    it "asks nothing once every boon is capped" $ do
+      let everything = concat [replicate (boonCap b) b | b <- [minBound .. maxBound]]
+      offerOf (poke (atLevel 20 baseState) {boons = everything}) `shouldBe` Nothing
+
+    -- A deeper bar that arrives empty is no use in the moment it is chosen,
+    -- which is usually the moment after a fight.
+    it "hands over the room it makes, and never more than the bar holds" $ do
+      let hurt = withPlayer (\p -> p {health = 20}) (opened 2)
+      case lookup Sinew (zip (offered hurt) ['a' ..]) of
+        Nothing -> pure ()   -- Sinew was not among the three this time
+        Just key -> do
+          let grown = applyKey key hurt
+          health (player grown) `shouldSatisfy` (> 20)
+          health (player grown) `shouldSatisfy` (<= maxHealth grown)
 
   describe "the dungeon rousing" $ do
     let atTurn n st = st {turnCount = n}

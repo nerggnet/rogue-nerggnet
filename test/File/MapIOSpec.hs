@@ -136,9 +136,21 @@ spec = do
               commandMode reloaded `shouldBe` False
               gameOver reloaded `shouldBe` False
               message reloaded `shouldBe` []
+              -- A save from before boons existed has none, and owes them.
+              boons reloaded `shouldBe` []
+              boonChoice reloaded `shouldBe` Nothing
               -- and the durable half survived
               position (player reloaded) `shouldBe` position (player state)
+
               length (levels reloaded) `shouldBe` length (levels state)
+
+      -- What the player chose is as much a part of them as their level is,
+      -- and an offer open when they saved has been earned but not spent.
+      it "carries the boons taken, and an offer left open" $ do
+        state <- freshGame
+        reloaded <- roundTrip state {boons = [Sinew, Edge], boonChoice = Just [Calm]}
+        boons reloaded `shouldBe` [Sinew, Edge]
+        boonChoice reloaded `shouldBe` Just [Calm]
 
       describe "persistGame" $ do
         it "writes a save while the run is still going" $

@@ -4,7 +4,7 @@ module Game.Logic where
 import Game.State
   ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
   , updateVisibility, evalTriggerCondition, visibleMonsters
-  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid, whatItDoes, seesFrom, scrolledLog, dungeonRoused, monsterBlow, maxRoused
+  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid, whatItDoes, seesFrom, scrolledLog, dungeonRoused, monsterBlow, maxRoused, boonsOwed, offerBoons, withEffectiveStats, boonName, whatBoonDoes, boonTotal, BoonEffect (..)
   )
 import Game.GridUtils (updateTile, gridLookup, orthogonal, keyedInventory)
 import Game.Types
@@ -18,6 +18,13 @@ import System.Random (StdGen, uniformR)
 handleMovementInternal :: Maybe Char -> GameState -> GameState
 -- The scoreboard is a sheet of paper held up in front of the game. Any key
 -- puts it down again, and putting it down is not a turn.
+-- Nothing else happens until the player has chosen. The offer is a reward,
+-- not an interruption, so there is no key that dismisses it unspent.
+handleMovementInternal key state
+  | Just offer <- boonChoice state =
+      case key >>= \c -> lookup c (zip ['a' ..] offer) of
+        Just boon -> takeBoon boon state
+        Nothing -> state
 handleMovementInternal _ state | showScores state = state {showScores = False}
 -- The history is a sheet of paper too, but a long one: it can hold two
 -- hundred lines and shows sixteen, so it has to be possible to walk back
@@ -236,9 +243,6 @@ useItem itm state =
   let plyr = player state
       doorToUnlock = find (isAdjacent (position plyr) . dePosition)
                           (filter deBlocks (doors (currentWorld state)))
-      recalculateEffectiveStats p = p
-        { attack = baseAttack p + maybe 0 iEffectValue (equippedWeapon p)
-        , resistance = baseResistance p + maybe 0 iEffectValue (equippedArmor p) }
 
       updatedState = case iCategory itm of
         Healing ->
@@ -260,12 +264,11 @@ useItem itm state =
           let newPlayer = if Just itm == equippedWeapon plyr
                           then plyr { equippedWeapon = Nothing }
                           else plyr { equippedWeapon = Just itm }
-              newPlayerWithNewAttack = recalculateEffectiveStats newPlayer
               msg = if Just itm == equippedWeapon plyr
                     then "You unequipped " ++ iName itm ++ "."
                     else "You equipped " ++ iName itm ++ "."
-           in state { player = newPlayerWithNewAttack
-                    , message = msg : message state }
+           in withEffectiveStats state { player = newPlayer
+                                       , message = msg : message state }
         Range ->
           state { aimingState = Just (AimingState itm)
                 , commandMode = True
@@ -274,11 +277,10 @@ useItem itm state =
           let newPlayer = if Just itm == equippedArmor plyr
                           then plyr { equippedArmor = Nothing }
                           else plyr { equippedArmor = Just itm }
-              newPlayerWithNewResistance = recalculateEffectiveStats newPlayer
               msg = if Just itm == equippedArmor plyr
                     then "You unequipped " ++ iName itm ++ "."
                     else "You equipped " ++ iName itm ++ "."
-           in state { player = newPlayerWithNewResistance
+           in withEffectiveStats state { player = newPlayer
                     , message = msg : message state }
         Special -> useSpecial itm state
    in updatedState { inventoryMode = Nothing }
@@ -735,12 +737,16 @@ combat state mnstr playerGoesFirst =
           -- A charm that drinks from the wounds you deal gives back a share
           -- of the damage, before the counterblow is taken off again.
           -- The charm's value is the percentage it gives back, so a bigger
-          -- number is a better charm.
-          drained = case carrying Lifesteal rolled of
-            Just charm | playerDamage > 0 ->
-              min (maxHealth rolled)
-                  (health plyr + (playerDamage * iEffectValue charm) `div` 100)
-            _ -> health plyr
+          -- number is a better charm. Thirst is the same thing earned at a
+          -- level up rather than found, and the two add: a player who has
+          -- both drinks from both.
+          sipped = maybe 0 iEffectValue (carrying Lifesteal rolled)
+                     + beThirst (boonTotal rolled)
+          drained
+            | playerDamage > 0 && sipped > 0 =
+                min (maxHealth rolled)
+                    (health plyr + (playerDamage * sipped) `div` 100)
+            | otherwise = health plyr
           wounded = max 0 (drained - monsterDamage)
 
           (newHealth, survivingPack, rescueMessage) = catchDeath rolled wounded
@@ -817,6 +823,50 @@ levelUp plyr lvls =
              ])
        Nothing -> (plyr, [])
 
+-- | Open an offer if the player has earned one and has not got one open.
+--
+-- Hung off applyKey rather than off the three places a monster can die,
+-- because a boon that depends on which of them killed it is a boon that
+-- goes missing. The three offered are drawn from the generator the rest of
+-- the game rolls from, so a replay makes the same offer.
+offerIfOwed :: GameState -> GameState
+offerIfOwed state
+  | gameOver state || gameWon state = state
+  | boonsOwed state <= 0 = state
+  | isJust (boonChoice state) = state
+  | otherwise =
+      case offerBoons (boons state) (rng state) of
+        -- Everything is at its cap. There is nothing left to choose, so
+        -- nothing is asked; the rung on its own is the reward.
+        ([], _) -> state
+        (offer, gen) ->
+          state
+            { boonChoice = Just offer
+            , rng = gen
+            , message = "You have grown. Choose what it is worth." : message state
+            }
+
+-- | Take one of the three, and keep it for the rest of the run.
+--
+-- Sinew hands over the health as well as the room for it. A deeper bar that
+-- arrives empty is no use at the moment it is chosen, which is usually the
+-- moment after a fight.
+takeBoon :: Boon -> GameState -> GameState
+takeBoon boon state =
+  withEffectiveStats grown {player = (player grown) {health = healed}}
+  where
+    grown = state
+      { boons = boon : boons state
+      , boonChoice = Nothing
+      , message = ("You take " ++ boonName boon ++ ": " ++ whatBoonDoes boon)
+                    : message state
+      }
+    -- A deeper bar that arrives empty is no use at the moment it is
+    -- chosen, which is usually the moment after a fight; and one that
+    -- shrinks must not leave the player standing above their own maximum.
+    healed = min (maxHealth grown) (health (player state) + gainedRoom)
+    gainedRoom = max 0 (maxHealth grown - maxHealth state)
+
 -- | What one keystroke does.
 --
 -- The single place that says what a key means, so that the keyboard, the
@@ -837,7 +887,8 @@ applyKey c state
   where
     escaped = c == '\ESC'
     keyChar = if escaped then Nothing else Just c
-    stepped
+    stepped = offerIfOwed (withEffectiveStats acted)
+    acted
       | commandMode state = handleCommandInputInternal keyChar escaped state state
       | otherwise = handleMovementInternal keyChar state
 

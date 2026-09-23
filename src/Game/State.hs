@@ -5,7 +5,7 @@ import Game.Types
 import Game.GridUtils (gridLookup, orthogonal)
 import qualified File.Types as FT
 import Linear.V2 (V2(..))
-import System.Random (StdGen)
+import System.Random (StdGen, uniformR)
 import Control.Monad (void)
 import Data.Bifunctor (first)
 import Data.List (find, intercalate, nub)
@@ -94,6 +94,19 @@ helpPages =
       , "everything in it strikes harder for the"
       , "rest of the run each time. The stats box"
       , "shows the turn and what it has cost you."
+      ]
+    )
+  , ( "Growing"
+    , [ "Every experience level offers three boons."
+      , "Press a letter to take one; nothing else"
+      , "happens until you do."
+      , " "
+      , "Each is a trade -- more health for less"
+      , "attack, or the other way about -- so what"
+      , "you choose is what you become, not how"
+      , "strong you are. They are shares of you, so"
+      , "one is worth the same at any depth, and"
+      , "each can be taken only so many times."
       ]
     )
   , ( "Choosing and aiming"
@@ -211,6 +224,137 @@ maxLogMessages = 200
 visibleLogMessages :: Int
 visibleLogMessages = 5
 
+-- | Attack and resistance as they stand: the rung of the XP table the
+-- player is on, plus what they are wearing and holding, plus their boons.
+--
+-- The one place that says so. It used to be written out at each of the
+-- three places that could change it -- equipping, unequipping and levelling
+-- -- which is three places to forget a boon.
+withEffectiveStats :: GameState -> GameState
+withEffectiveStats state = state {player = effective (player state)}
+  where
+    effective p = p
+      { attack = shifted (beAttack (boonTotal state))
+                   (baseAttack p + maybe 0 iEffectValue (equippedWeapon p))
+      , resistance = shifted (beResistance (boonTotal state))
+                       (baseResistance p + maybe 0 iEffectValue (equippedArmor p))
+      }
+
+-- | What one boon gives, and what it takes to give it.
+--
+-- Every boon is a trade. Nineteen rungs of free reward is a great deal of
+-- power however small each one is: measured, boons worth ten points of
+-- health apiece moved floor 7 from 44 to 59 on the hundred-run curve and
+-- undid the rousing clock entirely. A trade leaves the total roughly where
+-- it was and makes the choice about what the player becomes rather than how
+-- strong they are.
+--
+-- The stats are shares and not points, for the same reason the rousing
+-- toll is: the player's numbers grow thirtyfold down the dungeon, so twelve
+-- points of health is a sixth of a floor 2 bar and a hundredth of a floor
+-- 12 one. Flat, the trades fell almost entirely on the early floors --
+-- measured, floor 2 went from 74 to 55 while floor 12 went the other way.
+--
+-- Health and attack are percentages. Calm is turns added to the rousing
+-- interval and Thirst a percentage of the damage dealt, both of which are
+-- already shares of something that grows.
+--
+-- Nothing here touches resistance. Damage is attack minus resistance and a
+-- deep player resists about two thirds of what is swung at them, so a
+-- resistance boon is amplified about threefold on the way to the damage it
+-- prevents: eight percent of it, taken three times, cut what floor 12 got
+-- through by a third and made the last four floors easier than the first
+-- four. It is the one stat with no room in it.
+data BoonEffect = BoonEffect
+  { beHealth :: Int, beAttack :: Int, beResistance :: Int
+  , beCalm :: Int, beThirst :: Int }
+
+noEffect :: BoonEffect
+noEffect = BoonEffect 0 0 0 0 0
+
+boonEffect :: Boon -> BoonEffect
+boonEffect Sinew  = noEffect {beHealth = 10, beAttack = -7}
+boonEffect Edge   = noEffect {beAttack = 10, beHealth = -7}
+boonEffect Calm   = noEffect {beCalm = 250, beAttack = -7}
+boonEffect Thirst = noEffect {beThirst = 3, beHealth = -7}
+
+-- | How many times one boon can be taken.
+--
+-- Nothing may run away with a run in either direction, and a run has to
+-- run out of things to bend: once every boon is at its cap the rungs give
+-- what they always gave and nothing more is asked, which is what stops a
+-- long run from simply collecting all of them.
+--
+-- Calm is allowed once. It is the only boon that argues with the rousing
+-- clock rather than with the monsters, and taken three times it bought
+-- enough turns to put floor 12 back where it was before the clock existed.
+boonCap :: Boon -> Int
+boonCap Calm = 1
+boonCap Thirst = 1
+boonCap _ = 3
+
+boonName :: Boon -> String
+boonName Sinew  = "Sinew"
+boonName Edge   = "Edge"
+boonName Calm   = "Calm"
+boonName Thirst = "Thirst"
+
+-- | What the offer says about a boon: what it gives, then what it costs.
+whatBoonDoes :: Boon -> String
+whatBoonDoes b = case b of
+  Sinew  -> "+10% maximum health, -7% attack"
+  Edge   -> "+10% attack, -7% maximum health"
+  Calm   -> "250 turns longer before the dungeon rouses, -7% attack"
+  Thirst -> "3% of the damage you deal comes back, -7% maximum health"
+
+-- | Apply a percentage, never rounding a stat away to nothing.
+shifted :: Int -> Int -> Int
+shifted pct n = max (min n 1) ((n * (100 + pct)) `div` 100)
+
+-- | How many of a boon the player has taken.
+boonsOf :: Boon -> GameState -> Int
+boonsOf b state = length (filter (== b) (boons state))
+
+-- | What every boon taken so far comes to, added up.
+boonTotal :: GameState -> BoonEffect
+boonTotal state = foldr (add . boonEffect) noEffect (boons state)
+  where
+    add a b = BoonEffect
+      { beHealth = beHealth a + beHealth b
+      , beAttack = beAttack a + beAttack b
+      , beResistance = beResistance a + beResistance b
+      , beCalm = beCalm a + beCalm b
+      , beThirst = beThirst a + beThirst b
+      }
+
+-- | How many boons the player has earned and not yet taken.
+--
+-- One per rung above the first. Counting rather than remembering means a
+-- haul of experience that crosses two rungs at once owes two choices
+-- without anything having to keep a queue, and a save written between the
+-- two comes back still owing the second.
+boonsOwed :: GameState -> Int
+boonsOwed state =
+  max 0 (playerXPLevel (player state) - 1 - length (boons state))
+
+-- | The three on offer at a level up.
+--
+-- Drawn from the generator the rest of the game rolls from, so a replay
+-- offers the same three and a saved game does not re-roll them. Every kind
+-- is offered eventually; which three come up is the only thing the dungeon
+-- does not decide in advance.
+offerBoons :: [Boon] -> StdGen -> ([Boon], StdGen)
+offerBoons taken = go 3 pool []
+  where
+    pool = [b | b <- [minBound .. maxBound]
+              , length (filter (== b) taken) < boonCap b]
+    go 0 _ picked gen = (reverse picked, gen)
+    go _ [] picked gen = (reverse picked, gen)
+    go n left picked gen =
+      let (i, gen') = uniformR (0, length left - 1) gen
+          chosen = left !! i
+       in go (n - 1 :: Int) (filter (/= chosen) left) (chosen : picked) gen'
+
 -- | How roused the dungeon is, and what it adds to every blow struck at
 -- the player.
 --
@@ -233,11 +377,18 @@ visibleLogMessages = 5
 -- some way past the point where the player could have done anything about
 -- it, which is a punishment rather than a decision.
 rousedBy :: Int -> Int
-rousedBy turns = max 0 (min maxRoused (turns `div` rousingInterval))
+rousedBy = rousedByWith rousingInterval
+
+rousedByWith :: Int -> Int -> Int
+rousedByWith interval turns = max 0 (min maxRoused (turns `div` max 1 interval))
 
 -- | How roused the dungeon is by the turn this state is on.
+--
+-- Calm lengthens the interval rather than undoing the rousing, so it buys
+-- time and never takes back what dawdling has already cost.
 dungeonRoused :: GameState -> Int
-dungeonRoused = rousedBy . turnCount
+dungeonRoused state =
+  rousedByWith (rousingInterval + beCalm (boonTotal state)) (turnCount state)
 
 -- | What that comes to as a percentage, which is the figure shown on screen.
 rousedPercent :: GameState -> Int
@@ -343,6 +494,8 @@ newGame gen config = do
         , showScores = False
         , showLog = False
         , logScroll = 0
+        , boons = []
+        , boonChoice = Nothing
         , keysPressed = ""
         , lastInteractedNpc = Nothing
         , aimingState = Nothing
@@ -1029,7 +1182,9 @@ nextXPLevel state = do
 -- Maximum health at the player's current XP level. Falls back to the health
 -- they already have, so a missing entry can never heal them.
 maxHealth :: GameState -> Int
-maxHealth state = maybe (health (player state)) xpHealth (currentXPLevel state)
+maxHealth state =
+  shifted (beHealth (boonTotal state))
+          (maybe (health (player state)) xpHealth (currentXPLevel state))
 
 -- Helper function to now if all monsters on a level have been defeated
 allMonstersDefeated :: GameState -> Bool

@@ -78,6 +78,38 @@ together, and a body from one has no business in the other.
   Every entity has a glyph of its own (`@ M A N ! + < > ^ †`), so nothing
   is told by colour alone
 
+### Boons
+
+Every experience level offers three boons, and the game waits until one is
+taken:
+
+```
+┌──────────────────────You have grown───────────────────────┐
+│ a) Sinew - +10% maximum health, -7% attack                │
+│ b) Edge - +10% attack, -7% maximum health                 │
+│ c) Calm - 250 turns longer before the dungeon rouses, ... │
+│                                                           │
+│ Press a letter to take one.                               │
+└───────────────────────────────────────────────────────────┘
+```
+
+Each one is a trade, not a reward. Nineteen rungs of free upgrade is a great
+deal of power however small each one is -- measured, boons worth ten points
+of health apiece moved floor 7 from 44 to 59 on the hundred-run curve and
+undid the rousing clock entirely. Trading keeps the total roughly where it
+was, and makes the choice about what you become rather than how strong you
+are.
+
+They are shares of your own numbers rather than fixed points, because a
+player's stats grow thirtyfold down the dungeon: twelve points of health is
+a sixth of a floor 2 bar and a hundredth of a floor 12 one. There are four
+of them -- `Sinew`, `Edge`, `Thirst` and `Calm` -- and each can be taken
+only so many times, so a long run has to spread itself. None of them touches
+resistance: damage is attack minus resistance, so a resistance boon is
+amplified about threefold on the way to the damage it prevents, and eight
+percent of it taken three times made the last four floors easier than the
+first four.
+
 ### The dungeon rouses
 
 The dungeon is drawn by hand and never changes, so without a clock there is no

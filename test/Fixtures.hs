@@ -132,6 +132,8 @@ mkState world pos =
     , showScores        = False
     , showLog           = False
     , logScroll         = 0
+    , boons             = []
+    , boonChoice        = Nothing
     , keysPressed       = ""
     }
 

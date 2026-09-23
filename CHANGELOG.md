@@ -24,6 +24,31 @@ All notable changes to this project are documented in this file.
   just under the threshold for XP level 3, and even a few points of extra
   experience tipped them over it a floor early and flattened floors 3 to 6
   into one difficulty.
+- Every experience level now offers a choice of three boons, and the game
+  waits until one is taken. Twelve floors of hand-drawn dungeon otherwise
+  play out the same way every run: over a hundred bot runs the finishing
+  treasure, experience and turn count were identical to within two percent.
+  A boon is the one thing in a run that one player can have and another
+  cannot.
+
+  Each is a trade, not a reward -- `Sinew` is +10% maximum health for -7%
+  attack, `Edge` the other way about, `Thirst` returns 3% of the damage
+  dealt for -7% health, and `Calm` buys 250 turns before the dungeon rouses
+  for -7% attack. Nineteen rungs of free upgrade is a great deal of power
+  however small each one is: measured, boons worth ten points of health
+  apiece moved floor 7 from 44 to 59 on the hundred-run curve and undid the
+  rousing clock entirely.
+
+  They are shares of the player's own numbers rather than fixed points,
+  because those numbers grow thirtyfold down the dungeon. None of them
+  touches resistance: damage is attack minus resistance, so a resistance
+  boon is amplified about threefold on the way to the damage it prevents.
+  Each can be taken only so many times, so a long run has to spread itself.
+
+  Floors 1 to 11 sit within about five points of where they were. Floor 12
+  does not: a player with boons kills it in roughly half the turns, which
+  leaves the rousing clock no time to bite, so the finale reads 37 where the
+  clock alone made it 18.
 - The dungeon rouses as a run goes on. It is drawn by hand and never
   changes, so there was no reason not to clear every floor of everything
   before going down: treasure is score, monsters are experience, and

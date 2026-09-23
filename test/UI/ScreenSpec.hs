@@ -355,6 +355,32 @@ spec = do
     it "says nothing at all while the line is closed" $
       showsText room "Command" `shouldBe` False
 
+  describe "the offer at a level up" $ do
+    let waiting = room {boonChoice = Just [Sinew, Edge, Calm]}
+
+    it "shows nothing until there is one" $
+      showsText room "You have grown" `shouldBe` False
+
+    it "names all three and the letter that takes each" $ do
+      showsText waiting "a) Sinew" `shouldBe` True
+      showsText waiting "b) Edge" `shouldBe` True
+      showsText waiting "c) Calm" `shouldBe` True
+
+    -- A trade the player cannot see the price of is not a choice.
+    it "says what each one costs as well as what it gives" $ do
+      showsText waiting "+10% maximum health, -7% attack" `shouldBe` True
+      showsText waiting "+10% attack, -7% maximum health" `shouldBe` True
+
+    it "says how to answer it" $
+      showsText waiting "Press a letter to take one" `shouldBe` True
+
+    -- The whole offer has to survive the smallest terminal the game runs on,
+    -- or the player is choosing between things they cannot read.
+    it "fits an 80x24 terminal" $ do
+      let rows = renderRows (80, 24) (drawUI waiting)
+      rows `shouldSatisfy` any ("+10% maximum health, -7% attack" `isInfixOf`)
+      rows `shouldSatisfy` any ("Press a letter to take one" `isInfixOf`)
+
   describe "the message history" $ do
     let said n = ["line " ++ show i | i <- [n, n - 1 .. 1 :: Int]]  -- newest first
         looking n = room {message = said n, showLog = True}

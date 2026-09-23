@@ -108,6 +108,24 @@ data ItemEffect
 instance ToJSON ItemEffect
 instance FromJSON ItemEffect
 
+-- | What the player takes away from an experience level.
+--
+-- The rungs of the XP table raise health, attack and resistance on their
+-- own; a boon is chosen on top of that, and is the only thing in a run that
+-- one player can have and another cannot. Twelve floors of fixed dungeon
+-- play the same way every time otherwise.
+--
+-- They stack, and they are kept for the rest of the run.
+data Boon
+  = Sinew   -- ^ A deeper health bar
+  | Edge    -- ^ A harder blow
+  | Calm    -- ^ The dungeon is slower to notice you
+  | Thirst  -- ^ A share of the damage you deal comes back
+  deriving (Eq, Show, Generic, Enum, Bounded)
+
+instance ToJSON Boon
+instance FromJSON Boon
+
 -- | Effects that are spent by using them, rather than working while carried.
 -- Escape is not here, and nor is Revive: both are spent only when they
 -- actually do something. A rope used where there is no shaft is a wasted
@@ -395,6 +413,8 @@ data GameState = GameState
   , defeatedMonsters  :: [String] -- Names of monsters beaten so far
   , deepestLevel      :: Int -- The furthest down the player has been
   , turnCount         :: Int -- Turns this run has lasted, for the scoreboard
+  , boons             :: [Boon] -- Chosen at each level up, kept for the run
+  , boonChoice        :: Maybe [Boon] -- The offer on screen, if one is open
   , scoreboard        :: [Run] -- Finished runs, best first; read at startup
   , showScores        :: Bool  -- Whether the scoreboard popup is open
   , showLog           :: Bool  -- Whether the message history is open
@@ -431,6 +451,10 @@ instance FromJSON GameState where
       <*> v .:? Key.fromString "defeatedMonsters" .!= []
       <*> v .:? Key.fromString "deepestLevel" .!= 0
       <*> v .:? Key.fromString "turnCount" .!= 0
+      -- Durable: what the player picked is as much a part of them as their
+      -- level is, and an offer left open has been earned but not yet taken.
+      <*> v .:? Key.fromString "boons" .!= []
+      <*> v .:? Key.fromString "boonChoice" .!= Nothing
       -- The scoreboard lives in its own file and is read at startup;
       -- a save carries neither it nor whether it was on screen.
       <*> pure []

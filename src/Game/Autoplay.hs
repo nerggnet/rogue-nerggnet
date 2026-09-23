@@ -18,7 +18,7 @@ module Game.Autoplay
   ) where
 
 import Data.List (find, sortOn)
-import Data.Maybe (fromMaybe, isJust, mapMaybe)
+import Data.Maybe (fromMaybe, isJust, listToMaybe, mapMaybe)
 import Game.GridUtils (gridLookup, keyedInventory, orthogonal)
 import Game.Logic
 import Game.State
@@ -83,7 +83,9 @@ autoplay limit = go 0 100
 decide :: GameState -> Maybe [Char]
 decide state =
   firstJust
-    [ drinkIfHurt state
+    [ -- Nothing else can happen until the offer is answered.
+      takeTheBoon state
+    , drinkIfHurt state
       -- Nothing is worth a swing when the next blow is fatal and there is
       -- no draught left to answer it.
     , breakOff state
@@ -103,6 +105,28 @@ decide state =
     ]
   where
     firstJust = fromMaybe Nothing . find isJust
+
+-- | Answer a level up.
+--
+-- A fixed order of preference rather than a judgement: the bot is the
+-- balance oracle, so what it is measuring is whether the dungeon can be
+-- beaten by someone who always reaches for the same thing, which is the
+-- least favourable assumption worth making. It leans on staying alive,
+-- because the runs it loses it loses by dying.
+takeTheBoon :: GameState -> Maybe [Char]
+takeTheBoon state = do
+  offer <- boonChoice state
+  let taken b = length (filter (== b) (boons state))
+      -- Whichever it has least of, with a fixed order to break ties. Each
+      -- boon is a trade, so always reaching for the same one builds a
+      -- glass cannon: unchecked, the bot ended a run on 910 health where
+      -- the rungs alone would have given it 1570, and what that measures
+      -- is one extreme build rather than the dungeon.
+      spread = sortOn (\b -> (taken b, rank b)) offer
+      rank b = length (takeWhile (/= b) [Sinew, Edge, Thirst, Calm])
+  best <- listToMaybe spread
+  key <- lookup best (zip offer ['a' ..])
+  pure [key]
 
 -- Healing is worth spending before dying with it in the pack.
 drinkIfHurt :: GameState -> Maybe [Char]

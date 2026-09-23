@@ -11,7 +11,7 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import Game.Types
 import Game.Score (ranked, runOf, runScore)
-import Game.State (rousedPercent, helpPages, loggedOnScreen, maxInventorySize, nextXPLevel, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld, whatItDoes)
+import Game.State (boonName, whatBoonDoes, rousedPercent, helpPages, loggedOnScreen, maxInventorySize, nextXPLevel, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld, whatItDoes)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
 import Data.List (intercalate, zip4)
@@ -25,6 +25,7 @@ drawUI state =
   [ drawScoresPopup state | showScores state ] ++
   [ drawLogPopup state | showLog state ] ++
   [ drawLegendPopup (legendPage state) | legendPage state > 0 ] ++
+  [ drawBoonPopup offer | Just offer <- [boonChoice state] ] ++
   [ drawInventoryPopup mode (player state) | Just mode <- [inventoryMode state] ] ++
   [ drawVictoryScreen state | gameWon state ] ++
   [ drawGameOverScreen state | gameOver state && not (gameWon state) ] ++
@@ -273,6 +274,22 @@ scoreLines highlight runs
     row place run
       | Just run == highlight = "> " ++ drop 2 (scoreRow place run)
       | otherwise = scoreRow place run
+
+-- | The three boons on offer, and what each of them is worth.
+--
+-- Lettered the way the inventory is, because the player already knows that
+-- a letter in a box is a thing they can press. There is no way to close it:
+-- the choice has been earned, and the game waits.
+drawBoonPopup :: [Boon] -> Widget ()
+drawBoonPopup offer =
+  C.centerLayer $
+    B.borderWithLabel (str "You have grown") $
+      padAll 1 $ hLimit width $ padRight Max $ vBox (map str body)
+  where
+    row key boon = key : ") " ++ boonName boon ++ " - " ++ whatBoonDoes boon
+    rows = zipWith row ['a' ..] offer
+    body = rows ++ [" ", "Press a letter to take one."]
+    width = maximum (map length body)
 
 -- | The messages, as far back as they are kept.
 --
