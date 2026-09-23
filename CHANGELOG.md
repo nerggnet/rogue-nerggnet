@@ -24,6 +24,21 @@ All notable changes to this project are documented in this file.
   just under the threshold for XP level 3, and even a few points of extra
   experience tipped them over it a floor early and flattened floors 3 to 6
   into one difficulty.
+- Floor 12 is retuned for a player who has boons. Choosing at every level
+  up left the finale reading 37 on the hundred-run curve where the rousing
+  clock alone had made it 18: not because the player was tougher, but
+  because they killed the floor in half the turns -- 266 against 511 -- and
+  a clock that charges by the turn cannot charge for turns nobody spends.
+
+  So the floor has more to kill rather than harder blows. Its Wyrms,
+  Vault Guardians and the Dungeon Lord carry about a quarter more health;
+  only the Guardians and the Lord hit any harder, by a point each. Attack
+  was the wrong lever: fifteen percent more of it took the finale to 13 and
+  its median to 17, which is a wall rather than a climax, while health
+  restores the length of the fight that the boons took away.
+
+  The finale reads 18 again, its median 27, and all hundred runs still get
+  out alive.
 - Every experience level now offers a choice of three boons, and the game
   waits until one is taken. Twelve floors of hand-drawn dungeon otherwise
   play out the same way every run: over a hundred bot runs the finishing
