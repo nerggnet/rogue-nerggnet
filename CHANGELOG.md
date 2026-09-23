@@ -140,6 +140,19 @@ All notable changes to this project are documented in this file.
   the table reads `(top XP level)`, and the two messages that refused a
   staircase say "top floor" and "bottom floor", which is what they were
   always about.
+- Floor 9 hits harder. It was the one floor in the dungeon that cost less
+  than the floor above it: three quarters of a health bar against floor 8's
+  full one and floor 10's one and a half, which left it reading 46 on the
+  hundred-run curve between two floors reading 37. Part of it was plain
+  inversion -- its Void Stalkers swung 52 where floor 8's swung 53, and its
+  Ashen Wyrms 44 against floor 8's 45, the same monsters hitting softer a
+  floor deeper -- and the rest was the jump from XP level 9 to 11, which
+  grows the health bar by two fifths between the two floors.
+
+  Its Wyrms, Stalkers, Bone Colossi and the Thing in the Dark now swing
+  harder, each still below its floor 10 counterpart. Floor 9 costs a
+  health bar and a quarter, the curve reads 37, 39, 36 across floors 8 to
+  10, and all hundred runs still get out alive.
 - Floors 6 and 7 hit harder. Measured over a hundred bot runs, the worst
   health a floor drove the player to used to read 57, 56, 55, 57 for floors
   4 to 7 -- four floors in a row at the same difficulty, and then a cliff to
