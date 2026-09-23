@@ -6,6 +6,24 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- Floor 2 has archers in it. The hand-drawn maze is the longest floor in the
+  dungeon -- 600 turns against 150 to 300 for every other one, a fifth of a
+  whole run -- and it was costing the player eleven percent of a health bar
+  to walk. It was not short of monsters either: at one for every 48 walkable
+  tiles it was already the densest floor of the first half. What it had was
+  nothing that could reach across a corridor, so a maze full of long
+  sightlines never used them.
+
+  Three Bone Archers now stand on the longest of them, including the
+  twenty-nine tile run to the stairs down. They are weaker than the ones on
+  floor 3, where the player meets them next. The floor costs a third of a
+  bar now rather than a ninth.
+
+  The experience on the floor is unchanged -- the twenty monsters there are
+  worth what the seventeen were -- because the player reaches floor 3 sitting
+  just under the threshold for XP level 3, and even a few points of extra
+  experience tipped them over it a floor early and flattened floors 3 to 6
+  into one difficulty.
 - The dungeon rouses as a run goes on. It is drawn by hand and never
   changes, so there was no reason not to clear every floor of everything
   before going down: treasure is score, monsters are experience, and

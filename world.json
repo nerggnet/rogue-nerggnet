@@ -708,7 +708,7 @@
      ],
      "health": 16,
      "attack": 6,
-     "xp": 10,
+     "xp": 8,
      "inactive": false
     },
     {
@@ -719,7 +719,7 @@
      ],
      "health": 16,
      "attack": 6,
-     "xp": 10,
+     "xp": 8,
      "inactive": false
     },
     {
@@ -730,7 +730,7 @@
      ],
      "health": 16,
      "attack": 6,
-     "xp": 10,
+     "xp": 8,
      "inactive": false
     },
     {
@@ -741,7 +741,7 @@
      ],
      "health": 22,
      "attack": 6,
-     "xp": 12,
+     "xp": 10,
      "inactive": false
     },
     {
@@ -752,7 +752,7 @@
      ],
      "health": 22,
      "attack": 6,
-     "xp": 12,
+     "xp": 10,
      "inactive": false
     },
     {
@@ -763,7 +763,7 @@
      ],
      "health": 22,
      "attack": 6,
-     "xp": 12,
+     "xp": 10,
      "inactive": false
     },
     {
@@ -774,7 +774,7 @@
      ],
      "health": 16,
      "attack": 6,
-     "xp": 10,
+     "xp": 8,
      "inactive": false
     },
     {
@@ -785,7 +785,7 @@
      ],
      "health": 26,
      "attack": 7,
-     "xp": 14,
+     "xp": 12,
      "inactive": false
     },
     {
@@ -796,7 +796,7 @@
      ],
      "health": 22,
      "attack": 6,
-     "xp": 12,
+     "xp": 10,
      "inactive": false
     },
     {
@@ -807,7 +807,7 @@
      ],
      "health": 26,
      "attack": 7,
-     "xp": 14,
+     "xp": 12,
      "inactive": false
     },
     {
@@ -818,7 +818,7 @@
      ],
      "health": 26,
      "attack": 7,
-     "xp": 14,
+     "xp": 12,
      "inactive": false
     },
     {
@@ -829,7 +829,7 @@
      ],
      "health": 22,
      "attack": 6,
-     "xp": 12,
+     "xp": 10,
      "inactive": false
     },
     {
@@ -840,7 +840,7 @@
      ],
      "health": 26,
      "attack": 7,
-     "xp": 14,
+     "xp": 12,
      "inactive": false
     },
     {
@@ -851,7 +851,7 @@
      ],
      "health": 16,
      "attack": 6,
-     "xp": 10,
+     "xp": 8,
      "inactive": false
     },
     {
@@ -862,7 +862,7 @@
      ],
      "health": 26,
      "attack": 7,
-     "xp": 14,
+     "xp": 12,
      "inactive": false
     },
     {
@@ -873,7 +873,7 @@
      ],
      "health": 26,
      "attack": 7,
-     "xp": 14,
+     "xp": 12,
      "inactive": false
     },
     {
@@ -884,7 +884,7 @@
      ],
      "health": 26,
      "attack": 7,
-     "xp": 14,
+     "xp": 12,
      "inactive": false
     },
     {
@@ -897,6 +897,42 @@
      "attack": 7,
      "xp": 22,
      "inactive": true
+    },
+    {
+     "name": "Bone Archer",
+     "position": [
+      20,
+      1
+     ],
+     "health": 22,
+     "attack": 8,
+     "xp": 12,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Bone Archer",
+     "position": [
+      6,
+      25
+     ],
+     "health": 22,
+     "attack": 8,
+     "xp": 12,
+     "inactive": false,
+     "range": 3
+    },
+    {
+     "name": "Bone Archer",
+     "position": [
+      3,
+      20
+     ],
+     "health": 22,
+     "attack": 8,
+     "xp": 12,
+     "inactive": false,
+     "range": 3
     }
    ],
    "doors": [
