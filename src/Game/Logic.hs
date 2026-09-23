@@ -4,7 +4,7 @@ module Game.Logic where
 import Game.State
   ( defaultMonsterRadius, defaultFogRadius, maxInventorySize
   , updateVisibility, evalTriggerCondition, visibleMonsters
-  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid, whatItDoes, seesFrom, scrolledLog
+  , currentWorld, setCurrentWorld, withCurrentWorld, replaceLevel, maxLogMessages, maxHealth, npcMoveInterval, nextHelpPage, withRandom, initializeGrid, whatItDoes, seesFrom, scrolledLog, dungeonRoused, monsterBlow, maxRoused
   )
 import Game.GridUtils (updateTile, gridLookup, orthogonal, keyedInventory)
 import Game.Types
@@ -66,7 +66,17 @@ processTurn state =
         , turnCount = turnCount state + 1
         , hiddenTurns = max 0 (hiddenTurns state - 1)
         }
-      state' = moveMonsters ticked
+      -- Said out loud every time it happens, because a clock the player
+      -- cannot see is not a decision, it is an ambush.
+      roused
+        | dungeonRoused ticked > dungeonRoused state =
+            ticked {message = stirs : message ticked}
+        | otherwise = ticked
+      stirs
+        | dungeonRoused ticked >= maxRoused =
+            "The dungeon is fully roused. It will get no angrier than this."
+        | otherwise = "The dungeon stirs. Everything in it strikes harder."
+      state' = moveMonsters roused
       state'' = monstersAttack state'
       state''' = processTriggers state''
       state'''' = if keyPressCount state''' == 0 then moveNPCs state''' else state'''
@@ -719,7 +729,7 @@ combat state mnstr playerGoesFirst =
       let plyr = player state
           (playerDamage, rolledOnce) = withRandom (rollDamage (attack plyr)) state
           (monsterDamage, rolled) =
-            withRandom (rollDamage (mAttack target - resistance plyr)) rolledOnce
+            withRandom (rollDamage (monsterBlow state target - resistance plyr)) rolledOnce
           monsterDefeated = mHealth target - playerDamage <= 0
 
           -- A charm that drinks from the wounds you deal gives back a share
@@ -899,7 +909,7 @@ shootPlayer :: GameState -> Monster -> GameState
 shootPlayer state mnstr =
   let plyr = player state
       (damage, rolled) =
-        withRandom (rollDamage (mAttack mnstr - resistance plyr)) state
+        withRandom (rollDamage (monsterBlow state mnstr - resistance plyr)) state
       (left, pack, rescued) = catchDeath rolled (health plyr - damage)
       told
         | damage <= 0 = [mName mnstr ++ " shoots at you, and misses."]

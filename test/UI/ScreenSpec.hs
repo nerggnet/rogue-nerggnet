@@ -8,7 +8,7 @@ module UI.ScreenSpec (spec) where
 import Data.List (dropWhileEnd, isInfixOf, isPrefixOf, isSuffixOf)
 import Game.GridUtils (keyedInventory)
 import Game.Logic (getVisibleMonsters)
-import Game.State (withCurrentWorld)
+import Game.State (rousingInterval, withCurrentWorld)
 import Game.Types
 import Linear.V2 (V2 (..))
 import Test.Hspec
@@ -307,6 +307,17 @@ spec = do
           st = (withPlayer (\p -> p {xp = 123456, playerXPLevel = 20}) room)
                  {xpLevels = top}
       showsText st "XP: 123456 (top XP level)" `shouldBe` True
+
+    -- The dungeon rouses on a clock, so the clock has to be on screen:
+    -- a cost the player cannot see is not one they can decide about.
+    it "shows the turn the run is on" $
+      showsText room {turnCount = 1234} "Turn: 1234" `shouldBe` True
+
+    it "says nothing about rousing while the dungeon is calm" $
+      showsText room {turnCount = 1} "roused" `shouldBe` False
+
+    it "says how roused the dungeon is once it has stirred" $
+      showsText room {turnCount = 3 * rousingInterval} "(roused +6%)" `shouldBe` True
 
     it "says when the inventory is empty" $
       showsText room "No items collected" `shouldBe` True

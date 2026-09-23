@@ -11,7 +11,7 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import Game.Types
 import Game.Score (ranked, runOf, runScore)
-import Game.State (helpPages, loggedOnScreen, maxInventorySize, nextXPLevel, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld, whatItDoes)
+import Game.State (rousedPercent, helpPages, loggedOnScreen, maxInventorySize, nextXPLevel, treasureCarried, visibleLogMessages, visibleMonsters, currentWorld, whatItDoes)
 import Game.GridUtils (keyedInventory)
 import Linear.V2 (V2(..))
 import Data.List (intercalate, zip4)
@@ -431,9 +431,18 @@ drawStatsBox state =
           , padRight Max $ str $ "Resistance: " ++ show (resistance plyr) ++ " (Base: " ++ show (baseResistance plyr) ++ ")"
           , padRight Max $ str $ "XP: " ++ show (xp plyr) ++ toNextLevel
           , padRight Max $ str $ "Treasure: " ++ show (sum (map iValue (inventory plyr)))
+          , padRight Max $ str turnLine
           ]
   where
     plyr = player state
+    -- The turn and what it has cost, on one line. The dungeon rouses on a
+    -- clock, so the clock has to be on screen; and the two numbers belong
+    -- together, because the second is only ever a consequence of the first.
+    turnLine = "Turn: " ++ show (turnCount state) ++ roused
+    roused = case rousedPercent state of
+      0 -> ""
+      n -> " (roused +" ++ show n ++ "%)"
+
     -- How much more is wanted for the next rung, on the same line as the
     -- experience itself: the box is thirty columns wide and a player wants
     -- to read the two figures against each other anyway.

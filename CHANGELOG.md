@@ -6,6 +6,27 @@ All notable changes to this project are documented in this file.
 
 ### Added
 
+- The dungeon rouses as a run goes on. It is drawn by hand and never
+  changes, so there was no reason not to clear every floor of everything
+  before going down: treasure is score, monsters are experience, and
+  neither ever runs out. Now every 1500 turns everything in the dungeon
+  strikes 2% harder for the rest of the run, up to 10%, and the stats box
+  carries the turn and what it has cost -- `Turn: 3200 (roused +4%)` --
+  with a line in the log each time it stirs.
+
+  The toll is a share of each monster's attack rather than a flat point.
+  Damage is attack minus resistance, so a flat point is not a flat toll:
+  one point on a floor 4 hound swinging 13 into resistance 8 is a fifth of
+  what it gets through, against a thirty-sixth for a floor 12 wyrm. Flat,
+  the clock fell hardest on the floors reached before it had begun to tick,
+  and floor 4 dropped from 57 to 44 on the hundred-run curve while floor 12
+  took the rest.
+
+  Floors 1 to 11 are where they were. A thorough run is driven to 27% health
+  on floor 12 where the same dungeon without the clock leaves it at 39%, and
+  all hundred runs still get out alive. Fighting everything makes the player
+  stronger and the dungeon angrier, which is the decision the clock exists
+  to ask.
 - The message history scrolls. `:log` keeps two hundred lines and shows
   sixteen, and until now the other hundred and eighty-four were unreachable:
   any key closed the popup, so the count in its title named messages there

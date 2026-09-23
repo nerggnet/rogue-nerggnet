@@ -3,7 +3,7 @@ module Game.LogicSpec (spec) where
 
 import Data.List (isInfixOf, nub, unfoldr, (\\))
 import Game.Logic
-import Game.State (currentWorld, evalTriggerCondition, helpPages, loggedOnScreen, maxInventorySize, maxLogMessages, seesFrom, treasureCarried, visibleLogMessages, visibleMonsters)
+import Game.State (currentWorld, evalTriggerCondition, helpPages, loggedOnScreen, maxInventorySize, maxLogMessages, maxRoused, monsterBlow, rousedBy, rousingInterval, seesFrom, treasureCarried, visibleLogMessages, visibleMonsters)
 import Game.Types
 import System.Random (mkStdGen)
 import Linear.V2 (V2 (..))
@@ -1083,6 +1083,64 @@ spec = do
     it "leaves a monster that is not adjacent alone" $ do
       let far = withWorld (\w -> w {monsters = [mkMonster "Goblin" (V2 7 3) 100 5]}) baseState
       health (player (monstersAttack (monstersAttack far))) `shouldBe` 20
+
+  describe "the dungeon rousing" $ do
+    let atTurn n st = st {turnCount = n}
+        -- A bar deep enough that nothing here can empty it, so the figure
+        -- being measured is the damage and not the dying.
+        tough = withPlayer (\p -> p {health = 1000000, resistance = 10})
+        brute pos = (mkMonster "Brute" pos 500 40) {mAttackWait = False}
+        facing m n = withWorld (\w -> w {monsters = [m]}) (tough (atTurn n baseState))
+        melee = facing (brute (V2 5 3))              -- next to the player
+        shooter = facing ((brute (V2 7 3)) {mRange = Just 4})  -- across the room
+        -- Damage is rolled, so one blow proves nothing. A hundred seeds do.
+        blow st = health (player st) - health (player (monstersAttack st))
+        toll build n = sum [blow ((build n) {rng = mkStdGen sd}) | sd <- [1 .. 100 :: Int]]
+
+    it "leaves the dungeon calm until the first interval is up" $ do
+      rousedBy 0 `shouldBe` 0
+      rousedBy (rousingInterval - 1) `shouldBe` 0
+
+    it "climbs a step at every interval after that" $ do
+      rousedBy rousingInterval `shouldBe` 1
+      rousedBy (3 * rousingInterval) `shouldBe` 3
+
+    -- An uncapped clock makes a slow run unwinnable long after the player
+    -- could have done anything about it.
+    it "stops climbing at the cap" $
+      rousedBy (1000 * rousingInterval) `shouldBe` maxRoused
+
+    -- Damage is attack minus resistance, so a flat point is not a flat
+    -- toll: it is a fifth of what a floor 4 hound gets through and a
+    -- thirty-sixth of what a floor 12 wyrm does. The toll is a share of
+    -- the monster\'s own attack instead, so it lands evenly.
+    it "takes a share of a monster\'s attack rather than a flat point" $ do
+      let angry = atTurn (5 * rousingInterval) baseState
+          small = mkMonster "Rat" (V2 0 0) 10 10
+          big = mkMonster "Wyrm" (V2 0 0) 10 100
+      monsterBlow baseState small `shouldBe` 10
+      monsterBlow baseState big `shouldBe` 100
+      (monsterBlow angry big - 100) `shouldSatisfy` (> (monsterBlow angry small - 10))
+
+    -- Two separate paths reach the player, and the clock has to be on both.
+    it "makes a blow at arm\'s length hurt more" $
+      toll melee (5 * rousingInterval) `shouldSatisfy` (> toll melee 0)
+
+    it "makes a shot from across the room hurt more" $
+      toll shooter (5 * rousingInterval) `shouldSatisfy` (> toll shooter 0)
+
+    -- A clock the player cannot see is an ambush, not a decision.
+    it "says so on the turn it stirs" $
+      latest (processTurn (atTurn (rousingInterval - 1) baseState))
+        `shouldSatisfy` ("stirs" `isInfixOf`)
+
+    it "says nothing on the turns in between" $
+      message (processTurn (atTurn 10 baseState))
+        `shouldSatisfy` not . any ("stirs" `isInfixOf`)
+
+    it "says when it has got as angry as it gets" $
+      latest (processTurn (atTurn (maxRoused * rousingInterval - 1) baseState))
+        `shouldSatisfy` ("no angrier" `isInfixOf`)
 
   describe "executeAction" $ do
     it "SpawnItem activates a pre-placed inactive item" $ do

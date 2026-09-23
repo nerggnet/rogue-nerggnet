@@ -74,6 +74,29 @@ together, and a body from one has no business in the other.
   Every entity has a glyph of its own (`@ M A N ! + < > ^ †`), so nothing
   is told by colour alone
 
+### The dungeon rouses
+
+The dungeon is drawn by hand and never changes, so without a clock there is no
+reason not to clear every floor of everything before going down: treasure is
+worth score, monsters are worth experience, and neither ever runs out.
+
+So it rouses. Every 1500 turns everything in the dungeon strikes 2% harder,
+for the rest of the run, up to 10%. The stats box shows the turn you are on
+and what it has cost so far -- `Turn: 3200 (roused +4%)` -- and the log says
+so each time it stirs.
+
+The toll is a share of each monster's attack rather than a flat point, because
+damage is attack minus resistance: one point on a floor 4 hound swinging 13
+into resistance 8 is a fifth of what it gets through, and one point on a floor
+12 wyrm swinging 92 into resistance 56 is a thirty-sixth. Flat, the clock fell
+hardest on the floors reached before it had even begun to tick.
+
+What it buys you is the decision. Measured over a hundred bot runs, a thorough
+run arrives on floor 12 roused and is driven down to 27% health there; the same
+dungeon with the clock switched off leaves it at 39%. Fighting everything makes
+you stronger and makes the dungeon angrier, and which of those wins is the
+question the run is now asking.
+
 The map scrolls to follow the player, so the window does not need to be tall
 enough to show a whole dungeon level at once. It takes 37 rows to see a whole
 floor of the shipped dungeon without scrolling; below that the map scrolls

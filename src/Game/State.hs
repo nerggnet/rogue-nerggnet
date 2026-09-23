@@ -89,6 +89,11 @@ helpPages =
       , "A run is scored on how deep you went and"
       , "what you carried out, so leaving is a"
       , "decision, not a failure."
+      , " "
+      , "The dungeon rouses as the run goes on, and"
+      , "everything in it strikes harder for the"
+      , "rest of the run each time. The stats box"
+      , "shows the turn and what it has cost you."
       ]
     )
   , ( "Choosing and aiming"
@@ -205,6 +210,55 @@ maxLogMessages = 200
 
 visibleLogMessages :: Int
 visibleLogMessages = 5
+
+-- | How roused the dungeon is, and what it adds to every blow struck at
+-- the player.
+--
+-- The dungeon is drawn by hand and never changes, so without a clock there
+-- is no reason not to clear every floor of everything before going down:
+-- treasure is worth score, monsters are worth experience, and neither ever
+-- runs out. This is the reason. Every 'rousingInterval' turns the dungeon
+-- notices the player a little more, and everything in it strikes harder for
+-- the rest of the run -- so the cost of a detour is paid on floor 12, by
+-- which time it cannot be given back.
+--
+-- The toll is a share of the monster's own attack rather than a flat point,
+-- because damage is attack minus resistance and a flat point is not a flat
+-- toll: one point on a floor 4 hound swinging 13 into resistance 8 is a
+-- fifth of the damage it does, and one point on a floor 12 wyrm swinging 92
+-- into resistance 56 is a thirty-sixth. Flat, the clock fell hardest on the
+-- floors the player reaches before it has even begun to tick.
+--
+-- It is capped. An uncapped clock turns a slow run into an unwinnable one
+-- some way past the point where the player could have done anything about
+-- it, which is a punishment rather than a decision.
+rousedBy :: Int -> Int
+rousedBy turns = max 0 (min maxRoused (turns `div` rousingInterval))
+
+-- | How roused the dungeon is by the turn this state is on.
+dungeonRoused :: GameState -> Int
+dungeonRoused = rousedBy . turnCount
+
+-- | What that comes to as a percentage, which is the figure shown on screen.
+rousedPercent :: GameState -> Int
+rousedPercent state = dungeonRoused state * rousePercent
+
+rousingInterval :: Int
+rousingInterval = 1500
+
+maxRoused :: Int
+maxRoused = 5
+
+rousePercent :: Int
+rousePercent = 2
+
+-- | What a monster hits for, before the player's resistance is taken off.
+--
+-- Every blow the player takes goes through this, so the clock cannot be
+-- forgotten at one of the places a monster can reach them.
+monsterBlow :: GameState -> Monster -> Int
+monsterBlow state mnstr =
+  mAttack mnstr + (mAttack mnstr * rousedPercent state) `div` 100
 
 -- | How many lines ":log" shows at once.
 --
